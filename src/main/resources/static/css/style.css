@@ -1,0 +1,25 @@
+/* ==========================================================================
+   NEXUSTECH FLAGSHIP STORE - MAIN CSS BUNDLE
+   Modular CSS Architecture
+   ========================================================================== */
+
+/* 1. Base tokens, typography, CSS reset & global container */
+@import url('base.css');
+
+/* 2. Global Layout: Top Navigation Bar, Search, Cart & Footer */
+@import url('layout.css');
+
+/* 3. Home Page: Hero Banner & Commitments / Value props */
+@import url('home.css');
+
+/* 4. Product Catalog: Filters & Product Cards Grid */
+@import url('product.css');
+
+/* 5. Authentication: Login, Register, Forgot/Reset Password & OTP */
+@import url('auth.css');
+
+/* 6. Multi-role Badges, Role Session Bar & Demo Switcher */
+@import url('roles.css');
+
+/* 7. Responsive Breakpoints (Tablet & Mobile) */
+@import url('responsive.css');
