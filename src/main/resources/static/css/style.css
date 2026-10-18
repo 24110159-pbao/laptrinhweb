@@ -21,5 +21,8 @@
 /* 6. Multi-role Badges, Role Session Bar & Demo Switcher */
 @import url('roles.css');
 
-/* 7. Responsive Breakpoints (Tablet & Mobile) */
+/* 7. Personal account pages */
+@import url('account.css');
+
+/* 8. Responsive Breakpoints (Tablet & Mobile) */
 @import url('responsive.css');

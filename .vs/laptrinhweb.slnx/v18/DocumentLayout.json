@@ -1,0 +1,54 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Ky_5\\LT_Web\\laptrinhweb\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Ky_5\\LT_Web\\laptrinhweb\\src\\main\\java\\example\\com\\ltw\\LtwckApplication.java||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\main\\java\\example\\com\\ltw\\LtwckApplication.java||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Ky_5\\LT_Web\\laptrinhweb\\pom.xml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:pom.xml||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "LtwckApplication.java",
+              "DocumentMoniker": "D:\\Ky_5\\LT_Web\\laptrinhweb\\src\\main\\java\\example\\com\\ltw\\LtwckApplication.java",
+              "RelativeDocumentMoniker": "src\\main\\java\\example\\com\\ltw\\LtwckApplication.java",
+              "ToolTip": "D:\\Ky_5\\LT_Web\\laptrinhweb\\src\\main\\java\\example\\com\\ltw\\LtwckApplication.java",
+              "RelativeToolTip": "src\\main\\java\\example\\com\\ltw\\LtwckApplication.java",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-10-18T14:27:31.001Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "pom.xml",
+              "DocumentMoniker": "D:\\Ky_5\\LT_Web\\laptrinhweb\\pom.xml",
+              "RelativeDocumentMoniker": "pom.xml",
+              "ToolTip": "D:\\Ky_5\\LT_Web\\laptrinhweb\\pom.xml",
+              "RelativeToolTip": "pom.xml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003576|",
+              "WhenOpened": "2026-10-18T14:26:43.094Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -31,6 +31,8 @@ public class AuthService {
     public static final String SESSION_PENDING_EMAIL = "pendingEmail";
     public static final String SESSION_RESET_EMAIL = "resetEmail";
     public static final String SESSION_LAST_OTP_SENT_TIME = "lastOtpSentTime";
+    public static final String SESSION_PENDING_EMAIL_CHANGE = "pendingEmailChange";
+    public static final String SESSION_PENDING_EMAIL_CHANGE_USER = "pendingEmailChangeUser";
 
     private final UserRepository userRepository;
     private final EmailOtpRepository emailOtpRepository;
@@ -223,6 +225,48 @@ public class AuthService {
 
         session.removeAttribute(SESSION_RESET_EMAIL);
         log.info("Password successfully reset for {}", email);
+    }
+
+    @Transactional
+    public void startEmailChange(User user, String requestedEmail, HttpSession session) {
+        String email = requestedEmail.trim().toLowerCase();
+        if (email.equalsIgnoreCase(user.getEmail())) {
+            throw new IllegalArgumentException("Email mới phải khác email hiện tại.");
+        }
+        if (userRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("Email này đã được sử dụng bởi tài khoản khác.");
+        }
+
+        String otpCode = generate6DigitOtp();
+        saveNewOtp(email, otpCode, OtpPurpose.CHANGE_EMAIL);
+        mailService.sendOtpEmail(email, otpCode, "Xác minh email mới cho tài khoản NexusTech");
+        session.setAttribute(SESSION_PENDING_EMAIL_CHANGE, email);
+        session.setAttribute(SESSION_PENDING_EMAIL_CHANGE_USER, user.getId());
+        session.setAttribute(SESSION_LAST_OTP_SENT_TIME, System.currentTimeMillis());
+    }
+
+    @Transactional
+    public User completeEmailChange(User user, String otpCode, HttpSession session) {
+        String email = (String) session.getAttribute(SESSION_PENDING_EMAIL_CHANGE);
+        Long pendingUserId = (Long) session.getAttribute(SESSION_PENDING_EMAIL_CHANGE_USER);
+        if (email == null || pendingUserId == null || !pendingUserId.equals(user.getId())) {
+            throw new IllegalStateException("Yêu cầu xác minh email đã hết hạn. Vui lòng thực hiện lại.");
+        }
+        if (userRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("Email này đã được sử dụng bởi tài khoản khác.");
+        }
+
+        EmailOtp otp = validateOtpCode(email, otpCode, OtpPurpose.CHANGE_EMAIL);
+        otp.setVerifiedAt(LocalDateTime.now());
+        emailOtpRepository.save(otp);
+
+        user.setEmail(email);
+        user.setEmailVerified(true);
+        User savedUser = userRepository.save(user);
+        session.setAttribute(SESSION_CURRENT_USER, savedUser);
+        session.removeAttribute(SESSION_PENDING_EMAIL_CHANGE);
+        session.removeAttribute(SESSION_PENDING_EMAIL_CHANGE_USER);
+        return savedUser;
     }
 
     private void saveNewOtp(String email, String otpCode, OtpPurpose purpose) {
