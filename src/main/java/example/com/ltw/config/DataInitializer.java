@@ -1,4 +1,4 @@
-package example.com.ltw.catalog.config;
+package example.com.ltw.config;
 
 import example.com.ltw.user.entity.Role;
 import example.com.ltw.user.entity.User;
@@ -33,7 +33,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // 1. ADMIN
         createOrUpdateDemoUser(
-                "admin@nexustech.vn",
+                "admin@gamil.com",
                 "Trịnh Quản Trị (Admin)",
                 "123456",
                 Role.ADMIN,
@@ -43,7 +43,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // 2. MANAGER
         createOrUpdateDemoUser(
-                "manager@nexustech.vn",
+                "manager@gamil.com",
                 "Lê Quản Lý (Manager)",
                 "123456",
                 Role.MANAGER,
@@ -53,7 +53,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // 3. STAFF
         createOrUpdateDemoUser(
-                "staff@nexustech.vn",
+                "staff@gamil.com",
                 "Nguyễn Bán Hàng (Staff)",
                 "123456",
                 Role.STAFF,
@@ -63,7 +63,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // 4. SHIPPER
         createOrUpdateDemoUser(
-                "shipper@nexustech.vn",
+                "shipper@gamil.com",
                 "Trần Giao Vận (Shipper)",
                 "123456",
                 Role.SHIPPER,
@@ -73,7 +73,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // 5. USER
         createOrUpdateDemoUser(
-                "user@nexustech.vn",
+                "user@ngamil.com",
                 "Vũ Khách Hàng (User VIP)",
                 "123456",
                 Role.USER,
