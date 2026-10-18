@@ -1,4 +1,4 @@
-package example.com.ltw.catalog.config;
+package example.com.ltw.config;
 
 import example.com.ltw.user.entity.Role;
 import example.com.ltw.user.entity.User;

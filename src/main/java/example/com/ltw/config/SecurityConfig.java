@@ -1,4 +1,4 @@
-package example.com.ltw.auth.config;
+package example.com.ltw.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
