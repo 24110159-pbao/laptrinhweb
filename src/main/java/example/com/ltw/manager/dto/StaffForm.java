@@ -20,9 +20,17 @@ public class StaffForm {
     @Size(max = 150, message = "Email không được vượt quá 150 ký tự.")
     private String email;
 
-    @Size(max = 20, message = "Số điện thoại không được vượt quá 20 ký tự.")
+    @NotBlank(message = "Vui lòng nhập số điện thoại.")
+    @Pattern(
+            regexp = "^0[0-9]{9}$",
+            message = "Số điện thoại phải gồm 10 chữ số và bắt đầu bằng số 0."
+    )
     private String phone;
 
-    @Pattern(regexp = "^$|.{8,72}$", message = "Mật khẩu phải có từ 8 đến 72 ký tự.")
+    @Size(
+            min = 6,
+            max = 20,
+            message = "Mật khẩu phải có từ 6 đến 20 ký tự."
+    )
     private String password;
 }

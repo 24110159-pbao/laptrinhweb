@@ -225,4 +225,27 @@ public class ManagerController {
             this.message = message;
         }
     }
+    // =========================
+    // CUSTOMERS
+    // =========================
+
+    @GetMapping("/customers")
+    public String customers(
+            HttpServletRequest request,
+            Model model
+    ) {
+        Long managerId = managerId(request);
+
+        model.addAttribute(
+                "manager",
+                managerService.getManager(managerId)
+        );
+
+        model.addAttribute(
+                "customers",
+                managerService.getCustomers(managerId)
+        );
+
+        return "manager/customers";
+    }
 }

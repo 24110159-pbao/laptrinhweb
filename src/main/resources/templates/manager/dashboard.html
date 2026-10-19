@@ -57,6 +57,11 @@
             <i class="bi bi-receipt"></i>
             <span>Hóa đơn</span>
         </a>
+        <a th:href="@{/manager/customers}"
+           class="sidebar-link">
+            <i class="bi bi-person-lines-fill"></i>
+            <span>Khách hàng</span>
+        </a>
 
         <div class="sidebar-branch">
             <i class="bi bi-geo-alt"></i>
@@ -127,35 +132,42 @@
         </div>
 
         <section class="manager-panel">
-            <div class="panel-heading">
-                <div>
-                    <h2>Truy cập nhanh</h2>
-                    <p>Các chức năng quản lý thường dùng</p>
-                </div>
-                <i class="bi bi-grid text-info fs-4"></i>
-            </div>
 
-            <div class="row g-3">
-                <div class="col-12 col-md-4">
-                    <a th:href="@{/manager/inventory}" class="quick-action">
-                        <i class="bi bi-boxes"></i>
-                        <strong>Kiểm tra tồn kho</strong>
-                        <span>Theo dõi số lượng và trạng thái hàng hóa.</span>
-                    </a>
+            <!-- Thống kê doanh thu -->
+            <div class="row g-4 mb-4">
+                <div class="col-12 col-md-6">
+                    <section class="manager-stat-card">
+                        <div class="stat-icon stat-icon-blue">
+                            <i class="bi bi-currency-dollar"></i>
+                        </div>
+                        <div class="stat-label">Doanh thu chi nhánh</div>
+                        <div class="stat-value"
+                             th:text="${#numbers.formatDecimal(revenue, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                            0 ₫
+                        </div>
+                        <div class="stat-description">
+                            Doanh thu theo dữ liệu hệ thống
+                        </div>
+                    </section>
                 </div>
-                <div class="col-12 col-md-4">
-                    <a th:href="@{/manager/staff}" class="quick-action">
-                        <i class="bi bi-person-gear"></i>
-                        <strong>Quản lý nhân viên</strong>
-                        <span>Thêm, chỉnh sửa và quản lý tài khoản Staff.</span>
-                    </a>
-                </div>
-                <div class="col-12 col-md-4">
-                    <a th:href="@{/manager/orders}" class="quick-action">
-                        <i class="bi bi-clipboard-check"></i>
-                        <strong>Tra cứu hóa đơn</strong>
-                        <span>Xem đơn hàng và thông tin thanh toán.</span>
-                    </a>
+
+                <div class="col-12 col-md-6">
+                    <section class="manager-stat-card">
+                        <div class="stat-icon stat-icon-purple">
+                            <i class="bi bi-receipt"></i>
+                        </div>
+                        <div class="stat-label">Đơn cần xử lý</div>
+                        <div class="stat-value"
+                             th:text="${pendingOrderCount}">
+                            0
+                        </div>
+                        <div class="stat-description">
+                            Đơn hàng đang chờ xử lý
+                        </div>
+                        <a th:href="@{/manager/orders}" class="stat-link">
+                            Xử lý đơn hàng <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </section>
                 </div>
             </div>
         </section>

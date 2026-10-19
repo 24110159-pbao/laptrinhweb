@@ -12,6 +12,37 @@
           rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/manager.css}">
 </head>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const search = document.getElementById('orderSearch');
+        const filter = document.getElementById('orderStatusFilter');
+        const rows = document.querySelectorAll(
+            'tbody tr[data-status]'
+        );
+
+        function filterOrders() {
+            const keyword = search.value.trim().toLowerCase();
+            const status = filter.value;
+
+            rows.forEach(function (row) {
+                const text = (
+                    row.dataset.search || ''
+                ).toLowerCase();
+
+                const matchesKeyword = text.includes(keyword);
+                const matchesStatus =
+                    !status || row.dataset.status === status;
+
+                row.hidden = !(matchesKeyword && matchesStatus);
+            });
+        }
+
+        search.addEventListener('input', filterOrders);
+        filter.addEventListener('change', filterOrders);
+    });
+</script>
+
 <body class="manager-page">
 
 <header class="manager-navbar">
@@ -48,6 +79,11 @@
         <a th:href="@{/manager/orders}" class="sidebar-link active">
             <i class="bi bi-receipt"></i><span>Hóa đơn</span>
         </a>
+        <a th:href="@{/manager/customers}"
+           class="sidebar-link">
+            <i class="bi bi-person-lines-fill"></i>
+            <span>Khách hàng</span>
+        </a>
 
         <div class="sidebar-branch">
             <i class="bi bi-geo-alt"></i>
@@ -78,6 +114,30 @@
                     <p>Các đơn hàng thuộc chi nhánh bạn quản lý</p>
                 </div>
                 <span class="panel-icon"><i class="bi bi-receipt-cutoff"></i></span>
+            </div>
+
+            <div class="order-toolbar mb-3">
+                <div class="order-search">
+                    <i class="bi bi-search"></i>
+                    <input type="text"
+                           id="orderSearch"
+                           class="form-control"
+                           placeholder="Tìm mã đơn hoặc tên khách hàng...">
+                </div>
+
+                <div class="order-filter">
+                    <select id="orderStatusFilter"
+                            class="form-select"
+                            aria-label="Lọc trạng thái đơn hàng">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="PENDING">Chờ xác nhận</option>
+                        <option value="CONFIRMED">Đã xác nhận</option>
+                        <option value="PROCESSING">Đang xử lý</option>
+                        <option value="SHIPPING">Đang giao</option>
+                        <option value="DELIVERED">Đã giao</option>
+                        <option value="CANCELLED">Đã hủy</option>
+                    </select>
+                </div>
             </div>
 
             <div class="table-responsive">

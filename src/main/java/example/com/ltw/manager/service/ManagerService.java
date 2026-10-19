@@ -1,3 +1,4 @@
+
 package example.com.ltw.manager.service;
 
 import example.com.ltw.branch.entity.Branch;
@@ -19,8 +20,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-
+import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -32,27 +35,55 @@ public class ManagerService {
     private final OrderItemRepository orderItemRepository;
     private final PasswordEncoder passwordEncoder;
 
+    // =========================
+    // MANAGER
+    // =========================
+
     @Transactional(readOnly = true)
     public User getManager(Long managerId) {
         return requireManager(managerId);
     }
+
+    // =========================
+    // DASHBOARD
+    // =========================
 
     @Transactional(readOnly = true)
     public DashboardSummary getDashboardSummary(Long managerId) {
         Branch branch = requireManager(managerId).getBranch();
         Long branchId = branch.getId();
 
+        long staffCount =
+                userRepository.countByBranch_IdAndRole(
+                        branchId,
+                        Role.STAFF
+                );
+
+        long inventoryCount =
+                branchInventoryRepository.countByBranch_Id(branchId);
+
+        long orderCount =
+                orderRepository.countByBranch_Id(branchId);
+
         return new DashboardSummary(
-                userRepository.countByBranch_IdAndRole(branchId, Role.STAFF),
-                branchInventoryRepository.countByBranch_Id(branchId),
-                orderRepository.countByBranch_Id(branchId)
+                staffCount,
+                inventoryCount,
+                orderCount
         );
     }
 
+    // =========================
+    // INVENTORY
+    // =========================
+
     @Transactional(readOnly = true)
     public List<BranchInventory> getInventory(Long managerId) {
-        Long branchId = requireManager(managerId).getBranch().getId();
-        return branchInventoryRepository.findAllByBranch_IdOrderByIdAsc(branchId);
+        Long branchId = requireManager(managerId)
+                .getBranch()
+                .getId();
+
+        return branchInventoryRepository
+                .findAllByBranch_IdOrderByIdAsc(branchId);
     }
 
     @Transactional
@@ -62,10 +93,16 @@ public class ManagerService {
             ProductVariantStatus status
     ) {
         if (status == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Trạng thái tồn kho không hợp lệ.");
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Trạng thái tồn kho không hợp lệ."
+            );
         }
 
-        Long branchId = requireManager(managerId).getBranch().getId();
+        Long branchId = requireManager(managerId)
+                .getBranch()
+                .getId();
+
         BranchInventory inventory = branchInventoryRepository
                 .findByIdAndBranch_Id(inventoryId, branchId)
                 .orElseThrow(() -> new ResponseStatusException(
@@ -76,49 +113,73 @@ public class ManagerService {
         inventory.setStatus(status);
     }
 
+    // =========================
+    // STAFF
+    // =========================
+
     @Transactional(readOnly = true)
     public List<User> getStaff(Long managerId) {
-        Long branchId = requireManager(managerId).getBranch().getId();
-        return userRepository.findAllByBranch_IdAndRoleOrderByCreatedAtDesc(
-                branchId,
-                Role.STAFF
-        );
+        Long branchId = requireManager(managerId)
+                .getBranch()
+                .getId();
+
+        return userRepository
+                .findAllByBranch_IdAndRoleOrderByCreatedAtDesc(
+                        branchId,
+                        Role.STAFF
+                );
     }
 
     @Transactional(readOnly = true)
     public User getStaff(Long managerId, Long staffId) {
-        Long branchId = requireManager(managerId).getBranch().getId();
+        Long branchId = requireManager(managerId)
+                .getBranch()
+                .getId();
+
         return findStaffInBranch(staffId, branchId);
     }
 
     @Transactional
     public void createStaff(Long managerId, StaffForm form) {
+        validateStaffForm(form, true);
+
         Branch branch = requireManager(managerId).getBranch();
+
         String email = normalizeEmail(form.getEmail());
+
         if (userRepository.existsByEmail(email)) {
             throw new DuplicateEmailException();
-        }
-        if (form.getPassword() == null || form.getPassword().isBlank()
-                || form.getPassword().length() < 8 || form.getPassword().length() > 72) {
-            throw new IllegalArgumentException("Mật khẩu phải có từ 8 đến 72 ký tự.");
         }
 
         User staff = new User();
         staff.setFullName(form.getFullName().trim());
         staff.setEmail(email);
         staff.setPhone(normalizeOptional(form.getPhone()));
-        staff.setPassword(passwordEncoder.encode(form.getPassword()));
+        staff.setPassword(
+                passwordEncoder.encode(form.getPassword())
+        );
         staff.setRole(Role.STAFF);
         staff.setStatus(UserStatus.ACTIVE);
         staff.setBranch(branch);
+
         userRepository.save(staff);
     }
 
     @Transactional
-    public void updateStaff(Long managerId, Long staffId, StaffForm form) {
-        Long branchId = requireManager(managerId).getBranch().getId();
+    public void updateStaff(
+            Long managerId,
+            Long staffId,
+            StaffForm form
+    ) {
+        validateStaffForm(form, false);
+
+        Long branchId = requireManager(managerId)
+                .getBranch()
+                .getId();
+
         User staff = findStaffInBranch(staffId, branchId);
         String email = normalizeEmail(form.getEmail());
+
         if (!staff.getEmail().equalsIgnoreCase(email)
                 && userRepository.existsByEmailAndIdNot(email, staffId)) {
             throw new DuplicateEmailException();
@@ -127,80 +188,283 @@ public class ManagerService {
         staff.setFullName(form.getFullName().trim());
         staff.setEmail(email);
         staff.setPhone(normalizeOptional(form.getPhone()));
+
+        // Không thay đổi mật khẩu khi cập nhật thông tin Staff.
+        // Chức năng đổi mật khẩu nên được xử lý riêng.
     }
 
     @Transactional
-    public UserStatus toggleStaffStatus(Long managerId, Long staffId) {
-        Long branchId = requireManager(managerId).getBranch().getId();
+    public UserStatus toggleStaffStatus(
+            Long managerId,
+            Long staffId
+    ) {
+        Long branchId = requireManager(managerId)
+                .getBranch()
+                .getId();
+
         User staff = findStaffInBranch(staffId, branchId);
-        UserStatus nextStatus = staff.getStatus() == UserStatus.LOCKED
-                ? UserStatus.ACTIVE
-                : UserStatus.LOCKED;
-        staff.setStatus(nextStatus);
-        return nextStatus;
+
+        UserStatus currentStatus = staff.getStatus();
+
+        if (currentStatus == UserStatus.LOCKED) {
+            staff.setStatus(UserStatus.ACTIVE);
+        } else if (currentStatus == UserStatus.ACTIVE) {
+            staff.setStatus(UserStatus.LOCKED);
+        } else {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Không thể thay đổi trạng thái tài khoản Staff này."
+            );
+        }
+
+        return staff.getStatus();
     }
+    // =========================
+    // CUSTOMERS
+    // =========================
+
+    @Transactional(readOnly = true)
+    public List<User> getCustomers(Long managerId) {
+        Long branchId = requireManager(managerId)
+                .getBranch()
+                .getId();
+
+        return orderRepository.findCustomersByBranchId(branchId);
+    }
+
+
+    @Transactional(readOnly = true)
+    public Map<String, Long> getOrderStatusCounts(Long managerId) {
+        Long branchId = requireManager(managerId)
+                .getBranch()
+                .getId();
+
+        Map<String, Long> counts = new HashMap<>();
+
+        List<Object[]> results =
+                orderRepository.countOrdersByStatus(branchId);
+
+        for (Object[] row : results) {
+            String status = row[0] == null
+                    ? "UNKNOWN"
+                    : row[0].toString();
+
+            Long count = ((Number) row[1]).longValue();
+
+            counts.put(status, count);
+        }
+
+        return counts;
+    }
+    // =========================
+    // ORDERS
+    // =========================
 
     @Transactional(readOnly = true)
     public List<Order> getOrders(Long managerId) {
-        Long branchId = requireManager(managerId).getBranch().getId();
-        return orderRepository.findAllByBranch_IdOrderByCreatedAtDesc(branchId);
+        Long branchId = requireManager(managerId)
+                .getBranch()
+                .getId();
+
+        return orderRepository
+                .findAllByBranch_IdOrderByCreatedAtDesc(branchId);
     }
 
     @Transactional(readOnly = true)
-    public OrderDetails getOrderDetails(Long managerId, Long orderId) {
-        Long branchId = requireManager(managerId).getBranch().getId();
-        Order order = orderRepository.findByIdAndBranch_Id(orderId, branchId)
+    public OrderDetails getOrderDetails(
+            Long managerId,
+            Long orderId
+    ) {
+        Long branchId = requireManager(managerId)
+                .getBranch()
+                .getId();
+
+        Order order = orderRepository
+                .findByIdAndBranch_Id(orderId, branchId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Không tìm thấy hóa đơn thuộc chi nhánh của bạn."
                 ));
-        List<OrderItem> items = orderItemRepository.findAllByOrder_IdOrderByIdAsc(orderId);
+
+        List<OrderItem> items = orderItemRepository
+                .findAllByOrder_IdOrderByIdAsc(order.getId());
+
         return new OrderDetails(order, items);
     }
 
+    // =========================
+    // VALIDATION
+    // =========================
+
+    private void validateStaffForm(
+            StaffForm form,
+            boolean creating
+    ) {
+        if (form == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Thông tin Staff không hợp lệ."
+            );
+        }
+
+        if (form.getFullName() == null
+                || form.getFullName().isBlank()
+                || form.getFullName().trim().length() > 150) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Họ tên không hợp lệ."
+            );
+        }
+
+        if (form.getEmail() == null
+                || form.getEmail().isBlank()
+                || form.getEmail().trim().length() > 150
+                || !form.getEmail().trim().matches(
+                "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$"
+        )) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Email không hợp lệ."
+            );
+        }
+
+        String phone = form.getPhone();
+
+        if (phone == null || phone.trim().length() != 10 || !phone.trim().startsWith("0")) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Số điện thoại phải có đúng 10 số và bắt đầu bằng số 0."
+            );
+        }
+
+        String password = form.getPassword();
+
+        if (creating) {
+            if (password == null || password.isBlank()) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Vui lòng nhập mật khẩu ban đầu."
+                );
+            }
+
+            validatePassword(password);
+        }
+    }
+
+    private void validatePassword(String password) {
+        if (password == null
+                || password.length() < 8
+                || password.length() > 72) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Mật khẩu phải có từ 8 đến 72 ký tự."
+            );
+        }
+    }
+
+    // =========================
+    // ACCESS CONTROL
+    // =========================
+
     private User requireManager(Long managerId) {
+        if (managerId == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Vui lòng đăng nhập lại."
+            );
+        }
+
         User manager = userRepository.findById(managerId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.UNAUTHORIZED,
                         "Vui lòng đăng nhập lại."
                 ));
-        if (manager.getRole() != Role.MANAGER || manager.getStatus() != UserStatus.ACTIVE) {
+
+        if (manager.getRole() != Role.MANAGER
+                || manager.getStatus() != UserStatus.ACTIVE) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
                     "Tài khoản không có quyền quản lý chi nhánh."
             );
         }
-        if (manager.getBranch() == null) {
+
+        if (manager.getBranch() == null
+                || manager.getBranch().getId() == null) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
                     "Tài khoản Manager chưa được gán chi nhánh."
             );
         }
+
         return manager;
     }
 
-    private User findStaffInBranch(Long staffId, Long branchId) {
-        return userRepository.findByIdAndBranch_IdAndRole(staffId, branchId, Role.STAFF)
+    private User findStaffInBranch(
+            Long staffId,
+            Long branchId
+    ) {
+        if (staffId == null || branchId == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Thông tin Staff không hợp lệ."
+            );
+        }
+
+        return userRepository
+                .findByIdAndBranch_IdAndRole(
+                        staffId,
+                        branchId,
+                        Role.STAFF
+                )
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Không tìm thấy Staff thuộc chi nhánh của bạn."
                 ));
     }
 
+    // =========================
+    // NORMALIZATION
+    // =========================
+
     private String normalizeEmail(String email) {
-        return email.trim().toLowerCase();
+        if (email == null || email.isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Email không được để trống."
+            );
+        }
+
+        return email.trim().toLowerCase(Locale.ROOT);
     }
 
     private String normalizeOptional(String value) {
-        return value == null || value.isBlank() ? null : value.trim();
+        return value == null || value.isBlank()
+                ? null
+                : value.trim();
     }
 
-    public record DashboardSummary(long staffCount, long inventoryCount, long orderCount) {
+    // =========================
+    // DTO RECORDS
+    // =========================
+
+    public record DashboardSummary(
+            long staffCount,
+            long inventoryCount,
+            long orderCount
+    ) {
     }
 
-    public record OrderDetails(Order order, List<OrderItem> items) {
+    public record OrderDetails(
+            Order order,
+            List<OrderItem> items
+    ) {
     }
 
-    public static class DuplicateEmailException extends RuntimeException {
+    // =========================
+    // CUSTOM EXCEPTION
+    // =========================
+
+    public static class DuplicateEmailException
+            extends RuntimeException {
     }
 }
