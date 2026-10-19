@@ -37,6 +37,10 @@ import java.time.LocalDateTime;
                 @UniqueConstraint(
                         name = "uk_shipments_order",
                         columnNames = "order_id"
+                ),
+                @UniqueConstraint(
+                        name = "uk_shipments_ghn_order_code",
+                        columnNames = "ghn_order_code"
                 )
         }
 )

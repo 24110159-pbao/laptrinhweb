@@ -1,0 +1,134 @@
+.product-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px max(24px, calc((100% - 1120px) / 2));
+    background: #090d1a;
+}
+
+.product-back-link {
+    color: #38bdf8;
+    font-weight: 700;
+}
+
+.product-page {
+    width: min(100% - 32px, 1120px);
+    margin: 32px auto 64px;
+}
+
+.product-detail-card, .product-reviews {
+    padding: 28px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, .05);
+}
+
+.product-detail-card {
+    display: grid;
+    grid-template-columns: minmax(240px, 1fr) 1.2fr;
+    gap: 32px;
+    align-items: center;
+}
+
+.product-detail-image {
+    width: 100%;
+    height: 340px;
+    object-fit: contain;
+}
+
+.product-brand, .product-detail-specs, .product-detail-note, .product-review time {
+    color: #64748b;
+}
+
+.product-detail-info h1 {
+    margin: 8px 0;
+    color: #0f172a;
+    font-size: clamp(24px, 4vw, 36px);
+}
+
+.product-review-summary {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #475569;
+}
+
+.product-review-summary span[aria-hidden] {
+    color: #f59e0b;
+}
+
+.product-detail-price {
+    display: block;
+    margin: 22px 0;
+    color: #0369a1;
+    font-size: 24px;
+}
+
+.product-reviews {
+    margin-top: 24px;
+}
+
+.product-reviews h2 {
+    margin: 0 0 12px;
+    color: #0f172a;
+}
+
+.no-product-reviews {
+    color: #64748b;
+}
+
+.product-review {
+    padding: 16px 0;
+    border-top: 1px solid #e2e8f0;
+}
+
+.product-review header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.product-review header strong {
+    color: #0f172a;
+}
+
+.review-stars {
+    color: #f59e0b;
+}
+
+.product-review p {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.review-media-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.review-media-grid img, .review-media-grid video {
+    width: min(220px, 100%);
+    max-height: 220px;
+    object-fit: contain;
+    border-radius: 8px;
+    background: #0f172a;
+}
+
+@media (max-width: 680px) {
+    .product-detail-card {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 20px;
+    }
+
+    .product-detail-image {
+        height: 240px;
+    }
+
+    .product-reviews {
+        padding: 20px;
+    }
+}

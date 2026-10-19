@@ -87,7 +87,7 @@
                 </a>
 
                 <!-- Cart -->
-                <a href="#cart" class="header-icon-btn">
+                <a th:href="@{/cart}" class="header-icon-btn">
                     <div class="icon-badge-wrap">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="9" cy="21" r="1"></circle>
@@ -100,6 +100,16 @@
                         <span class="cart-title">Giỏ hàng</span>
                         <span class="cart-total" th:text="${cartTotal}">68.490.000₫</span>
                     </div>
+                </a>
+
+                <!-- Favorites -->
+                <a th:href="@{/favorites}" class="header-icon-btn">
+                    <div class="icon-badge-wrap">
+                        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8z"></path>
+                        </svg>
+                    </div>
+                    <span>Yêu thích</span>
                 </a>
             </div>
 
@@ -136,13 +146,23 @@
                             </svg>
                             <span>Hồ sơ tài khoản</span>
                         </a>
-                        <a href="#orders" class="dropdown-link">
+                        <a th:href="@{/account/orders}" class="dropdown-link">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
                                 <line x1="8" y1="21" x2="16" y2="21"></line>
                                 <line x1="12" y1="17" x2="12" y2="21"></line>
                             </svg>
                             <span>Lịch sử đơn hàng</span>
+                        </a>
+                        <a th:href="@{/favorites}" class="dropdown-link">
+                            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8z"></path>
+                            </svg>
+                            <span>Danh sách yêu thích</span>
+                        </a>
+                        <a th:if="${currentUser.role.name() == 'STAFF' or currentUser.role.name() == 'MANAGER' or currentUser.role.name() == 'ADMIN'}"
+                           th:href="@{/staff/orders}" class="dropdown-link">
+                            <span>Quản lý đơn hàng</span>
                         </a>
                         <div class="dropdown-divider"></div>
                         <a th:href="@{/logout}" class="dropdown-link" style="color: #f87171;">
@@ -366,6 +386,10 @@
                         </div>
 
                         <a th:href="@{'/product/' + ${product.slug}}" class="btn-view-details">Xem Chi Tiết</a>
+                        <form th:action="@{/favorites}" method="post" class="favorite-add-form">
+                            <input type="hidden" name="productId" th:value="${product.id}">
+                            <button type="submit" class="favorite-add-btn">♡ Thêm vào yêu thích</button>
+                        </form>
                     </div>
                 </div>
             </div>

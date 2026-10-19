@@ -22,4 +22,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> searchProducts(@Param("status") ProductStatus status, @Param("keyword") String keyword);
 
     Optional<Product> findBySlug(String slug);
+
+    Optional<Product> findBySlugAndStatus(String slug, ProductStatus status);
+
+    Optional<Product> findByIdAndStatus(Long id, ProductStatus status);
 }

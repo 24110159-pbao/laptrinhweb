@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kết quả thanh toán - NEXUSTECH</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/account.css}">
+    <link rel="stylesheet" th:href="@{/css/cart.css}">
+</head>
+<body class="account-page">
+<header class="account-topbar">
+    <a th:href="@{/}" class="brand-logo">
+        <div class="brand-icon">⚡</div>
+        <div class="brand-title-wrap"><span class="brand-name">NEXUSTECH</span><span class="brand-tagline">FLAGSHIP STORE</span></div>
+    </a>
+    <a th:href="@{/}" class="account-back-link">Trang chủ</a>
+</header>
+<main class="account-container narrow">
+    <section class="account-card checkout-result-card">
+        <span class="cart-eyebrow">Kết quả giao dịch</span>
+        <h1 th:text="${paymentStatus == T(example.com.ltw.order.entity.PaymentStatus).PAID ? 'Thanh toán thành công' : 'Đơn hàng đã được tiếp nhận'}">Kết quả</h1>
+        <p th:text="${paymentMessage}"></p>
+        <div class="checkout-result-code">
+            <span>Mã đơn hàng</span><strong th:text="${order.orderCode}"></strong>
+        </div>
+        <div class="checkout-result-code">
+            <span>Tổng thanh toán</span>
+            <strong th:text="${#numbers.formatDecimal(order.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></strong>
+        </div>
+        <a class="account-button" th:href="@{/}">Tiếp tục mua sắm</a>
+    </section>
+</main>
+</body>
+</html>

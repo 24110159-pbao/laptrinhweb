@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +33,11 @@ public class ProductService {
         }
 
         return products.stream().map(this::mapToCardDto).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<ProductCardDto> getProductBySlug(String slug) {
+        return productRepository.findBySlugAndStatus(slug, ProductStatus.ACTIVE).map(this::mapToCardDto);
     }
 
     public ProductCardDto mapToCardDto(Product product) {

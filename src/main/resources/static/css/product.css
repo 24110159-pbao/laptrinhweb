@@ -193,3 +193,27 @@
     box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);
     color: #ffffff;
 }
+
+.favorite-add-form {
+    margin-top: 8px;
+}
+
+.favorite-add-btn {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: var(--radius-sm);
+    padding: 10px 0;
+    background: #fff;
+    color: #475569;
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.favorite-add-btn:hover {
+    border-color: #0284c7;
+    background: #f0f9ff;
+    color: #0284c7;
+}

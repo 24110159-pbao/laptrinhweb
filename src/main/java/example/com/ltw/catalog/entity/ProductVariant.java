@@ -80,6 +80,18 @@ public class ProductVariant {
     @Column(precision = 15, scale = 2)
     private BigDecimal salePrice;
 
+    @Column
+    private Integer shippingWeightGrams;
+
+    @Column
+    private Integer shippingLengthCm;
+
+    @Column
+    private Integer shippingWidthCm;
+
+    @Column
+    private Integer shippingHeightCm;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private ProductVariantStatus status =

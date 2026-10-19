@@ -18,6 +18,7 @@
     <nav class="account-nav" aria-label="Quản lý tài khoản">
         <a th:href="@{/account/profile}">Hồ sơ cá nhân</a>
         <a class="active" th:href="@{/account/addresses}">Sổ địa chỉ</a>
+        <a th:href="@{/account/orders}">Đơn hàng</a>
     </nav>
     <div th:if="${successMessage}" class="account-alert success" th:text="${successMessage}"></div>
     <div th:if="${infoMessage}" class="account-alert info" th:text="${infoMessage}"></div>

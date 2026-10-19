@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${product.name + ' - NEXUSTECH'}">Sản phẩm - NEXUSTECH</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/product-detail.css}">
+</head>
+<body>
+<header class="product-page-header">
+    <a th:href="@{/}" class="brand-logo">
+        <div class="brand-icon">⚡</div>
+        <div class="brand-title-wrap"><span class="brand-name">NEXUSTECH</span><span class="brand-tagline">FLAGSHIP STORE</span></div>
+    </a>
+    <a th:href="@{/}" class="product-back-link">← Tiếp tục mua sắm</a>
+</header>
+<main class="product-page">
+    <section class="product-detail-card">
+        <img class="product-detail-image" th:src="${product.imageUrl}" th:alt="${product.name}">
+        <div class="product-detail-info">
+            <span class="product-brand" th:text="${product.brand}">Thương hiệu</span>
+            <h1 th:text="${product.name}">Tên sản phẩm</h1>
+            <p class="product-review-summary" th:if="${reviewStats.reviewCount > 0}">
+                <strong th:text="${#numbers.formatDecimal(reviewStats.averageRating, 1, 2)}">0.00</strong>
+                <span aria-hidden="true">★</span>
+                <span th:text="'(' + ${reviewStats.reviewCount} + ' đánh giá)'">0 đánh giá</span>
+            </p>
+            <p class="product-review-summary" th:if="${reviewStats.reviewCount == 0}">Chưa có đánh giá</p>
+            <p class="product-detail-specs" th:text="${product.specsLine}">Thông tin sản phẩm</p>
+            <strong class="product-detail-price" th:text="${product.formattedPrice}">Giá</strong>
+            <p class="product-detail-note">Bạn có thể gửi đánh giá sau khi đơn hàng được giao thành công.</p>
+        </div>
+    </section>
+
+    <section class="product-reviews">
+        <h2>Đánh giá sản phẩm</h2>
+        <p class="no-product-reviews" th:if="${#lists.isEmpty(reviews)}">Sản phẩm chưa có đánh giá.</p>
+        <article class="product-review" th:each="review : ${reviews}">
+            <header>
+                <strong th:text="${review.user.fullName}">Khách hàng</strong>
+                <span class="review-stars" th:text="${'★'.repeat(review.rating) + '☆'.repeat(5 - review.rating)}">★★★★★</span>
+                <time th:text="${#temporals.format(review.createdAt, 'dd/MM/yyyy')}">Ngày đánh giá</time>
+            </header>
+            <p th:if="${review.comment != null}" th:text="${review.comment}"></p>
+            <div class="review-media-grid" th:if="${!#lists.isEmpty(review.media)}">
+                <th:block th:each="file : ${review.media}">
+                    <img th:if="${file.resourceType == 'image'}" th:src="${file.url}" alt="Ảnh khách hàng đính kèm">
+                    <video th:if="${file.resourceType == 'video'}" th:src="${file.url}" controls preload="metadata"></video>
+                </th:block>
+            </div>
+        </article>
+    </section>
+</main>
+</body>
+</html>
