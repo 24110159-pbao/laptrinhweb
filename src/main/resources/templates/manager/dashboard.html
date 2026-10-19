@@ -1,0 +1,182 @@
+
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tổng quan Manager | NEXUSTECH</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+          rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/manager.css}">
+</head>
+<body class="manager-page">
+
+<header class="manager-navbar">
+    <div class="container-fluid px-3 px-lg-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <a th:href="@{/manager}" class="manager-brand">
+                <span class="manager-brand-icon"><i class="bi bi-lightning-charge-fill"></i></span>
+                <span>
+                    <strong>NEXUSTECH</strong>
+                    <small>BRANCH MANAGEMENT</small>
+                </span>
+            </a>
+
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <a th:href="@{/}" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-house-door me-1"></i> Về trang chủ
+                </a>
+                <a th:href="@{/logout}" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
+                </a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="manager-layout">
+    <aside class="manager-sidebar">
+        <div class="sidebar-heading">QUẢN LÝ CHI NHÁNH</div>
+
+        <a th:href="@{/manager}" class="sidebar-link active">
+            <i class="bi bi-grid-1x2"></i>
+            <span>Tổng quan</span>
+        </a>
+        <a th:href="@{/manager/inventory}" class="sidebar-link">
+            <i class="bi bi-box-seam"></i>
+            <span>Tồn kho</span>
+        </a>
+        <a th:href="@{/manager/staff}" class="sidebar-link">
+            <i class="bi bi-people"></i>
+            <span>Nhân viên</span>
+        </a>
+        <a th:href="@{/manager/orders}" class="sidebar-link">
+            <i class="bi bi-receipt"></i>
+            <span>Hóa đơn</span>
+        </a>
+        <a th:href="@{/manager/customers}"
+           class="sidebar-link">
+            <i class="bi bi-person-lines-fill"></i>
+            <span>Khách hàng</span>
+        </a>
+
+        <div class="sidebar-branch">
+            <i class="bi bi-geo-alt"></i>
+            <div>
+                <small>CHI NHÁNH ĐANG QUẢN LÝ</small>
+                <strong th:text="${manager.branch.name}">Chi nhánh</strong>
+            </div>
+        </div>
+    </aside>
+
+    <main class="manager-main">
+        <div class="manager-page-heading">
+            <div>
+                <span class="manager-eyebrow">BRANCH OVERVIEW</span>
+                <h1>Tổng quan</h1>
+                <p th:text="|Xin chào ${manager.fullName}, chúc bạn một ngày làm việc hiệu quả!|">
+                    Xin chào Manager
+                </p>
+            </div>
+            <span class="branch-chip">
+                <i class="bi bi-geo-alt-fill"></i>
+                <span th:text="${manager.branch.name}">Chi nhánh</span>
+            </span>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-12 col-md-4">
+                <section class="manager-stat-card">
+                    <div class="stat-icon stat-icon-blue">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div class="stat-label">Nhân viên</div>
+                    <div class="stat-value" th:text="${staffCount}">0</div>
+                    <div class="stat-description">Nhân viên thuộc chi nhánh</div>
+                    <a th:href="@{/manager/staff}" class="stat-link">
+                        Quản lý nhân viên <i class="bi bi-arrow-right"></i>
+                    </a>
+                </section>
+            </div>
+
+            <div class="col-12 col-md-4">
+                <section class="manager-stat-card">
+                    <div class="stat-icon stat-icon-cyan">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                    <div class="stat-label">Mặt hàng tồn kho</div>
+                    <div class="stat-value" th:text="${inventoryCount}">0</div>
+                    <div class="stat-description">Mặt hàng được theo dõi tại chi nhánh</div>
+                    <a th:href="@{/manager/inventory}" class="stat-link">
+                        Xem tồn kho <i class="bi bi-arrow-right"></i>
+                    </a>
+                </section>
+            </div>
+
+            <div class="col-12 col-md-4">
+                <section class="manager-stat-card">
+                    <div class="stat-icon stat-icon-purple">
+                        <i class="bi bi-receipt"></i>
+                    </div>
+                    <div class="stat-label">Tổng hóa đơn</div>
+                    <div class="stat-value" th:text="${orderCount}">0</div>
+                    <div class="stat-description">Đơn hàng thuộc chi nhánh</div>
+                    <a th:href="@{/manager/orders}" class="stat-link">
+                        Xem hóa đơn <i class="bi bi-arrow-right"></i>
+                    </a>
+                </section>
+            </div>
+        </div>
+
+        <section class="manager-panel">
+
+            <!-- Thống kê doanh thu -->
+            <div class="row g-4 mb-4">
+                <div class="col-12 col-md-6">
+                    <section class="manager-stat-card">
+                        <div class="stat-icon stat-icon-blue">
+                            <i class="bi bi-currency-dollar"></i>
+                        </div>
+                        <div class="stat-label">Doanh thu chi nhánh</div>
+                        <div class="stat-value"
+                             th:text="${#numbers.formatDecimal(revenue, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                            0 ₫
+                        </div>
+                        <div class="stat-description">
+                            Doanh thu theo dữ liệu hệ thống
+                        </div>
+                    </section>
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <section class="manager-stat-card">
+                        <div class="stat-icon stat-icon-purple">
+                            <i class="bi bi-receipt"></i>
+                        </div>
+                        <div class="stat-label">Đơn cần xử lý</div>
+                        <div class="stat-value"
+                             th:text="${pendingOrderCount}">
+                            0
+                        </div>
+                        <div class="stat-description">
+                            Đơn hàng đang chờ xử lý
+                        </div>
+                        <a th:href="@{/manager/orders}" class="stat-link">
+                            Xử lý đơn hàng <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </section>
+                </div>
+            </div>
+        </section>
+
+        <footer class="manager-footer">
+            © 2026 NEXUSTECH FLAGSHIP STORE
+        </footer>
+    </main>
+</div>
+
+</body>
+</html>
