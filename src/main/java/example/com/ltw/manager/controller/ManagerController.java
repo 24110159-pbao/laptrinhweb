@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+
 @Controller
 @RequestMapping("/manager")
 @RequiredArgsConstructor
@@ -29,19 +30,57 @@ public class ManagerController {
 
     private final ManagerService managerService;
 
+
     @GetMapping({"", "/", "/dashboard"})
-    public String dashboard(HttpServletRequest request, Model model) {
+    public String dashboard(
+            HttpServletRequest request,
+            Model model
+    ) {
         Long managerId = managerId(request);
+
         User manager = managerService.getManager(managerId);
+
         ManagerService.DashboardSummary summary =
                 managerService.getDashboardSummary(managerId);
+
+        ManagerService.DashboardAnalytics analytics =
+                managerService.getDashboardAnalytics(managerId);
 
         model.addAttribute("manager", manager);
         model.addAttribute("staffCount", summary.staffCount());
         model.addAttribute("inventoryCount", summary.inventoryCount());
         model.addAttribute("orderCount", summary.orderCount());
+
+        // Hai thẻ thống kê đã có trong dashboard.html
+        model.addAttribute("revenue", analytics.revenue());
+        model.addAttribute(
+                "pendingOrderCount",
+                analytics.pendingOrderCount()
+        );
+
+        // Dữ liệu cho biểu đồ
+        model.addAttribute(
+                "orderStatusCounts",
+                analytics.orderStatusCounts()
+        );
+
+        model.addAttribute(
+                "monthlyRevenueLabels",
+                analytics.monthlyRevenueLabels()
+        );
+
+        model.addAttribute(
+                "monthlyRevenueValues",
+                analytics.monthlyRevenueValues()
+        );
+        model.addAttribute(
+                "monthlyOrderValues",
+                analytics.monthlyOrderValues()
+        );
+
         return "manager/dashboard";
     }
+
 
     @GetMapping("/inventory")
     public String inventory(HttpServletRequest request, Model model) {

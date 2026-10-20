@@ -181,12 +181,14 @@
                             <span class="input-group-text">
                                 <i class="bi bi-shield-lock"></i>
                             </span>
+
+                            <!--Xử lý logic đầu vào -->
                             <input id="password"
                                    type="password"
                                    class="form-control"
                                    th:field="*{password}"
                                    th:errorclass="is-invalid"
-                                   minlength="8"
+                                   minlength="6"
                                    maxlength="72"
                                    autocomplete="new-password"
                                    placeholder="Nhập mật khẩu ban đầu"
@@ -197,15 +199,13 @@
                              th:errors="*{password}">
                             Lỗi mật khẩu
                         </div>
-                        <div class="form-text manager-help-text">
-                            Mật khẩu phải được xử lý và lưu dưới dạng BCrypt hash ở backend.
-                        </div>
+
                     </div>
 
                     <div class="col-12" th:if="${staffId != null}">
                         <div class="alert alert-info manager-alert mb-0">
                             <i class="bi bi-info-circle-fill me-2"></i>
-                            Mật khẩu tài khoản không được thay đổi từ biểu mẫu này.
+                            Mật khẩu tài khoản hiện tại chỉ được thay đổi bởi staff.
                         </div>
                     </div>
                 </div>

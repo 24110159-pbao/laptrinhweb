@@ -788,3 +788,229 @@ body.manager-page {
         align-items: flex-start;
     }
 }
+
+/* ==============================
+   NEXUSTECH - DASHBOARD ANALYTICS
+   ============================== */
+
+/* Khu vực thống kê */
+.dashboard-charts {
+    margin-top: 30px;
+}
+
+.dashboard-charts .chart-heading {
+    margin-bottom: 24px;
+}
+
+.dashboard-charts .chart-heading h2 {
+    margin: 8px 0;
+    color: var(--text);
+    font-size: clamp(22px, 2.5vw, 28px);
+    font-weight: 800;
+}
+
+.dashboard-charts .chart-heading p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+/* Tiêu đề biểu đồ */
+.chart-card-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px;
+
+    padding: 22px 24px;
+    border-bottom: 1px solid var(--border);
+}
+
+.chart-card-heading h3 {
+    margin: 0 0 7px;
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.chart-card-heading p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+/* Nhãn doanh thu */
+.chart-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+
+    padding: 7px 12px;
+    border: 1px solid rgba(56, 189, 248, .25);
+    border-radius: 30px;
+
+    background: rgba(56, 189, 248, .08);
+    color: var(--cyan);
+
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Khung chứa Chart.js */
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 320px;
+    padding: 22px 24px;
+}
+
+.chart-container-doughnut {
+    height: 320px;
+    padding: 24px;
+}
+
+.chart-container-small {
+    height: 300px;
+    padding: 22px 24px 26px;
+}
+
+/* Đảm bảo canvas hiển thị đúng kích thước */
+.chart-container canvas {
+    display: block;
+    max-width: 100%;
+}
+
+/* Ghi chú biểu đồ */
+.chart-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+
+    margin: 0 24px 22px;
+    padding: 12px 14px;
+
+    border: 1px solid rgba(56, 189, 248, .15);
+    border-radius: 9px;
+
+    background: rgba(56, 189, 248, .05);
+    color: var(--muted);
+
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+.chart-note i {
+    margin-top: 1px;
+    color: var(--cyan);
+    font-size: 14px;
+}
+
+/* Đồng bộ thẻ doanh thu và đơn chờ xử lý */
+.manager-panel > .row.g-4 {
+    padding: 24px;
+}
+
+.manager-panel .manager-stat-card {
+    background: var(--surface-light);
+    border-color: var(--border);
+}
+
+.manager-panel .manager-stat-card:hover {
+    border-color: #42617f;
+}
+
+/* Tối ưu biểu đồ trạng thái đơn hàng */
+.chart-panel {
+    height: 100%;
+    transition: border-color .2s ease,
+                box-shadow .2s ease;
+}
+
+.chart-panel:hover {
+    border-color: #354b67;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, .18);
+}
+
+/* Responsive: tablet */
+@media (max-width: 991px) {
+    .dashboard-charts {
+        margin-top: 24px;
+    }
+
+    .chart-container {
+        height: 290px;
+        padding: 20px;
+    }
+
+    .chart-container-doughnut {
+        height: 300px;
+    }
+
+    .chart-container-small {
+        height: 280px;
+    }
+
+    .chart-card-heading {
+        padding: 20px;
+    }
+
+    .chart-note {
+        margin: 0 20px 20px;
+    }
+
+    .manager-panel > .row.g-4 {
+        padding: 20px;
+    }
+}
+
+/* Responsive: điện thoại */
+@media (max-width: 575.98px) {
+    .dashboard-charts {
+        margin-top: 20px;
+    }
+
+    .dashboard-charts .chart-heading {
+        margin-bottom: 18px;
+    }
+
+    .chart-card-heading {
+        padding: 18px;
+        gap: 12px;
+    }
+
+    .chart-card-heading h3 {
+        font-size: 15px;
+    }
+
+    .chart-container {
+        height: 260px;
+        padding: 18px 12px;
+    }
+
+    .chart-container-doughnut {
+        height: 290px;
+        padding: 18px 12px;
+    }
+
+    .chart-container-small {
+        height: 250px;
+        padding: 18px 12px;
+    }
+
+    .chart-note {
+        margin: 0 14px 16px;
+        padding: 10px;
+    }
+
+    .manager-panel > .row.g-4 {
+        padding: 14px;
+    }
+
+    .chart-badge {
+        padding: 6px 10px;
+        font-size: 10px;
+    }
+}

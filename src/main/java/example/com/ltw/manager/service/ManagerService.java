@@ -24,6 +24,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.Locale;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
@@ -330,10 +334,10 @@ public class ManagerService {
 
         String phone = form.getPhone();
 
-        if (phone == null || phone.trim().length() != 10 || !phone.trim().startsWith("0")) {
+        if (phone == null || !phone.trim().matches("^0[0-9]{9}$")) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Số điện thoại phải có đúng 10 số và bắt đầu bằng số 0."
+                    "Số điện thoại phải gồm 10 chữ số và bắt đầu bằng số 0."
             );
         }
 
@@ -352,12 +356,10 @@ public class ManagerService {
     }
 
     private void validatePassword(String password) {
-        if (password == null
-                || password.length() < 8
-                || password.length() > 72) {
+        if (password == null || password.length() < 6 || password.length() > 20) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Mật khẩu phải có từ 8 đến 72 ký tự."
+                    "Mật khẩu phải có từ 6 đến 20 ký tự."
             );
         }
     }
@@ -467,4 +469,138 @@ public class ManagerService {
     public static class DuplicateEmailException
             extends RuntimeException {
     }
+
+    @Transactional(readOnly = true)
+    public DashboardAnalytics getDashboardAnalytics(Long managerId) {
+        Long branchId = requireManager(managerId)
+                .getBranch()
+                .getId();
+
+        // Tổng doanh thu từ các đơn đã giao
+        BigDecimal revenue = orderRepository
+                .sumDeliveredRevenueByBranchId(branchId);
+
+        if (revenue == null) {
+            revenue = BigDecimal.ZERO;
+        }
+
+        // Thống kê đơn hàng theo trạng thái
+        Map<String, Long> statusCounts =
+                orderRepository.countOrdersByStatus(branchId)
+                        .stream()
+                        .collect(
+                                java.util.stream.Collectors.toMap(
+                                        row -> row[0] == null
+                                                ? "UNKNOWN"
+                                                : row[0].toString(),
+                                        row -> ((Number) row[1]).longValue(),
+                                        Long::sum,
+                                        java.util.LinkedHashMap::new
+                                )
+                        );
+
+        long pendingOrderCount =
+                statusCounts.getOrDefault("PENDING", 0L)
+                        + statusCounts.getOrDefault("CONFIRMED", 0L);
+
+        // Lấy dữ liệu doanh thu 12 tháng gần nhất,
+        // bao gồm tháng hiện tại.
+        YearMonth currentMonth = YearMonth.now();
+        LocalDateTime fromDate = currentMonth
+                .minusMonths(11)
+                .atDay(1)
+                .atStartOfDay();
+
+        LocalDateTime toDate = currentMonth
+                .plusMonths(1)
+                .atDay(1)
+                .atStartOfDay();
+
+        List<Object[]> monthlyRows =
+                orderRepository.findMonthlyDeliveredRevenue(
+                        branchId,
+                        fromDate,
+                        toDate
+                );
+
+
+        Map<YearMonth, BigDecimal> monthlyRevenueMap =
+                new java.util.HashMap<>();
+
+        for (Object[] row : monthlyRows) {
+            int year = ((Number) row[0]).intValue();
+            int month = ((Number) row[1]).intValue();
+            BigDecimal amount = row[2] instanceof BigDecimal value
+                    ? value
+                    : new BigDecimal(row[2].toString());
+
+            monthlyRevenueMap.put(
+                    YearMonth.of(year, month),
+                    amount
+            );
+        }
+        List<Object[]> monthlyOrderRows =
+                orderRepository.findMonthlyOrderCounts(
+                        branchId,
+                        fromDate,
+                        toDate
+                );
+        Map<YearMonth, Long> monthlyOrderMap = new java.util.HashMap<>();
+
+        for (Object[] row : monthlyOrderRows) {
+            int year = ((Number) row[0]).intValue();
+            int month = ((Number) row[1]).intValue();
+            long count = ((Number) row[2]).longValue();
+
+            monthlyOrderMap.put(
+                    YearMonth.of(year, month),
+                    count
+            );
+        }
+        List<String> monthlyRevenueLabels = new ArrayList<>();
+        List<BigDecimal> monthlyRevenueValues = new ArrayList<>();
+        List<Long> monthlyOrderValues = new ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            YearMonth month = currentMonth.minusMonths(11 - i);
+
+            monthlyRevenueLabels.add(
+                    String.format(
+                            "%02d/%d",
+                            month.getMonthValue(),
+                            month.getYear()
+                    )
+            );
+
+            monthlyRevenueValues.add(
+                    monthlyRevenueMap.getOrDefault(
+                            month,
+                            BigDecimal.ZERO
+                    )
+            );
+            monthlyOrderValues.add(
+                    monthlyOrderMap.getOrDefault(month, 0L)
+            );
+        }
+
+        return new DashboardAnalytics(
+                revenue,
+                pendingOrderCount,
+                statusCounts,
+                monthlyRevenueLabels,
+                monthlyRevenueValues,
+                monthlyOrderValues
+        );
+    }
+
+    public record DashboardAnalytics(
+            BigDecimal revenue,
+            long pendingOrderCount,
+            Map<String, Long> orderStatusCounts,
+            List<String> monthlyRevenueLabels,
+            List<BigDecimal> monthlyRevenueValues,
+            List<Long> monthlyOrderValues
+    ) {
+    }
+
+
 }

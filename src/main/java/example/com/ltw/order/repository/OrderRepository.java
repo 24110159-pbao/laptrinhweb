@@ -9,7 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
-
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
@@ -46,4 +47,54 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Object[]> countOrdersByStatus(
             @Param("branchId") Long branchId
     );
+
+    // Tổng doanh thu của các đơn đã giao thuộc chi nhánh
+    @Query("""
+        select coalesce(sum(o.finalAmount), 0)
+        from Order o
+        where o.branch.id = :branchId
+          and o.status = example.com.ltw.order.entity.OrderStatus.DELIVERED
+    """)
+    BigDecimal sumDeliveredRevenueByBranchId(
+            @Param("branchId") Long branchId
+    );
+
+    // Doanh thu theo tháng trong khoảng thời gian được chọn
+    @Query("""
+        select
+            function('year', o.createdAt),
+            function('month', o.createdAt),
+            coalesce(sum(o.finalAmount), 0)
+        from Order o
+        where o.branch.id = :branchId
+          and o.status = example.com.ltw.order.entity.OrderStatus.DELIVERED
+          and o.createdAt >= :fromDate
+          and o.createdAt < :toDate
+        group by
+            function('year', o.createdAt),
+            function('month', o.createdAt)
+        order by
+            function('year', o.createdAt),
+            function('month', o.createdAt)
+    """)
+    List<Object[]> findMonthlyDeliveredRevenue(
+            @Param("branchId") Long branchId,
+            @Param("fromDate") LocalDateTime fromDate,
+            @Param("toDate") LocalDateTime toDate
+    );
+    @Query("""
+    SELECT YEAR(o.createdAt), MONTH(o.createdAt), COUNT(o.id)
+    FROM Order o
+    WHERE o.branch.id = :branchId
+      AND o.createdAt >= :fromDate
+      AND o.createdAt < :toDate
+    GROUP BY YEAR(o.createdAt), MONTH(o.createdAt)
+    ORDER BY YEAR(o.createdAt), MONTH(o.createdAt)
+""")
+    List<Object[]> findMonthlyOrderCounts(
+            @Param("branchId") Long branchId,
+            @Param("fromDate") LocalDateTime fromDate,
+            @Param("toDate") LocalDateTime toDate
+    );
+
 }
