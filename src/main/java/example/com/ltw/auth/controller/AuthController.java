@@ -56,6 +56,12 @@ public class AuthController {
             User user = authService.login(request, session);
             redirectAttributes.addFlashAttribute("successMessage",
                     "Đăng nhập thành công với quyền " + user.getRole().name() + "! Xin chào mừng " + user.getFullName() + ".");
+            if (user.getRole() == example.com.ltw.user.entity.Role.STAFF) {
+                return "redirect:/staff/dashboard";
+            }
+            if (user.getRole() == example.com.ltw.user.entity.Role.SHIPPER) {
+                return "redirect:/shipper/dashboard";
+            }
             return "redirect:/";
         } catch (IllegalArgumentException ex) {
             model.addAttribute("errorMessage", ex.getMessage());

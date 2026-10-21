@@ -144,6 +144,24 @@
                             </svg>
                             <span>Lịch sử đơn hàng</span>
                         </a>
+                        <a th:if="${currentUser.role.name() == 'STAFF' or currentUser.role.name() == 'ADMIN' or currentUser.role.name() == 'MANAGER'}"
+                           th:href="@{/staff/dashboard}" class="dropdown-link" style="color: #10b981; font-weight: 700;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                            </svg>
+                            <span>🏬 Cổng Nhân viên (Staff Portal)</span>
+                        </a>
+                        <a th:if="${currentUser.role.name() == 'SHIPPER' or currentUser.role.name() == 'ADMIN'}"
+                           th:href="@{/shipper/dashboard}" class="dropdown-link" style="color: #38bdf8; font-weight: 700;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="1" y="3" width="15" height="13"></rect>
+                                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                            </svg>
+                            <span>🛵 Cổng Giao Nhận (Shipper Portal)</span>
+                        </a>
                         <div class="dropdown-divider"></div>
                         <a th:href="@{/logout}" class="dropdown-link" style="color: #f87171;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

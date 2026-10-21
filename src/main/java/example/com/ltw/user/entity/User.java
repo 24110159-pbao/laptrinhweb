@@ -77,7 +77,7 @@ public class User {
     @Column(nullable = false)
     private boolean emailVerified = false;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "branch_id", nullable = true)
     private Branch branch;
 

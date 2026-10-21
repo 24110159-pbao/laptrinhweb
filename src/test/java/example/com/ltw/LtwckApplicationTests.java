@@ -9,5 +9,4 @@ class LtwckApplicationTests {
 	@Test
 	void contextLoads() {
 	}
-
 }
