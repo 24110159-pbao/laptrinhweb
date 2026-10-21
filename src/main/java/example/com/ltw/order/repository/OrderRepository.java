@@ -82,6 +82,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             @Param("fromDate") LocalDateTime fromDate,
             @Param("toDate") LocalDateTime toDate
     );
+
+    // đếm số đơn hàng trong tháng
     @Query("""
     SELECT YEAR(o.createdAt), MONTH(o.createdAt), COUNT(o.id)
     FROM Order o
