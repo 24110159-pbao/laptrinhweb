@@ -50,7 +50,7 @@ public class Shipment {
     private Long id;
 
     @NotNull
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @OneToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
@@ -84,6 +84,9 @@ public class Shipment {
     @JoinColumn(name = "shipper_id")
     private User shipper;
 
+    @Column(name = "attempt_count")
+    private Integer attemptCount = 0;
+
     @PrePersist
     protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();
@@ -96,6 +99,10 @@ public class Shipment {
 
         if (status == null) {
             status = ShipmentStatus.PENDING;
+        }
+
+        if (attemptCount == null) {
+            attemptCount = 0;
         }
     }
 

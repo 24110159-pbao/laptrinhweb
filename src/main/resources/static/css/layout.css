@@ -1,0 +1,409 @@
+/* ==========================================================================
+   NEXUSTECH FLAGSHIP STORE - LAYOUT (HEADER, NAVBAR, FOOTER)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   TOP HEADER & NAVIGATION
+   -------------------------------------------------------------------------- */
+.top-navbar {
+    background-color: var(--bg-header);
+    color: var(--text-white);
+    padding: 12px 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid var(--border-dark);
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.4);
+}
+
+.navbar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+/* Logo */
+.brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.brand-icon {
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    font-weight: 800;
+    box-shadow: 0 0 15px rgba(14, 165, 233, 0.4);
+}
+
+.brand-title-wrap {
+    display: flex;
+    flex-direction: column;
+}
+
+.brand-name {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 19px;
+    letter-spacing: 1.5px;
+    color: #ffffff;
+    line-height: 1.1;
+    text-transform: uppercase;
+}
+
+.brand-tagline {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--accent-cyan);
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* Category Button */
+.category-dropdown-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 9px 14px;
+    border-radius: var(--radius-sm);
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.category-dropdown-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Search Bar */
+.search-bar-wrap {
+    flex: 1 1 200px;
+    max-width: 380px;
+    min-width: 160px;
+}
+
+.search-form {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    padding: 2px 2px 2px 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 13px;
+    color: #0f172a;
+    background: transparent;
+}
+
+.search-input::placeholder {
+    color: #94a3b8;
+}
+
+.search-submit-btn {
+    background-color: #0369a1;
+    color: #ffffff;
+    width: 38px;
+    height: 36px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.search-submit-btn:hover {
+    background-color: #0284c7;
+}
+
+/* Location Selector */
+.location-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 7px 12px;
+    border-radius: var(--radius-sm);
+    color: #ffffff;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+}
+
+.location-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.location-text {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.location-title {
+    font-size: 9px;
+    text-transform: uppercase;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+}
+
+.location-val {
+    font-weight: 600;
+    color: #f8fafc;
+    font-size: 12px;
+}
+
+/* Header Action Buttons (Compare & Cart) */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.header-icon-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 500;
+    position: relative;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    transition: background 0.2s;
+}
+
+.header-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.icon-badge-wrap {
+    position: relative;
+    display: inline-flex;
+}
+
+.badge-count {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #ef4444;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+}
+
+.cart-info {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    line-height: 1.2;
+}
+
+.cart-title {
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.cart-total {
+    font-weight: 700;
+    color: #38bdf8;
+    font-size: 12px;
+}
+
+/* User Account Area */
+.user-account-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    padding: 4px 8px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.user-account-box:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.user-avatar-ring {
+    position: relative;
+}
+
+.user-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #38bdf8;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+}
+
+.vip-badge-dot {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    background: #f59e0b;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #090d1a;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.user-name-tag {
+    font-size: 12px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.user-tier-tag {
+    font-size: 10px;
+    color: #38bdf8;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.user-auth-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: #ffffff;
+    padding: 8px 18px;
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 2px 10px rgba(2, 132, 199, 0.4);
+    transition: all 0.2s;
+}
+
+.user-auth-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(2, 132, 199, 0.6);
+}
+
+/* User Dropdown Menu */
+.user-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 220px;
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: var(--radius-md);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+    padding: 8px;
+    display: none;
+    flex-direction: column;
+    z-index: 100;
+}
+
+.user-account-box:hover .user-dropdown-menu {
+    display: flex;
+}
+
+.dropdown-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    color: #cbd5e1;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.15s;
+}
+
+.dropdown-link:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #38bdf8;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: #1e293b;
+    margin: 6px 0;
+}
+
+/* --------------------------------------------------------------------------
+   MAIN FOOTER
+   -------------------------------------------------------------------------- */
+.main-footer {
+    background: #090d1a;
+    color: #94a3b8;
+    border-top: 1px solid #1e293b;
+    padding: 48px 0 24px 0;
+    font-size: 13px;
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1.5fr;
+    gap: 40px;
+    margin-bottom: 40px;
+}
+
+.footer-col h5 {
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+.footer-links {
+    list-style: none;
+}
+
+.footer-links li {
+    margin-bottom: 10px;
+}
+
+.footer-links a:hover {
+    color: #38bdf8;
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 12px;
+    color: #64748b;
+}

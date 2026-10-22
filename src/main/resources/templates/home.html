@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUSTECH FLAGSHIP STORE - Điện thoại & Công nghệ đỉnh cao</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+    <!-- ==========================================
+         TOP NAVBAR
+         ========================================== -->
+    <header class="top-navbar">
+        <div class="container navbar-inner">
+            
+            <!-- Brand Logo -->
+            <a th:href="@{/}" class="brand-logo">
+                <div class="brand-icon">⚡</div>
+                <div class="brand-title-wrap">
+                    <span class="brand-name">NEXUSTECH</span>
+                    <span class="brand-tagline">FLAGSHIP STORE</span>
+                </div>
+            </a>
+
+            <!-- Category Dropdown Trigger -->
+            <div class="category-dropdown-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+                <span>Danh mục</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </div>
+
+            <!-- Search Bar Form (Standard GET - No Ajax) -->
+            <div class="search-bar-wrap">
+                <form th:action="@{/}" method="GET" class="search-form">
+                    <input type="text" 
+                           name="keyword" 
+                           th:value="${keyword}" 
+                           placeholder="Bạn tìm iPhone 16 Pro Max, Galaxy S24..." 
+                           class="search-input"
+                           autocomplete="off">
+                    <button type="submit" class="search-submit-btn" title="Tìm kiếm">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Location Selector -->
+            <div class="location-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <div class="location-text">
+                    <span class="location-title">KHU VỰC MUA SẮM</span>
+                    <span class="location-val" th:text="${locationName}">TP. Hồ Chí Minh</span>
+                </div>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </div>
+
+            <!-- Header Action Buttons (Compare & Cart) -->
+            <div class="header-actions">
+                <!-- Compare -->
+                <a href="#compare" class="header-icon-btn">
+                    <div class="icon-badge-wrap">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="16 3 21 3 21 8"></polyline>
+                            <line x1="4" y1="20" x2="21" y2="3"></line>
+                            <polyline points="21 16 21 21 16 21"></polyline>
+                            <line x1="15" y1="15" x2="21" y2="21"></line>
+                            <line x1="4" y1="4" x2="9" y2="9"></line>
+                        </svg>
+                        <span class="badge-count" th:text="${compareCount}">2</span>
+                    </div>
+                    <span>So sánh</span>
+                </a>
+
+                <!-- Cart -->
+                <a href="#cart" class="header-icon-btn">
+                    <div class="icon-badge-wrap">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="9" cy="21" r="1"></circle>
+                            <circle cx="20" cy="21" r="1"></circle>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                        </svg>
+                        <span class="badge-count" th:text="${cartCount}">3</span>
+                    </div>
+                    <div class="cart-info">
+                        <span class="cart-title">Giỏ hàng</span>
+                        <span class="cart-total" th:text="${cartTotal}">68.490.000₫</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- User Auth / Profile Box -->
+            <div class="user-profile-section">
+                <!-- Logged in state (matches image) -->
+                <div th:if="${currentUser != null}" class="user-account-box">
+                    <div class="user-avatar-ring">
+                        <img th:src="${currentUser.avatarUrl != null ? currentUser.avatarUrl : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'}" 
+                             alt="Avatar" class="user-avatar"
+                             onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80';">
+                        <div class="vip-badge-dot" title="VIP Titanium"></div>
+                    </div>
+                    <div class="user-details">
+                        <span class="user-name-tag" th:text="${currentUser.fullName}">Khách hàng VIP</span>
+                        <span class="user-role-tag" style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; margin-top: 1px;">
+                            <span style="color: #94a3b8; font-size: 10px;">Quyền:</span>
+                            <span class="user-role-badge" th:classappend="'badge-role-' + ${#strings.toLowerCase(currentUser.role)}" th:text="${currentUser.role}">ADMIN</span>
+                        </span>
+                    </div>
+
+                    <!-- Dropdown Menu -->
+                    <div class="user-dropdown-menu">
+                        <div class="dropdown-role-box" th:classappend="'bg-role-' + ${#strings.toLowerCase(currentUser.role)}">
+                            <span class="dropdown-role-title">VAI TRÒ TÀI KHOẢN:</span>
+                            <strong class="dropdown-role-name" th:text="${currentUser.role}">USER</strong>
+                            <div class="dropdown-role-sub" th:text="${currentUser.email}">user@nexustech.vn</div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="#profile" class="dropdown-link">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <span>Hồ sơ tài khoản</span>
+                        </a>
+                        <a href="#orders" class="dropdown-link">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                <line x1="8" y1="21" x2="16" y2="21"></line>
+                                <line x1="12" y1="17" x2="12" y2="21"></line>
+                            </svg>
+                            <span>Lịch sử đơn hàng</span>
+                        </a>
+                        <a th:if="${currentUser.role.name() == 'STAFF' or currentUser.role.name() == 'ADMIN' or currentUser.role.name() == 'MANAGER'}"
+                           th:href="@{/staff/dashboard}" class="dropdown-link" style="color: #10b981; font-weight: 700;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                            </svg>
+                            <span>🏬 Cổng Nhân viên (Staff Portal)</span>
+                        </a>
+                        <a th:if="${currentUser.role.name() == 'SHIPPER' or currentUser.role.name() == 'ADMIN'}"
+                           th:href="@{/shipper/dashboard}" class="dropdown-link" style="color: #38bdf8; font-weight: 700;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="1" y="3" width="15" height="13"></rect>
+                                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                            </svg>
+                            <span>🛵 Cổng Giao Nhận (Shipper Portal)</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a th:href="@{/logout}" class="dropdown-link" style="color: #f87171;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            <span>Đăng xuất</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Guest State (Not logged in) -->
+                <div th:unless="${currentUser != null}">
+                    <a th:href="@{/login}" class="user-auth-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        <span>Đăng nhập / Đăng ký</span>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </header>
+
+
+    <!-- ==========================================
+         FLASH ALERTS (Standard Spring MVC Redirect)
+         ========================================== -->
+    <div class="container" style="margin-top: 16px;">
+        <div th:if="${successMessage != null}" class="auth-alert auth-alert-success">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span th:text="${successMessage}">Thành công!</span>
+        </div>
+        <div th:if="${errorMessage != null}" class="auth-alert auth-alert-error">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <span th:text="${errorMessage}">Lỗi!</span>
+        </div>
+        <div th:if="${infoMessage != null}" class="auth-alert auth-alert-info">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            <span th:text="${infoMessage}">Thông báo!</span>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         HERO BANNER (Matches screenshot)
+         ========================================== -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="hero-banner-card">
+                
+                <!-- Left text content -->
+                <div class="hero-content">
+                    <div class="hero-tag">
+                        <span>✦</span> FLAGSHIP SERIES 2025
+                    </div>
+                    <h1 class="hero-title">
+                        iPhone 16 Pro Max<br>
+                        <span class="gradient-text">& Galaxy S24 Ultra</span>
+                    </h1>
+                    <p class="hero-desc">
+                        Tuyệt tác thiết kế titanium, hiệu năng đỉnh cao cùng trí tuệ AI độc bản thế hệ mới.
+                    </p>
+                    <div class="hero-actions">
+                        <a href="#featured" class="btn-hero-primary">
+                            <span>Khám Phá Ngay</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </a>
+                        <a href="#compare" class="btn-hero-secondary">
+                            <span>So Sánh Cấu Hình</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Right visual showcase (Dual titanium flagship mockups) -->
+                <div class="hero-visual">
+                    <div class="hero-image-wrap">
+                        <img th:src="@{/images/hero_phones.jpg}" 
+                             alt="iPhone 16 Pro Max & Galaxy S24 Ultra" class="hero-img">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         4 COMMITMENTS / SERVICE ROW (Matches screenshot)
+         ========================================== -->
+    <section class="commitments-section">
+        <div class="container">
+            <div class="commitments-grid">
+                
+                <!-- Card 1 -->
+                <div class="commitment-card">
+                    <div class="commitment-icon-wrap">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                    </div>
+                    <div class="commitment-info">
+                        <h4>100% Chính Hãng</h4>
+                        <p>Bảo hành 24 tháng VIP</p>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="commitment-card">
+                    <div class="commitment-icon-wrap">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                    </div>
+                    <div class="commitment-info">
+                        <h4>1 Đổi 1 Trong 30 Ngày</h4>
+                        <p>Yên tâm trải nghiệm máy</p>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="commitment-card">
+                    <div class="commitment-icon-wrap">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path>
+                            <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path>
+                            <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path>
+                            <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path>
+                        </svg>
+                    </div>
+                    <div class="commitment-info">
+                        <h4>Giao Hỏa Tốc 1 Giờ</h4>
+                        <p>Miễn phí giao hàng nội thành</p>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="commitment-card">
+                    <div class="commitment-icon-wrap">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                            <line x1="1" y1="10" x2="23" y2="10"></line>
+                        </svg>
+                    </div>
+                    <div class="commitment-info">
+                        <h4>Trả Góp 0% Lãi Suất</h4>
+                        <p>Thủ tục duyệt online 5 phút</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         PRODUCT CATALOG SECTION (Matches screenshot)
+         ========================================== -->
+    <section class="catalog-section" id="featured">
+        <div class="container">
+            
+            <!-- Section Header & Filter Pills -->
+            <div class="section-header-row">
+                <div class="section-title-wrap">
+                    <h2 class="section-main-title">Thiết Bị Nổi Bật</h2>
+                    <span class="section-subtitle">• Lựa chọn hàng đầu</span>
+                </div>
+
+                <!-- Filter Tabs (Client-side interactive + standard link fallback) -->
+                <div class="filter-tabs">
+                    <a href="?brand=all#featured" 
+                       data-filter="all" 
+                       class="filter-pill" 
+                       th:classappend="${selectedBrand == 'all' ? 'active' : ''}">Tất cả</a>
+                    <a href="?brand=apple#featured" 
+                       data-filter="apple" 
+                       class="filter-pill" 
+                       th:classappend="${selectedBrand == 'apple' ? 'active' : ''}">Apple</a>
+                    <a href="?brand=samsung#featured" 
+                       data-filter="samsung" 
+                       class="filter-pill" 
+                       th:classappend="${selectedBrand == 'samsung' ? 'active' : ''}">Samsung</a>
+                    <a href="?brand=xiaomi#featured" 
+                       data-filter="xiaomi" 
+                       class="filter-pill" 
+                       th:classappend="${selectedBrand == 'xiaomi' ? 'active' : ''}">Xiaomi</a>
+                    <a href="?brand=phu-kien#featured" 
+                       data-filter="phu-kien" 
+                       class="filter-pill" 
+                       th:classappend="${selectedBrand == 'phu-kien' ? 'active' : ''}">Phụ kiện</a>
+                </div>
+            </div>
+
+            <!-- Products Grid (4 Columns) -->
+            <div class="products-grid">
+                <div th:each="product : ${products}" 
+                     class="product-card" 
+                     th:attr="data-brand=${product.brand}, data-category=${product.category}">
+                    
+                    <!-- Thumbnail -->
+                    <div class="product-thumb-wrap">
+                        <img th:src="${product.imageUrl}" th:alt="${product.name}" class="product-img">
+                    </div>
+
+                    <!-- Body -->
+                    <div class="product-body">
+                        <h3 class="product-title" th:text="${product.name}">iPhone 16 Pro</h3>
+                        <div class="product-specs" th:text="${product.specsLine}">A18 Pro • 128GB • 48MP Camera</div>
+                        
+                        <div class="product-price-row">
+                            <span class="current-price" th:text="${product.formattedPrice}">28.490.000₫</span>
+                            <span th:if="${product.formattedOriginalPrice != null}" 
+                                  class="original-price" 
+                                  th:text="${product.formattedOriginalPrice}">33.990.000₫</span>
+                        </div>
+
+                        <a th:href="@{'/product/' + ${product.slug}}" class="btn-view-details">Xem Chi Tiết</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ==========================================
+         FOOTER
+         ========================================== -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="brand-logo" style="margin-bottom: 14px;">
+                        <div class="brand-icon">⚡</div>
+                        <div class="brand-title-wrap">
+                            <span class="brand-name">NEXUSTECH</span>
+                            <span class="brand-tagline">FLAGSHIP STORE</span>
+                        </div>
+                    </div>
+                    <p style="font-size: 13px; line-height: 1.6; color: #94a3b8;">
+                        Hệ thống bán lẻ thiết bị công nghệ chính hãng cao cấp hàng đầu Việt Nam. Điểm đến tin cậy của các tín đồ công nghệ với chính sách bảo hành 24 tháng VIP và dịch vụ trải nghiệm 1 đổi 1.
+                    </p>
+                </div>
+                <div class="footer-col">
+                    <h5>Danh Mục Sản Phẩm</h5>
+                    <ul class="footer-links">
+                        <li><a href="?brand=apple#featured">iPhone & Apple Ecosystem</a></li>
+                        <li><a href="?brand=samsung#featured">Samsung Galaxy AI Series</a></li>
+                        <li><a href="?brand=xiaomi#featured">Xiaomi Leica Flagship</a></li>
+                        <li><a href="?brand=phu-kien#featured">Phụ kiện & Audio cao cấp</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h5>Chính Sách Khách Hàng</h5>
+                    <ul class="footer-links">
+                        <li><a href="#warranty">Chính sách bảo hành VIP 24T</a></li>
+                        <li><a href="#return">Chính sách 1 đổi 1 trong 30 ngày</a></li>
+                        <li><a href="#installment">Chính sách trả góp 0% lãi suất</a></li>
+                        <li><a href="#shipping">Vận chuyển hỏa tốc nội thành 1H</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h5>Tổng Đài Chăm Sóc</h5>
+                    <p style="color: #cbd5e1; margin-bottom: 8px;">Tư vấn mua hàng: <strong style="color: #38bdf8;">1800 6868</strong></p>
+                    <p style="color: #cbd5e1; margin-bottom: 8px;">Hỗ trợ kỹ thuật: <strong style="color: #38bdf8;">1900 8989</strong></p>
+                    <p style="color: #cbd5e1;">Email hỗ trợ: <strong style="color: #38bdf8;">trinhphuhao2108@gmail.com</strong></p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                &copy; 2026 NEXUSTECH FLAGSHIP STORE. Tất cả các quyền được bảo lưu.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

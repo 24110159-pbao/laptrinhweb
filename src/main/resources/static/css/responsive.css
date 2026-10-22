@@ -1,0 +1,76 @@
+/* ==========================================================================
+   NEXUSTECH FLAGSHIP STORE - RESPONSIVE STYLES
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   TABLET & SMALL DESKTOP (<= 1024px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+    .commitments-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .hero-banner-card {
+        padding: 36px 30px;
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .hero-content {
+        max-width: 100%;
+        margin-bottom: 30px;
+    }
+    
+    .hero-actions {
+        justify-content: center;
+    }
+    
+    .footer-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* --------------------------------------------------------------------------
+   MOBILE SCREENS (<= 768px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+    .navbar-inner {
+        flex-wrap: wrap;
+    }
+    
+    .search-bar-wrap {
+        order: 3;
+        max-width: 100%;
+        width: 100%;
+    }
+    
+    .commitments-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .products-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .footer-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .hero-title {
+        font-size: 28px;
+    }
+    
+    .auth-card {
+        padding: 30px 20px;
+    }
+    
+    .otp-digit-input {
+        width: 42px;
+        height: 50px;
+        font-size: 20px;
+    }
+}
