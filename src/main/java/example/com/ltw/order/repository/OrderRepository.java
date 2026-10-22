@@ -139,6 +139,20 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     );
 
     @Query("SELECT o FROM Order o WHERE o.branch.id = :branchId " +
+            "AND o.status != example.com.ltw.order.entity.OrderStatus.PENDING " +
+            "AND (:fromDate IS NULL OR o.createdAt >= :fromDate) " +
+            "AND (:toDate IS NULL OR o.createdAt <= :toDate) " +
+            "ORDER BY CASE WHEN o.status = example.com.ltw.order.entity.OrderStatus.CONFIRMED THEN 0 " +
+            "              WHEN o.status = example.com.ltw.order.entity.OrderStatus.SHIPPING THEN 1 " +
+            "              ELSE 2 END, o.updatedAt DESC, o.createdAt DESC")
+    List<Order> findProcessingOrdersByBranchAndTime(
+            @Param("branchId") Long branchId,
+            @Param("fromDate") java.time.LocalDateTime fromDate,
+            @Param("toDate") java.time.LocalDateTime toDate,
+            Pageable pageable
+    );
+
+    @Query("SELECT o FROM Order o WHERE o.branch.id = :branchId " +
             "AND o.status = :status " +
             "AND (:fromDate IS NULL OR o.createdAt >= :fromDate) " +
             "AND (:toDate IS NULL OR o.createdAt <= :toDate) " +
@@ -146,6 +160,18 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findUrgentOrdersByBranchAndTime(
             @Param("branchId") Long branchId,
             @Param("status") OrderStatus status,
+            @Param("fromDate") java.time.LocalDateTime fromDate,
+            @Param("toDate") java.time.LocalDateTime toDate,
+            Pageable pageable
+    );
+
+    @Query("SELECT o FROM Order o WHERE o.branch.id = :branchId " +
+            "AND o.status = example.com.ltw.order.entity.OrderStatus.CONFIRMED " +
+            "AND (:fromDate IS NULL OR o.createdAt >= :fromDate) " +
+            "AND (:toDate IS NULL OR o.createdAt <= :toDate) " +
+            "ORDER BY o.createdAt ASC")
+    List<Order> findUrgentConfirmedOrdersByBranchAndTime(
+            @Param("branchId") Long branchId,
             @Param("fromDate") java.time.LocalDateTime fromDate,
             @Param("toDate") java.time.LocalDateTime toDate,
             Pageable pageable
@@ -180,6 +206,117 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             @Param("branchId") Long branchId,
             @Param("status") OrderStatus status,
             @Param("keyword") String keyword,
+            Pageable pageable
+    );
+
+    @Query("SELECT o FROM Order o WHERE o.branch.id = :branchId " +
+            "AND (o.assignedStaff.id = :staffId OR (o.assignedStaff IS NULL AND (" +
+            "     LOWER(COALESCE(o.note, '')) LIKE LOWER(CONCAT('%', :staffEmail, '%')) OR " +
+            "     (:staffName <> '' AND LOWER(COALESCE(o.note, '')) LIKE LOWER(CONCAT('%', :staffName, '%')))" +
+            "))) " +
+            "AND (:status IS NULL OR o.status = :status) " +
+            "AND (:fromDate IS NULL OR o.createdAt >= :fromDate) " +
+            "AND (:toDate IS NULL OR o.createdAt <= :toDate) " +
+            "AND (:keyword IS NULL OR :keyword = '' OR " +
+            "     LOWER(o.orderCode) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "     LOWER(o.receiverName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "     LOWER(o.receiverPhone) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+            "ORDER BY o.createdAt DESC")
+    Page<Order> searchMyManagedOrders(
+            @Param("branchId") Long branchId,
+            @Param("staffId") Long staffId,
+            @Param("staffEmail") String staffEmail,
+            @Param("staffName") String staffName,
+            @Param("status") OrderStatus status,
+            @Param("keyword") String keyword,
+            @Param("fromDate") java.time.LocalDateTime fromDate,
+            @Param("toDate") java.time.LocalDateTime toDate,
+            Pageable pageable
+    );
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.branch.id = :branchId " +
+            "AND (o.assignedStaff.id = :staffId OR (o.assignedStaff IS NULL AND (" +
+            "     LOWER(COALESCE(o.note, '')) LIKE LOWER(CONCAT('%', :staffEmail, '%')) OR " +
+            "     (:staffName <> '' AND LOWER(COALESCE(o.note, '')) LIKE LOWER(CONCAT('%', :staffName, '%')))" +
+            ")))")
+    long countMyManagedOrders(
+            @Param("branchId") Long branchId,
+            @Param("staffId") Long staffId,
+            @Param("staffEmail") String staffEmail,
+            @Param("staffName") String staffName
+    );
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.branch.id = :branchId " +
+            "AND (o.assignedStaff.id = :staffId OR (o.assignedStaff IS NULL AND (" +
+            "     LOWER(COALESCE(o.note, '')) LIKE LOWER(CONCAT('%', :staffEmail, '%')) OR " +
+            "     (:staffName <> '' AND LOWER(COALESCE(o.note, '')) LIKE LOWER(CONCAT('%', :staffName, '%')))" +
+            "))) " +
+            "AND (:status IS NULL OR o.status = :status) " +
+            "AND (:fromDate IS NULL OR o.createdAt >= :fromDate) " +
+            "AND (:toDate IS NULL OR o.createdAt <= :toDate)")
+    long countMyManagedOrdersByStatusAndTime(
+            @Param("branchId") Long branchId,
+            @Param("staffId") Long staffId,
+            @Param("staffEmail") String staffEmail,
+            @Param("staffName") String staffName,
+            @Param("status") OrderStatus status,
+            @Param("fromDate") java.time.LocalDateTime fromDate,
+            @Param("toDate") java.time.LocalDateTime toDate
+    );
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.branch.id = :branchId " +
+            "AND (o.assignedStaff.id = :staffId OR (o.assignedStaff IS NULL AND (" +
+            "     LOWER(COALESCE(o.note, '')) LIKE LOWER(CONCAT('%', :staffEmail, '%')) OR " +
+            "     (:staffName <> '' AND LOWER(COALESCE(o.note, '')) LIKE LOWER(CONCAT('%', :staffName, '%')))" +
+            "))) " +
+            "AND o.paymentStatus = :paymentStatus " +
+            "AND (:fromDate IS NULL OR o.createdAt >= :fromDate) " +
+            "AND (:toDate IS NULL OR o.createdAt <= :toDate)")
+    long countMyManagedOrdersByPaymentStatusAndTime(
+            @Param("branchId") Long branchId,
+            @Param("staffId") Long staffId,
+            @Param("staffEmail") String staffEmail,
+            @Param("staffName") String staffName,
+            @Param("paymentStatus") example.com.ltw.order.entity.PaymentStatus paymentStatus,
+            @Param("fromDate") java.time.LocalDateTime fromDate,
+            @Param("toDate") java.time.LocalDateTime toDate
+    );
+
+    @Query("SELECT o FROM Order o WHERE o.branch.id = :branchId " +
+            "AND (o.assignedStaff.id = :staffId OR (o.assignedStaff IS NULL AND (" +
+            "     LOWER(COALESCE(o.note, '')) LIKE LOWER(CONCAT('%', :staffEmail, '%')) OR " +
+            "     (:staffName <> '' AND LOWER(COALESCE(o.note, '')) LIKE LOWER(CONCAT('%', :staffName, '%')))" +
+            "))) " +
+            "AND (:fromDate IS NULL OR o.createdAt >= :fromDate) " +
+            "AND (:toDate IS NULL OR o.createdAt <= :toDate) " +
+            "ORDER BY CASE WHEN o.status = example.com.ltw.order.entity.OrderStatus.CONFIRMED THEN 0 " +
+            "              WHEN o.status = example.com.ltw.order.entity.OrderStatus.SHIPPING THEN 1 " +
+            "              WHEN o.status = example.com.ltw.order.entity.OrderStatus.DELIVERED THEN 2 " +
+            "              ELSE 3 END, o.createdAt DESC")
+    List<Order> findMyManagedRecentOrders(
+            @Param("branchId") Long branchId,
+            @Param("staffId") Long staffId,
+            @Param("staffEmail") String staffEmail,
+            @Param("staffName") String staffName,
+            @Param("fromDate") java.time.LocalDateTime fromDate,
+            @Param("toDate") java.time.LocalDateTime toDate,
+            Pageable pageable
+    );
+
+    @Query("SELECT o FROM Order o WHERE o.branch.id = :branchId " +
+            "AND o.status = example.com.ltw.order.entity.OrderStatus.PENDING " +
+            "AND (:fromDate IS NULL OR o.createdAt >= :fromDate) " +
+            "AND (:toDate IS NULL OR o.createdAt <= :toDate) " +
+            "AND (:keyword IS NULL OR :keyword = '' OR " +
+            "     LOWER(o.orderCode) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "     LOWER(o.receiverName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "     LOWER(o.receiverPhone) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+            "ORDER BY o.createdAt ASC")
+    Page<Order> searchPendingPoolOrders(
+            @Param("branchId") Long branchId,
+            @Param("keyword") String keyword,
+            @Param("fromDate") java.time.LocalDateTime fromDate,
+            @Param("toDate") java.time.LocalDateTime toDate,
             Pageable pageable
     );
 }

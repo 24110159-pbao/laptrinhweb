@@ -13,11 +13,13 @@ public class ShipperDashboardDto {
     private String branchName;
     private String branchAddress;
     private String branchPhone;
+    private String branchEmail;
 
     private long pendingPickups;      // PENDING - Mới gán, chờ nhận
     private long activeDeliveries;     // RECEIVED - Đang đi giao
     private long deliveredCount;       // DELIVERED - Giao thành công
     private long failedCount;          // DELIVERY_FAILED - Giao thất bại
+    private long cancelledCount;       // CANCELLED - Đã hủy đơn
     private long totalAssigned;        // Tổng số đơn được gán
 
     // Financial COD Metrics
@@ -96,6 +98,14 @@ public class ShipperDashboardDto {
 
     public void setBranchPhone(String branchPhone) {
         this.branchPhone = branchPhone;
+    }
+
+    public String getBranchEmail() {
+        return branchEmail;
+    }
+
+    public void setBranchEmail(String branchEmail) {
+        this.branchEmail = branchEmail;
     }
 
     public long getPendingPickups() {
@@ -245,6 +255,11 @@ public class ShipperDashboardDto {
 
         public Builder branchPhone(String branchPhone) {
             dto.branchPhone = branchPhone;
+            return this;
+        }
+
+        public Builder branchEmail(String branchEmail) {
+            dto.branchEmail = branchEmail;
             return this;
         }
 

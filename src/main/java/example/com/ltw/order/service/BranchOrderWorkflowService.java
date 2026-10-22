@@ -65,26 +65,42 @@ public class BranchOrderWorkflowService {
 
     /**
      * Bước 2: Staff chi nhánh xác nhận đơn hàng (PENDING -> CONFIRMED).
+     * Ghi vết trách nhiệm của nhân viên vào trường note (không sửa DB).
      */
     @Transactional
     public Order confirmOrder(User staff, Long orderId) {
         Order order = getOrderForStaff(staff, orderId);
 
         if (order.getStatus() != OrderStatus.PENDING) {
-            throw new IllegalStateException("Đơn hàng #" + order.getOrderCode() + " hiện ở trạng thái '" + order.getStatus() + "', không thể xác nhận lại!");
+            throw new IllegalStateException("Đơn hàng #" + order.getOrderCode() + " đã được nhân viên khác tiếp nhận hoặc không ở trạng thái chờ duyệt!");
         }
 
         order.setStatus(OrderStatus.CONFIRMED);
-        order.setUpdatedAt(LocalDateTime.now());
+        order.setAssignedStaff(staff);
+        LocalDateTime now = LocalDateTime.now();
+        order.setUpdatedAt(now);
+
+        // Lưu vết trách nhiệm nhân viên tiếp nhận đơn hàng (tận dụng trường note không sửa DB)
+        String timeStr = now.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy"));
+        String staffAudit = "[NV tiếp nhận: " + staff.getFullName() + " (" + staff.getEmail() + ") lúc " + timeStr + "]";
+        String currentNote = order.getNote();
+        if (currentNote == null || currentNote.isBlank()) {
+            order.setNote(staffAudit);
+        } else if (!currentNote.contains("[NV tiếp nhận:")) {
+            order.setNote(staffAudit + " | " + currentNote);
+        }
+
         Order saved = orderRepository.save(order);
 
-        log.info("Staff '{}' đã xác nhận đơn hàng '{}' tại chi nhánh '{}'",
-                staff.getEmail(), order.getOrderCode(), order.getBranch().getName());
+        log.info("Staff '{}' ({}) đã xác nhận tiếp nhận đơn hàng '{}' tại chi nhánh '{}'",
+                staff.getFullName(), staff.getEmail(), order.getOrderCode(), order.getBranch().getName());
         return saved;
     }
 
     /**
      * Bước 3: Staff bàn giao đơn hàng cho Shipper cùng chi nhánh & phát hành mã GHN.
+     * Nếu shipperId là null hoặc <= 0, hệ thống tự động phân công theo thuật toán:
+     * Shipper ít việc nhất -> Người chờ lâu nhất nhận trước.
      */
     @Transactional
     public Shipment assignShipper(User staff, Long orderId, Long shipperId, boolean generateGhn) {
@@ -95,11 +111,17 @@ public class BranchOrderWorkflowService {
         }
 
         Branch branch = order.getBranch();
-        User shipper = userRepository.findByIdAndBranch_IdAndRole(shipperId, branch.getId(), Role.SHIPPER)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Không tìm thấy Shipper hợp lệ trong cùng chi nhánh '" + branch.getName() + "'!"
-                ));
+        User shipper;
+        if (shipperId == null || shipperId <= 0) {
+            // Tự động phân công tối ưu: Shipper ít đơn nhất, hòa thì người chờ lâu nhất nhận trước
+            shipper = findOptimalShipper(branch.getId());
+        } else {
+            shipper = userRepository.findByIdAndBranch_IdAndRole(shipperId, branch.getId(), Role.SHIPPER)
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "Không tìm thấy Shipper hợp lệ trong cùng chi nhánh '" + branch.getName() + "'!"
+                    ));
+        }
 
         Shipment shipment = shipmentRepository.findByOrder_Id(orderId)
                 .orElseGet(() -> {
@@ -120,11 +142,23 @@ public class BranchOrderWorkflowService {
 
         Shipment savedShipment = shipmentRepository.save(shipment);
 
-        // Cập nhật Order sang trạng thái chuẩn bị giao vận
-        if (order.getStatus() == OrderStatus.PENDING) {
-            order.setStatus(OrderStatus.CONFIRMED);
+        // Khi nhân viên đóng gói xong và phân công bàn giao cho Shipper:
+        // Đơn hàng lập tức chuyển sang trạng thái SHIPPING (Đang giao hàng)
+        order.setStatus(OrderStatus.SHIPPING);
+        if (order.getAssignedStaff() == null) {
+            order.setAssignedStaff(staff);
         }
-        order.setUpdatedAt(LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        order.setUpdatedAt(now);
+
+        // Ghi vết bàn giao Shipper vào note
+        String assignAudit = "[NV bàn giao: " + staff.getFullName() + " -> Shipper: " + shipper.getFullName() + "]";
+        String currentNote = order.getNote();
+        if (currentNote == null || currentNote.isBlank()) {
+            order.setNote(assignAudit);
+        } else if (!currentNote.contains("[NV bàn giao:")) {
+            order.setNote(assignAudit + " | " + currentNote);
+        }
         orderRepository.save(order);
 
         log.info("Staff '{}' đã bàn giao đơn '{}' cho Shipper '{}' với mã GHN '{}'",
@@ -219,17 +253,26 @@ public class BranchOrderWorkflowService {
             throw new IllegalStateException("Chỉ có thể giao lại đơn hàng đang ở trạng thái giao thất bại!");
         }
 
+        Order order = shipment.getOrder();
+        if (order.getStatus() == OrderStatus.CANCELLED) {
+            throw new IllegalStateException("Đơn hàng này đã bị hủy (khách yêu cầu hoàn/hủy hoặc đã thất bại 3 lần), không thể kích hoạt giao lại!");
+        }
+
+        if (shipment.getAttemptCount() != null && shipment.getAttemptCount() >= 3) {
+            throw new IllegalStateException("Đơn hàng đã vượt quá giới hạn 3 lần giao thất bại, không thể giao lại!");
+        }
+
         LocalDateTime now = LocalDateTime.now();
         shipment.setStatus(ShipmentStatus.RECEIVED);
         shipment.setUpdatedAt(now);
 
-        Order order = shipment.getOrder();
         order.setStatus(OrderStatus.SHIPPING);
         order.setUpdatedAt(now);
         orderRepository.save(order);
 
         Shipment saved = shipmentRepository.save(shipment);
-        log.info("Shipper '{}' kích hoạt giao lại cho đơn '{}'", shipper.getEmail(), order.getOrderCode());
+        log.info("Shipper '{}' kích hoạt giao lại cho đơn '{}' (Lần thử: {})", 
+                shipper.getEmail(), order.getOrderCode(), (shipment.getAttemptCount() != null ? shipment.getAttemptCount() + 1 : 1));
         return saved;
     }
 
@@ -293,6 +336,9 @@ public class BranchOrderWorkflowService {
 
     /**
      * Bước 5 (Nhánh lỗi): Shipper báo giao hàng thất bại kèm lý do cụ thể.
+     * Quy tắc chuẩn hóa:
+     * - Nếu khách đòi hoàn hàng hoặc hủy đơn: chuyển giao thất bại và cập nhật order sang CANCELLED (không cho giao lại).
+     * - Nếu lý do bình thường: ghi nhận số lần thất bại (1, 2, 3). Nếu thất bại đủ 3 lần thì tự động chuyển sang CANCELLED (hủy đơn hoàn kho).
      */
     @Transactional
     public Shipment failDelivery(User shipper, Long shipmentId, String reason) {
@@ -306,15 +352,46 @@ public class BranchOrderWorkflowService {
         shipment.setStatus(ShipmentStatus.DELIVERY_FAILED);
         shipment.setUpdatedAt(now);
 
+        int currentAttempts = (shipment.getAttemptCount() != null ? shipment.getAttemptCount() : 0) + 1;
+        shipment.setAttemptCount(currentAttempts);
+
         Order order = shipment.getOrder();
-        String failLog = "[Shipper báo thất bại: " + (reason != null ? reason.trim() : "Khách không nhận") + "]";
+        String trimmedReason = (reason != null && !reason.isBlank()) ? reason.trim() : "Khách không nhận hàng";
+
+        boolean isCustomerReturnOrCancel = false;
+        String lowerReason = trimmedReason.toLowerCase();
+        if (lowerReason.contains("hoàn") 
+                || lowerReason.contains("hủy") 
+                || lowerReason.contains("huy") 
+                || lowerReason.contains("từ chối") 
+                || lowerReason.contains("không nhận") 
+                || lowerReason.contains("khong nhan") 
+                || lowerReason.contains("đổi ý") 
+                || lowerReason.contains("doi y")) {
+            isCustomerReturnOrCancel = true;
+        }
+
+        String failLog;
+        if (isCustomerReturnOrCancel) {
+            order.setStatus(OrderStatus.CANCELLED);
+            failLog = "[Shipper báo giao thất bại (Khách hủy/hoàn hàng): " + trimmedReason + " -> Đã hủy đơn và hoàn kho]";
+        } else {
+            if (currentAttempts < 3) {
+                failLog = "[Shipper báo giao thất bại lần " + currentAttempts + "/3: " + trimmedReason + " - Chờ giao lại]";
+            } else {
+                order.setStatus(OrderStatus.CANCELLED);
+                failLog = "[Shipper báo giao thất bại lần " + currentAttempts + "/3: " + trimmedReason + " -> Quá 3 lần giao thất bại, tự động chuyển hủy đơn và hoàn kho]";
+            }
+        }
+
         String currentNote = order.getNote();
         order.setNote(currentNote != null && !currentNote.isBlank() ? failLog + " | " + currentNote : failLog);
         order.setUpdatedAt(now);
         orderRepository.save(order);
 
         Shipment saved = shipmentRepository.save(shipment);
-        log.warn("Shipper '{}' báo giao thất bại cho đơn '{}'. Lý do: {}", shipper.getEmail(), order.getOrderCode(), reason);
+        log.warn("Shipper '{}' báo giao thất bại cho đơn '{}'. Lần: {}, Lý do: {}, Đơn hủy: {}", 
+                shipper.getEmail(), order.getOrderCode(), currentAttempts, trimmedReason, order.getStatus() == OrderStatus.CANCELLED);
         return saved;
     }
 
@@ -354,9 +431,86 @@ public class BranchOrderWorkflowService {
         return orderItemRepository.findAllByOrder_IdOrderByIdAsc(orderId);
     }
 
+    /**
+     * Thuật toán phân công Shipper thông minh cho chi nhánh:
+     * - Tiêu chí 1: Cân bằng tải - Chọn Shipper có ít đơn đang giao nhất (activeOrdersCount ASC).
+     * - Tiêu chí 2 (Ưu tiên 1 khi số đơn bằng nhau): Người chờ lâu nhất nhận trước
+     *   (Shipper chưa nhận đơn nào hoặc có thời điểm nhận đơn gần nhất xa nhất trong quá khứ).
+     * - Tiêu chí 3: ID tăng dần (deterministic).
+     */
     @Transactional(readOnly = true)
-    public List<User> getBranchShippers(Long branchId) {
-        return userRepository.findAllByBranch_IdAndRoleOrderByCreatedAtDesc(branchId, Role.SHIPPER);
+    public List<example.com.ltw.staff.dto.ShipperAssignmentOptionDto> getBranchShippers(Long branchId) {
+        List<User> shippers = userRepository.findAllByBranch_IdAndRoleOrderByCreatedAtDesc(branchId, Role.SHIPPER);
+        if (shippers.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        List<example.com.ltw.staff.dto.ShipperAssignmentOptionDto> options = new java.util.ArrayList<>();
+
+        for (User s : shippers) {
+            long activeOrders = shipmentRepository.countActiveDeliveriesByShipper(s.getId());
+            LocalDateTime lastAssigned = shipmentRepository.findLatestAssignmentTimeByShipper(s.getId());
+
+            String waitDesc;
+            if (lastAssigned == null) {
+                waitDesc = "Chưa có đơn";
+            } else {
+                long minutes = java.time.Duration.between(lastAssigned, now).toMinutes();
+                if (minutes < 1) {
+                    waitDesc = "Vừa nhận đơn";
+                } else if (minutes < 60) {
+                    waitDesc = "Chờ " + minutes + " phút";
+                } else {
+                    long hours = minutes / 60;
+                    long remMins = minutes % 60;
+                    waitDesc = "Chờ " + hours + " giờ" + (remMins > 0 ? " " + remMins + " phút" : "");
+                }
+            }
+
+            options.add(example.com.ltw.staff.dto.ShipperAssignmentOptionDto.builder()
+                    .id(s.getId())
+                    .fullName(s.getFullName())
+                    .phone(s.getPhone() != null ? s.getPhone() : "Chưa có SĐT")
+                    .email(s.getEmail())
+                    .activeOrdersCount(activeOrders)
+                    .lastAssignedAt(lastAssigned)
+                    .waitingTimeDescription(waitDesc)
+                    .recommended(false)
+                    .build());
+        }
+
+        // Sắp xếp theo đúng ưu tiên:
+        // 1. Ít việc nhất (activeOrdersCount ASC)
+        // 2. Người chờ lâu nhất nhận trước (lastAssignedAt: nullsFirst -> naturalOrder ASC)
+        // 3. ID ASC
+        options.sort(
+                java.util.Comparator.comparingLong(example.com.ltw.staff.dto.ShipperAssignmentOptionDto::getActiveOrdersCount)
+                        .thenComparing(example.com.ltw.staff.dto.ShipperAssignmentOptionDto::getLastAssignedAt,
+                                java.util.Comparator.nullsFirst(java.util.Comparator.naturalOrder()))
+                        .thenComparing(example.com.ltw.staff.dto.ShipperAssignmentOptionDto::getId)
+        );
+
+        if (!options.isEmpty()) {
+            options.get(0).setRecommended(true);
+        }
+
+        return options;
+    }
+
+    /**
+     * Tự động tìm Shipper tối ưu nhất theo thuật toán cân bằng tải & người chờ lâu nhất nhận trước.
+     */
+    @Transactional(readOnly = true)
+    public User findOptimalShipper(Long branchId) {
+        List<example.com.ltw.staff.dto.ShipperAssignmentOptionDto> ranked = getBranchShippers(branchId);
+        if (ranked.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Chi nhánh hiện chưa có nhân viên Shipper nào đang hoạt động!");
+        }
+
+        Long bestShipperId = ranked.get(0).getId();
+        return userRepository.findById(bestShipperId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy thông tin Shipper được đề xuất!"));
     }
 
     // ==========================================

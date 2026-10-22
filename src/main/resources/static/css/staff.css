@@ -1988,6 +1988,15 @@ body.manager-page .crm-pill-select {
     color: #ffffff !important;
 }
 
+body.manager-page .crm-pill-select span {
+    color: #cbd5e1 !important;
+}
+
+body.manager-page .crm-pill-select strong {
+    color: #38bdf8 !important;
+    font-weight: 800 !important;
+}
+
 body.manager-page .crm-time-select,
 body.manager-page .crm-datetime-input {
     color: #ffffff !important;
@@ -2235,8 +2244,20 @@ body.manager-page .table-card-header a {
     text-decoration: none !important;
 }
 
+body.manager-page .table-section-card {
+    background: #182438 !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius) !important;
+    overflow: hidden !important;
+}
+
+body.manager-page .table-responsive-wrap {
+    background: #182438 !important;
+    overflow-x: auto !important;
+}
+
 body.manager-page .staff-white-table {
-    background: transparent !important;
+    background: #182438 !important;
     color: #ffffff !important;
     border-collapse: separate !important;
     border-spacing: 0 !important;
@@ -2255,16 +2276,26 @@ body.manager-page .staff-white-table thead th {
     padding: 14px 18px !important;
 }
 
+body.manager-page .staff-white-table tbody {
+    background: #1d2b42 !important;
+}
+
+body.manager-page .staff-white-table tbody tr {
+    background: #1d2b42 !important;
+    transition: background 0.2s ease !important;
+}
+
 body.manager-page .staff-white-table tbody td {
     color: #ffffff !important;
     border-bottom: 1px solid var(--border) !important;
-    background: transparent !important;
+    background: #1d2b42 !important;
     padding: 14px 18px !important;
     vertical-align: middle !important;
 }
 
-body.manager-page .staff-white-table tbody tr:hover {
-    background: rgba(56, 189, 248, 0.06) !important;
+body.manager-page .staff-white-table tbody tr:hover,
+body.manager-page .staff-white-table tbody tr:hover td {
+    background: #253754 !important;
 }
 
 body.manager-page .customer-info-line,
@@ -2644,8 +2675,14 @@ body.manager-page .crm-search-input::placeholder {
 /* Order Detail Cards & Panels Dark Theme */
 body.manager-page .staff-white-panel div[style*="background: #ffffff"],
 body.manager-page .staff-white-panel div[style*="background:#ffffff"],
+body.manager-page .staff-white-panel div[style*="background: #fafafa"],
+body.manager-page .staff-white-panel div[style*="background:#fafafa"],
 body.manager-page .staff-white-panel div[style*="background: #f8fafc"],
-body.manager-page .staff-white-panel div[style*="background:#f8fafc"] {
+body.manager-page .staff-white-panel div[style*="background:#f8fafc"],
+body.manager-page .staff-white-panel tr[style*="background: #f8fafc"],
+body.manager-page .staff-white-panel tr[style*="background:#f8fafc"],
+body.manager-page .staff-white-panel tr[style*="background: #ffffff"],
+body.manager-page .staff-white-panel tr[style*="background:#ffffff"] {
     background: #1d2b42 !important;
     border-color: var(--border) !important;
     color: #ffffff !important;
@@ -2669,5 +2706,41 @@ body.manager-page .staff-white-panel .panel-meta-desc {
 body.manager-page .staff-white-panel .panel-meta-desc strong {
     color: #38bdf8 !important;
 }
+
+body.manager-page .staff-white-panel th {
+    background: #141f33 !important;
+    color: #94a3b8 !important;
+    border-bottom: 1px solid var(--border) !important;
+}
+
+body.manager-page .staff-white-panel table,
+body.manager-page .staff-white-panel thead,
+body.manager-page .staff-white-panel tbody,
+body.manager-page .staff-white-panel tr,
+body.manager-page .staff-white-panel td {
+    border-color: var(--border) !important;
+}
+
+/* Modals Dark Theme Guarantee */
+body.manager-page #quickFailModal > div,
+body.manager-page #shipperFailModal > div {
+    background: #1d2b42 !important;
+    border: 1px solid #405570 !important;
+    color: #ffffff !important;
+}
+
+/* Alert Boxes High Contrast */
+body.manager-page .alert-success {
+    background: rgba(34, 197, 94, 0.15) !important;
+    border: 1px solid rgba(34, 197, 94, 0.4) !important;
+    color: #4ade80 !important;
+}
+
+body.manager-page .alert-danger {
+    background: rgba(239, 68, 68, 0.15) !important;
+    border: 1px solid rgba(239, 68, 68, 0.4) !important;
+    color: #f87171 !important;
+}
+
 
 

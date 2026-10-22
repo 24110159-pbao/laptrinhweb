@@ -74,6 +74,7 @@ public class StaffOrderController {
 
     @GetMapping({"", "/dashboard"})
     public String showDashboard(
+            @RequestParam(name = "scope", defaultValue = "all") String scope,
             @RequestParam(name = "timePreset", defaultValue = "all") String timePreset,
             @RequestParam(name = "fromDateTime", required = false) String fromDateTimeStr,
             @RequestParam(name = "toDateTime", required = false) String toDateTimeStr,
@@ -96,8 +97,8 @@ public class StaffOrderController {
         java.time.LocalDateTime fromDate = parseDateTime(fromDateTimeStr, false);
         java.time.LocalDateTime toDate = parseDateTime(toDateTimeStr, true);
 
-        StaffDashboardDto dashboard = staffOrderService.getDashboardData(staff, timePreset, fromDate, toDate);
-        List<User> branchShippers = staffOrderService.getBranchShippers(dashboard.getBranchId());
+        StaffDashboardDto dashboard = staffOrderService.getDashboardData(staff, timePreset, fromDate, toDate, scope);
+        List<example.com.ltw.staff.dto.ShipperAssignmentOptionDto> branchShippers = staffOrderService.getBranchShippers(dashboard.getBranchId());
 
         model.addAttribute("staff", staff);
         model.addAttribute("currentUser", staff);
@@ -107,6 +108,7 @@ public class StaffOrderController {
         model.addAttribute("cartCount", 0);
         model.addAttribute("compareCount", 0);
         model.addAttribute("activeNav", "dashboard");
+        model.addAttribute("scope", scope);
         model.addAttribute("selectedTimePreset", timePreset);
         model.addAttribute("fromDateTime", fromDateTimeStr != null ? fromDateTimeStr : "");
         model.addAttribute("toDateTime", toDateTimeStr != null ? toDateTimeStr : "");
@@ -114,11 +116,11 @@ public class StaffOrderController {
     }
 
     public String showDashboard(Model model, HttpSession session, RedirectAttributes redirectAttributes) {
-        return showDashboard("all", null, null, model, session, redirectAttributes);
+        return showDashboard("all", "all", null, null, model, session, redirectAttributes);
     }
 
     // ==========================================
-    // 2. BRANCH ORDERS LIST & FILTERS
+    // 2. MY MANAGED ORDERS (ĐƠN QUẢN LÝ CỦA NHÂN VIÊN)
     // ==========================================
 
     @GetMapping("/orders")
@@ -164,9 +166,10 @@ public class StaffOrderController {
             toDate = java.time.LocalDate.now().atTime(java.time.LocalTime.MAX);
         }
 
-        Page<Order> orderPage = staffOrderService.getOrders(staff, status, keyword, fromDate, toDate, page, size);
+        // Đơn Quản Lý: Chỉ lấy các đơn do chính nhân viên này tiếp nhận & xử lý
+        Page<Order> orderPage = staffOrderService.getMyManagedOrders(staff, status, keyword, fromDate, toDate, page, size);
         StaffDashboardDto dashboard = staffOrderService.getDashboardData(staff, timePreset, fromDate, toDate);
-        List<User> branchShippers = staffOrderService.getBranchShippers(dashboard.getBranchId());
+        List<example.com.ltw.staff.dto.ShipperAssignmentOptionDto> branchShippers = staffOrderService.getBranchShippers(dashboard.getBranchId());
 
         model.addAttribute("staff", staff);
         model.addAttribute("currentUser", staff);
@@ -176,11 +179,10 @@ public class StaffOrderController {
         model.addAttribute("page", orderPage);
         model.addAttribute("selectedStatus", status);
         model.addAttribute("keyword", keyword != null ? keyword : "");
-        model.addAttribute("orderStatuses", OrderStatus.values());
         model.addAttribute("locationName", dashboard.getBranchName());
         model.addAttribute("cartCount", 0);
         model.addAttribute("compareCount", 0);
-        model.addAttribute("activeNav", "orders");
+        model.addAttribute("activeNav", "my-orders");
         model.addAttribute("selectedTimePreset", timePreset);
         model.addAttribute("fromDateTime", fromDateTimeStr != null ? fromDateTimeStr : "");
         model.addAttribute("toDateTime", toDateTimeStr != null ? toDateTimeStr : "");
@@ -189,7 +191,75 @@ public class StaffOrderController {
     }
 
     // ==========================================
-    // 3. ORDER DETAIL (BRANCH SCOPED)
+    // 2B. PENDING POOL ORDERS (ĐƠN CHỜ NHẬN CHI NHÁNH)
+    // ==========================================
+
+    @GetMapping("/pending-orders")
+    public String listPendingOrders(
+            @RequestParam(name = "keyword", required = false) String keyword,
+            @RequestParam(name = "timePreset", defaultValue = "all") String timePreset,
+            @RequestParam(name = "fromDateTime", required = false) String fromDateTimeStr,
+            @RequestParam(name = "toDateTime", required = false) String toDateTimeStr,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            Model model,
+            HttpSession session,
+            RedirectAttributes redirectAttributes
+    ) {
+        User staff;
+        try {
+            staff = requireStaffUser(session);
+        } catch (SecurityException ex) {
+            if ("UNAUTHENTICATED".equals(ex.getMessage())) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng đăng nhập tài khoản nhân viên!");
+                return "redirect:/login";
+            }
+            redirectAttributes.addFlashAttribute("errorMessage", "Bạn không có quyền truy cập vào cổng nhân viên!");
+            return "redirect:/";
+        }
+
+        java.time.LocalDateTime fromDate = parseDateTime(fromDateTimeStr, false);
+        java.time.LocalDateTime toDate = parseDateTime(toDateTimeStr, true);
+
+        if ("today".equalsIgnoreCase(timePreset)) {
+            fromDate = java.time.LocalDate.now().atStartOfDay();
+            toDate = java.time.LocalDate.now().atTime(java.time.LocalTime.MAX);
+        } else if ("yesterday".equalsIgnoreCase(timePreset)) {
+            java.time.LocalDate yesterday = java.time.LocalDate.now().minusDays(1);
+            fromDate = yesterday.atStartOfDay();
+            toDate = yesterday.atTime(java.time.LocalTime.MAX);
+        } else if ("last7days".equalsIgnoreCase(timePreset)) {
+            fromDate = java.time.LocalDateTime.now().minusDays(7);
+            toDate = java.time.LocalDateTime.now();
+        } else if ("thisMonth".equalsIgnoreCase(timePreset)) {
+            fromDate = java.time.LocalDate.now().withDayOfMonth(1).atStartOfDay();
+            toDate = java.time.LocalDate.now().atTime(java.time.LocalTime.MAX);
+        }
+
+        Page<Order> orderPage = staffOrderService.getPendingPoolOrders(staff, keyword, fromDate, toDate, page, size);
+        StaffDashboardDto dashboard = staffOrderService.getDashboardData(staff, timePreset, fromDate, toDate);
+        List<example.com.ltw.staff.dto.ShipperAssignmentOptionDto> branchShippers = staffOrderService.getBranchShippers(dashboard.getBranchId());
+
+        model.addAttribute("staff", staff);
+        model.addAttribute("currentUser", staff);
+        model.addAttribute("dashboard", dashboard);
+        model.addAttribute("branchShippers", branchShippers);
+        model.addAttribute("orders", orderPage.getContent());
+        model.addAttribute("page", orderPage);
+        model.addAttribute("keyword", keyword != null ? keyword : "");
+        model.addAttribute("locationName", dashboard.getBranchName());
+        model.addAttribute("cartCount", 0);
+        model.addAttribute("compareCount", 0);
+        model.addAttribute("activeNav", "pending-orders");
+        model.addAttribute("selectedTimePreset", timePreset);
+        model.addAttribute("fromDateTime", fromDateTimeStr != null ? fromDateTimeStr : "");
+        model.addAttribute("toDateTime", toDateTimeStr != null ? toDateTimeStr : "");
+
+        return "staff/pending-orders";
+    }
+
+    // ==========================================
+    // 3. ORDER DETAIL (CHỈ XEM KHI ĐÃ ĐƯỢC TIẾP NHẬN)
     // ==========================================
 
     @GetMapping("/orders/{id}")
@@ -213,12 +283,24 @@ public class StaffOrderController {
 
         try {
             Order order = staffOrderService.getOrderDetail(staff, id);
+
+            // Quy tắc nghiệp vụ: Đơn hàng ở trạng thái PENDING chưa được tiếp nhận không thể xem chi tiết trực tiếp.
+            // Phải tiếp nhận đơn trước để đưa vào quản lý, sau đó mới đóng gói và phân công Shipper.
+            if (order.getStatus() == OrderStatus.PENDING) {
+                redirectAttributes.addFlashAttribute("errorMessage",
+                        "Đơn hàng #" + order.getOrderCode() + " đang trong bể chờ nhận chi nhánh. Vui lòng bấm 'Tiếp nhận' để nhận vào Đơn Quản Lý trước khi xem chi tiết!");
+                return "redirect:/staff/pending-orders";
+            }
+
             List<OrderItem> items = staffOrderService.getOrderItems(id);
-            List<User> branchShippers = staffOrderService.getBranchShippers(order.getBranch().getId());
+            List<example.com.ltw.staff.dto.ShipperAssignmentOptionDto> branchShippers = staffOrderService.getBranchShippers(order.getBranch().getId());
             java.util.Optional<example.com.ltw.shipping.entity.Shipment> shipment = staffOrderService.getOrderShipment(id);
+
+            StaffDashboardDto dashboard = staffOrderService.getDashboardData(staff);
 
             model.addAttribute("staff", staff);
             model.addAttribute("currentUser", staff);
+            model.addAttribute("dashboard", dashboard);
             model.addAttribute("order", order);
             model.addAttribute("orderItems", items);
             model.addAttribute("branchShippers", branchShippers);
@@ -226,7 +308,7 @@ public class StaffOrderController {
             model.addAttribute("locationName", order.getBranch().getName());
             model.addAttribute("cartCount", 0);
             model.addAttribute("compareCount", 0);
-            model.addAttribute("activeNav", "orders");
+            model.addAttribute("activeNav", "my-orders");
             return "staff/order-detail";
         } catch (Exception ex) {
             log.warn("Staff {} attempted to view unauthorized order {}: {}", staff.getEmail(), id, ex.getMessage());
@@ -239,9 +321,10 @@ public class StaffOrderController {
     // 4. CONFIRM ORDER (PENDING -> CONFIRMED)
     // ==========================================
 
-    @org.springframework.web.bind.annotation.PostMapping("/orders/{id}/confirm")
+    @PostMapping("/orders/{id}/confirm")
     public String confirmOrder(
             @PathVariable("id") Long id,
+            @RequestParam(name = "redirect", required = false) String redirect,
             HttpSession session,
             RedirectAttributes redirectAttributes
     ) {
@@ -256,15 +339,24 @@ public class StaffOrderController {
         try {
             Order updated = staffOrderService.confirmOrder(staff, id);
             redirectAttributes.addFlashAttribute("successMessage",
-                    "Đã xác nhận đơn hàng #" + updated.getOrderCode() + " thành công! Chuyển sang khâu chuẩn bị hàng.");
+                    "Đã tiếp nhận đơn hàng #" + updated.getOrderCode() + " thành công vào Đơn Quản Lý! Bạn có thể chọn đóng gói và phân công khi sẵn sàng.");
         } catch (IllegalStateException | org.springframework.web.server.ResponseStatusException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            if ("pending".equalsIgnoreCase(redirect)) {
+                return "redirect:/staff/pending-orders";
+            }
+            if ("dashboard".equalsIgnoreCase(redirect)) {
+                return "redirect:/staff/dashboard";
+            }
+            return "redirect:/staff/orders";
         } catch (Exception ex) {
             log.error("Error confirming order {}", id, ex);
-            redirectAttributes.addFlashAttribute("errorMessage", "Không thể xác nhận đơn hàng: " + ex.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Không thể tiếp nhận đơn hàng: " + ex.getMessage());
+            return "redirect:/staff/pending-orders";
         }
 
-        return "redirect:/staff/orders/" + id;
+        // Chuyển hướng về trang Đơn Quản Lý (/staff/orders)
+        return "redirect:/staff/orders";
     }
 
     // ==========================================
@@ -343,7 +435,7 @@ public class StaffOrderController {
     @PostMapping("/orders/{id}/assign-shipper")
     public String assignShipper(
             @PathVariable("id") Long id,
-            @RequestParam("shipperId") Long shipperId,
+            @RequestParam(name = "shipperId", required = false) Long shipperId,
             @RequestParam(name = "generateGhn", defaultValue = "true") boolean generateGhn,
             HttpSession session,
             RedirectAttributes redirectAttributes
@@ -357,9 +449,11 @@ public class StaffOrderController {
         }
 
         try {
+            boolean isAutoAssigned = (shipperId == null || shipperId <= 0);
             example.com.ltw.shipping.entity.Shipment shipment = staffOrderService.assignShipper(staff, id, shipperId, generateGhn);
+            String prefix = isAutoAssigned ? "🤖 [Tự động cân bằng tải] " : "";
             redirectAttributes.addFlashAttribute("successMessage",
-                    "Đã bàn giao đơn hàng cho Shipper '" + shipment.getShipper().getFullName() +
+                    prefix + "Đã bàn giao đơn hàng cho Shipper '" + shipment.getShipper().getFullName() +
                     "' và phát hành mã vận đơn GHN: " + shipment.getGhnOrderCode() + " thành công!");
         } catch (Exception ex) {
             log.error("Failed to assign shipper for order {}", id, ex);

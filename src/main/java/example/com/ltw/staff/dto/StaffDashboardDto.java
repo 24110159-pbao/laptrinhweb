@@ -10,6 +10,7 @@ public class StaffDashboardDto {
     private String branchName;
     private String branchAddress;
     private String branchPhone;
+    private String branchEmail;
 
     // Order Volume Metrics
     private long totalOrders;
@@ -37,6 +38,10 @@ public class StaffDashboardDto {
     private String fromDateTime;
     private String toDateTime;
     private String formattedTimeRange;
+
+    // Assignment & Scope
+    private String scope;
+    private long myAssignedOrdersCount;
 
     public StaffDashboardDto() {
     }
@@ -75,6 +80,14 @@ public class StaffDashboardDto {
 
     public void setBranchPhone(String branchPhone) {
         this.branchPhone = branchPhone;
+    }
+
+    public String getBranchEmail() {
+        return branchEmail;
+    }
+
+    public void setBranchEmail(String branchEmail) {
+        this.branchEmail = branchEmail;
     }
 
     public long getTotalOrders() {
@@ -229,6 +242,22 @@ public class StaffDashboardDto {
         this.formattedTimeRange = formattedTimeRange;
     }
 
+    public String getScope() {
+        return scope;
+    }
+
+    public void setScope(String scope) {
+        this.scope = scope;
+    }
+
+    public long getMyAssignedOrdersCount() {
+        return myAssignedOrdersCount;
+    }
+
+    public void setMyAssignedOrdersCount(long myAssignedOrdersCount) {
+        this.myAssignedOrdersCount = myAssignedOrdersCount;
+    }
+
     public static class Builder {
         private final StaffDashboardDto dto = new StaffDashboardDto();
 
@@ -249,6 +278,11 @@ public class StaffDashboardDto {
 
         public Builder branchPhone(String branchPhone) {
             dto.branchPhone = branchPhone;
+            return this;
+        }
+
+        public Builder branchEmail(String branchEmail) {
+            dto.branchEmail = branchEmail;
             return this;
         }
 
@@ -344,6 +378,16 @@ public class StaffDashboardDto {
 
         public Builder formattedTimeRange(String formattedTimeRange) {
             dto.formattedTimeRange = formattedTimeRange;
+            return this;
+        }
+
+        public Builder scope(String scope) {
+            dto.scope = scope;
+            return this;
+        }
+
+        public Builder myAssignedOrdersCount(long myAssignedOrdersCount) {
+            dto.myAssignedOrdersCount = myAssignedOrdersCount;
             return this;
         }
 

@@ -71,7 +71,7 @@ public class ShipperController {
 
     @GetMapping({"", "/dashboard"})
     public String showDashboard(
-            @RequestParam(name = "timePreset", defaultValue = "all") String timePreset,
+            @RequestParam(name = "timePreset", defaultValue = "today") String timePreset,
             @RequestParam(name = "fromDateTime", required = false) String fromDateTimeStr,
             @RequestParam(name = "toDateTime", required = false) String toDateTimeStr,
             Model model,
@@ -90,8 +90,29 @@ public class ShipperController {
             return "redirect:/";
         }
 
-        java.time.LocalDateTime fromDate = parseDateTime(fromDateTimeStr, false);
-        java.time.LocalDateTime toDate = parseDateTime(toDateTimeStr, true);
+        java.time.LocalDateTime fromDate = null;
+        java.time.LocalDateTime toDate = null;
+
+        if ("yesterday".equalsIgnoreCase(timePreset)) {
+            java.time.LocalDate yesterday = java.time.LocalDate.now().minusDays(1);
+            fromDate = yesterday.atStartOfDay();
+            toDate = yesterday.atTime(java.time.LocalTime.MAX);
+        } else if ("thisWeek".equalsIgnoreCase(timePreset)) {
+            java.time.LocalDate now = java.time.LocalDate.now();
+            java.time.LocalDate startOfWeek = now.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
+            fromDate = startOfWeek.atStartOfDay();
+            toDate = now.atTime(java.time.LocalTime.MAX);
+        } else if ("thisMonth".equalsIgnoreCase(timePreset)) {
+            fromDate = java.time.LocalDate.now().withDayOfMonth(1).atStartOfDay();
+            toDate = java.time.LocalDate.now().atTime(java.time.LocalTime.MAX);
+        } else if ("all".equalsIgnoreCase(timePreset)) {
+            fromDate = null;
+            toDate = null;
+        } else {
+            timePreset = "today";
+            fromDate = java.time.LocalDate.now().atStartOfDay();
+            toDate = java.time.LocalDate.now().atTime(java.time.LocalTime.MAX);
+        }
 
         ShipperDashboardDto dashboard = shipperOrderService.getDashboardData(shipper, timePreset, fromDate, toDate);
         model.addAttribute("shipper", shipper);
@@ -113,7 +134,7 @@ public class ShipperController {
     public String listTasks(
             @RequestParam(name = "status", required = false) ShipmentStatus status,
             @RequestParam(name = "keyword", required = false) String keyword,
-            @RequestParam(name = "timePreset", defaultValue = "all") String timePreset,
+            @RequestParam(name = "timePreset", defaultValue = "today") String timePreset,
             @RequestParam(name = "fromDateTime", required = false) String fromDateTimeStr,
             @RequestParam(name = "toDateTime", required = false) String toDateTimeStr,
             @RequestParam(name = "page", defaultValue = "0") int page,
@@ -130,21 +151,27 @@ public class ShipperController {
             return "redirect:/login";
         }
 
-        java.time.LocalDateTime fromDate = parseDateTime(fromDateTimeStr, false);
-        java.time.LocalDateTime toDate = parseDateTime(toDateTimeStr, true);
+        java.time.LocalDateTime fromDate = null;
+        java.time.LocalDateTime toDate = null;
 
-        if ("today".equalsIgnoreCase(timePreset)) {
-            fromDate = java.time.LocalDate.now().atStartOfDay();
-            toDate = java.time.LocalDate.now().atTime(java.time.LocalTime.MAX);
-        } else if ("yesterday".equalsIgnoreCase(timePreset)) {
+        if ("yesterday".equalsIgnoreCase(timePreset)) {
             java.time.LocalDate yesterday = java.time.LocalDate.now().minusDays(1);
             fromDate = yesterday.atStartOfDay();
             toDate = yesterday.atTime(java.time.LocalTime.MAX);
-        } else if ("last7days".equalsIgnoreCase(timePreset)) {
-            fromDate = java.time.LocalDateTime.now().minusDays(7);
-            toDate = java.time.LocalDateTime.now();
+        } else if ("thisWeek".equalsIgnoreCase(timePreset)) {
+            java.time.LocalDate now = java.time.LocalDate.now();
+            java.time.LocalDate startOfWeek = now.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
+            fromDate = startOfWeek.atStartOfDay();
+            toDate = now.atTime(java.time.LocalTime.MAX);
         } else if ("thisMonth".equalsIgnoreCase(timePreset)) {
             fromDate = java.time.LocalDate.now().withDayOfMonth(1).atStartOfDay();
+            toDate = java.time.LocalDate.now().atTime(java.time.LocalTime.MAX);
+        } else if ("all".equalsIgnoreCase(timePreset)) {
+            fromDate = null;
+            toDate = null;
+        } else {
+            timePreset = "today";
+            fromDate = java.time.LocalDate.now().atStartOfDay();
             toDate = java.time.LocalDate.now().atTime(java.time.LocalTime.MAX);
         }
 

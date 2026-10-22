@@ -65,8 +65,9 @@ public class StaffOrderService {
         User currentStaff = (staff.getId() != null) ? userRepository.findById(staff.getId()).orElse(staff) : staff;
 
         if (currentStaff.getBranch() != null) {
-            staff.setBranch(currentStaff.getBranch());
-            return currentStaff.getBranch();
+            Branch freshBranch = branchRepository.findById(currentStaff.getBranch().getId()).orElse(currentStaff.getBranch());
+            staff.setBranch(freshBranch);
+            return freshBranch;
         }
 
         Branch fallbackBranch = branchRepository.findFirstByOrderByIdAsc()
@@ -88,10 +89,18 @@ public class StaffOrderService {
     }
 
     /**
-     * Collect dashboard metrics with date-time filtering scoped strictly to the staff's branch.
+     * Collect dashboard metrics with date-time filtering scoped strictly to the staff's branch (default all scope).
      */
     @Transactional(readOnly = true)
     public StaffDashboardDto getDashboardData(User staff, String timePreset, java.time.LocalDateTime fromDate, java.time.LocalDateTime toDate) {
+        return getDashboardData(staff, timePreset, fromDate, toDate, "all");
+    }
+
+    /**
+     * Collect dashboard metrics with date-time filtering and personal assignment scope.
+     */
+    @Transactional(readOnly = true)
+    public StaffDashboardDto getDashboardData(User staff, String timePreset, java.time.LocalDateTime fromDate, java.time.LocalDateTime toDate, String scope) {
         Branch branch = resolveStaffBranch(staff);
         Long branchId = branch.getId();
 
@@ -128,29 +137,44 @@ public class StaffOrderService {
             }
         }
 
-        long totalOrders = orderRepository.countByBranchAndTime(branchId, from, to);
+        Long staffId = (staff != null && staff.getId() != null) ? staff.getId() : -1L;
+        String staffEmail = (staff != null && staff.getEmail() != null) ? staff.getEmail().toLowerCase() : "";
+        String staffName = (staff != null && staff.getFullName() != null) ? staff.getFullName().toLowerCase() : "";
+
+        // Số liệu tiến độ hoàn toàn thuộc về nhân viên hiện tại quản lý / xử lý:
+        long totalOrders = orderRepository.countMyManagedOrdersByStatusAndTime(branchId, staffId, staffEmail, staffName, null, from, to);
+        long confirmedOrders = orderRepository.countMyManagedOrdersByStatusAndTime(branchId, staffId, staffEmail, staffName, OrderStatus.CONFIRMED, from, to);
+        long shippingOrders = orderRepository.countMyManagedOrdersByStatusAndTime(branchId, staffId, staffEmail, staffName, OrderStatus.SHIPPING, from, to);
+        long deliveredOrders = orderRepository.countMyManagedOrdersByStatusAndTime(branchId, staffId, staffEmail, staffName, OrderStatus.DELIVERED, from, to);
+        long cancelledOrders = orderRepository.countMyManagedOrdersByStatusAndTime(branchId, staffId, staffEmail, staffName, OrderStatus.CANCELLED, from, to);
+
+        long paidOrders = orderRepository.countMyManagedOrdersByPaymentStatusAndTime(branchId, staffId, staffEmail, staffName, example.com.ltw.order.entity.PaymentStatus.PAID, from, to);
+        long unpaidOrders = orderRepository.countMyManagedOrdersByPaymentStatusAndTime(branchId, staffId, staffEmail, staffName, example.com.ltw.order.entity.PaymentStatus.UNPAID, from, to);
+
+        // Số lượng đơn PENDING trong bể chờ chi nhánh (để hiển thị badge và widget chờ nhận):
         long pendingOrders = orderRepository.countByBranchAndStatusAndTime(branchId, OrderStatus.PENDING, from, to);
-        long confirmedOrders = orderRepository.countByBranchAndStatusAndTime(branchId, OrderStatus.CONFIRMED, from, to);
-        long shippingOrders = orderRepository.countByBranchAndStatusAndTime(branchId, OrderStatus.SHIPPING, from, to);
-        long deliveredOrders = orderRepository.countByBranchAndStatusAndTime(branchId, OrderStatus.DELIVERED, from, to);
-        long cancelledOrders = orderRepository.countByBranchAndStatusAndTime(branchId, OrderStatus.CANCELLED, from, to);
 
         java.math.BigDecimal totalOrderAmount = orderRepository.sumTotalOrderAmountByBranchAndTime(branchId, from, to);
         java.math.BigDecimal totalRevenue = orderRepository.sumTotalRevenueByBranchAndTime(branchId, from, to);
         java.math.BigDecimal collectedRevenue = orderRepository.sumPaidRevenueByBranchAndTime(branchId, from, to);
         java.math.BigDecimal pendingCodRevenue = orderRepository.sumPendingCodRevenueByBranchAndTime(branchId, from, to);
-        long paidOrders = orderRepository.countByBranchAndPaymentStatusAndTime(branchId, example.com.ltw.order.entity.PaymentStatus.PAID, from, to);
-        long unpaidOrders = orderRepository.countByBranchAndPaymentStatusAndTime(branchId, example.com.ltw.order.entity.PaymentStatus.UNPAID, from, to);
-        long pendingCodOrders = orderRepository.countPendingCodOrdersByBranchAndTime(branchId, from, to);
+        long pendingCodOrders = unpaidOrders;
 
-        List<Order> recentOrders = orderRepository.findRecentOrdersByBranchAndTime(branchId, from, to, PageRequest.of(0, 5));
-        List<Order> urgentOrders = orderRepository.findUrgentOrdersByBranchAndTime(branchId, OrderStatus.PENDING, from, to, PageRequest.of(0, 5));
+        // Bàn Làm Việc: Chỉ hiển thị các đơn ĐÃ THUỘC VỀ NHÂN VIÊN NÀY xử lý
+        List<Order> displayedOrders = orderRepository.findMyManagedRecentOrders(branchId, staffId, staffEmail, staffName, from, to, PageRequest.of(0, 30));
+
+        // Đơn chờ nhận trong bể chi nhánh (hiển thị ở widget bên phải để tiếp nhận nhanh):
+        Page<Order> pendingPoolPage = orderRepository.searchPendingPoolOrders(branchId, null, from, to, PageRequest.of(0, 10));
+        List<Order> urgentOrders = pendingPoolPage.getContent();
+
+        long myAssignedOrdersCount = totalOrders;
 
         return StaffDashboardDto.builder()
                 .branchId(branchId)
                 .branchName(branch.getName())
                 .branchAddress(branch.getAddress())
                 .branchPhone(branch.getPhone() != null ? branch.getPhone() : "Chưa cập nhật")
+                .branchEmail(branch.getEmail() != null ? branch.getEmail() : "Chưa cập nhật")
                 .totalOrders(totalOrders)
                 .pendingOrders(pendingOrders)
                 .confirmedOrders(confirmedOrders)
@@ -164,12 +188,14 @@ public class StaffOrderService {
                 .paidOrders(paidOrders)
                 .unpaidOrders(unpaidOrders)
                 .pendingCodOrders(pendingCodOrders)
-                .recentOrders(recentOrders)
+                .recentOrders(displayedOrders)
                 .urgentOrders(urgentOrders)
                 .timePreset(timePreset != null ? timePreset : "all")
                 .fromDateTime(from != null ? from.toString() : "")
                 .toDateTime(to != null ? to.toString() : "")
                 .formattedTimeRange(formattedRange)
+                .scope(scope != null ? scope : "all")
+                .myAssignedOrdersCount(myAssignedOrdersCount)
                 .build();
     }
 
@@ -191,6 +217,43 @@ public class StaffOrderService {
 
         String sanitizedKeyword = (keyword != null) ? keyword.trim() : "";
         return orderRepository.searchOrdersByBranchAndTime(branch.getId(), status, sanitizedKeyword, fromDate, toDate, pageable);
+    }
+
+    /**
+     * Lấy danh sách các đơn hàng do CHÍNH nhân viên hiện tại quản lý và xử lý (Đơn Quản Lý).
+     * Cho phép lọc theo trạng thái (CONFIRMED, SHIPPING, DELIVERED, CANCELLED), từ khóa và thời gian.
+     */
+    @Transactional(readOnly = true)
+    public Page<Order> getMyManagedOrders(User staff, OrderStatus status, String keyword, java.time.LocalDateTime fromDate, java.time.LocalDateTime toDate, int page, int size) {
+        Branch branch = resolveStaffBranch(staff);
+        Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size));
+        String sanitizedKeyword = (keyword != null) ? keyword.trim() : "";
+        String staffEmail = (staff != null && staff.getEmail() != null) ? staff.getEmail().toLowerCase() : "";
+        String staffName = (staff != null && staff.getFullName() != null) ? staff.getFullName().toLowerCase() : "";
+        Long staffId = (staff != null && staff.getId() != null) ? staff.getId() : -1L;
+
+        return orderRepository.searchMyManagedOrders(
+                branch.getId(),
+                staffId,
+                staffEmail,
+                staffName,
+                status,
+                sanitizedKeyword,
+                fromDate,
+                toDate,
+                pageable
+        );
+    }
+
+    /**
+     * Lấy danh sách các đơn hàng đang chờ tiếp nhận tại chi nhánh (Bể Đơn PENDING).
+     */
+    @Transactional(readOnly = true)
+    public Page<Order> getPendingPoolOrders(User staff, String keyword, java.time.LocalDateTime fromDate, java.time.LocalDateTime toDate, int page, int size) {
+        Branch branch = resolveStaffBranch(staff);
+        Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size));
+        String sanitizedKeyword = (keyword != null) ? keyword.trim() : "";
+        return orderRepository.searchPendingPoolOrders(branch.getId(), sanitizedKeyword, fromDate, toDate, pageable);
     }
 
     /**
@@ -226,10 +289,10 @@ public class StaffOrderService {
     }
 
     /**
-     * Get all active shippers attached to the staff's branch.
+     * Get all active shippers attached to the staff's branch with workload and wait-time ranking.
      */
     @Transactional(readOnly = true)
-    public List<User> getBranchShippers(Long branchId) {
+    public List<example.com.ltw.staff.dto.ShipperAssignmentOptionDto> getBranchShippers(Long branchId) {
         return workflowService.getBranchShippers(branchId);
     }
 

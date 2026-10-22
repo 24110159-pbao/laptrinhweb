@@ -59,14 +59,15 @@ public class ShipperOrderService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Vui lòng đăng nhập!");
         }
         User current = userRepository.findById(shipper.getId()).orElse(shipper);
-        if (current.getBranch() != null) {
-            return current.getBranch();
+        if (current.getBranch() != null && current.getBranch().getId() != null) {
+            return branchRepository.findById(current.getBranch().getId()).orElse(current.getBranch());
         }
         return branchRepository.findAll().stream().findFirst().orElseGet(() -> {
             example.com.ltw.branch.entity.Branch b = new example.com.ltw.branch.entity.Branch();
             b.setName("NexusTech Flagship Store");
             b.setAddress("Hệ thống Flagship Toàn quốc");
             b.setPhone("1800 6868");
+            b.setEmail("support@nexustech.vn");
             return b;
         });
     }
@@ -93,37 +94,36 @@ public class ShipperOrderService {
         java.time.format.DateTimeFormatter df = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
         String formattedRange = "Toàn thời gian";
 
-        if ("today".equalsIgnoreCase(timePreset)) {
-            from = java.time.LocalDate.now().atStartOfDay();
-            to = java.time.LocalDate.now().atTime(java.time.LocalTime.MAX);
-            formattedRange = "Hôm nay (" + java.time.LocalDate.now().format(df) + ")";
-        } else if ("yesterday".equalsIgnoreCase(timePreset)) {
+        if ("yesterday".equalsIgnoreCase(timePreset)) {
             java.time.LocalDate yesterday = java.time.LocalDate.now().minusDays(1);
             from = yesterday.atStartOfDay();
             to = yesterday.atTime(java.time.LocalTime.MAX);
             formattedRange = "Hôm qua (" + yesterday.format(df) + ")";
-        } else if ("last7days".equalsIgnoreCase(timePreset)) {
-            from = LocalDateTime.now().minusDays(7);
-            to = LocalDateTime.now();
-            formattedRange = "7 ngày qua (Từ " + from.format(df) + " đến " + to.format(df) + ")";
+        } else if ("thisWeek".equalsIgnoreCase(timePreset)) {
+            java.time.LocalDate now = java.time.LocalDate.now();
+            java.time.LocalDate startOfWeek = now.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
+            from = startOfWeek.atStartOfDay();
+            to = now.atTime(java.time.LocalTime.MAX);
+            formattedRange = "Tuần này (Từ " + startOfWeek.format(df) + " đến " + now.format(df) + ")";
         } else if ("thisMonth".equalsIgnoreCase(timePreset)) {
             from = java.time.LocalDate.now().withDayOfMonth(1).atStartOfDay();
             to = java.time.LocalDate.now().atTime(java.time.LocalTime.MAX);
             formattedRange = "Tháng " + java.time.LocalDate.now().getMonthValue() + "/" + java.time.LocalDate.now().getYear();
-        } else if (from != null || to != null) {
-            if (from != null && to != null) {
-                formattedRange = "Từ " + from.format(dtf) + " đến " + to.format(dtf);
-            } else if (from != null) {
-                formattedRange = "Từ " + from.format(dtf);
-            } else {
-                formattedRange = "Đến " + to.format(dtf);
-            }
+        } else if ("all".equalsIgnoreCase(timePreset)) {
+            from = null;
+            to = null;
+            formattedRange = "Toàn thời gian";
+        } else {
+            // Default: today (Hôm nay)
+            from = java.time.LocalDate.now().atStartOfDay();
+            to = java.time.LocalDate.now().atTime(java.time.LocalTime.MAX);
+            formattedRange = "Hôm nay (" + java.time.LocalDate.now().format(df) + ")";
         }
 
-        long pendingPickups = shipmentRepository.countByShipperAndStatusAndTime(shipperId, ShipmentStatus.PENDING, from, to);
-        long activeDeliveries = shipmentRepository.countByShipperAndStatusAndTime(shipperId, ShipmentStatus.RECEIVED, from, to);
-        long deliveredCount = shipmentRepository.countByShipperAndStatusAndTime(shipperId, ShipmentStatus.DELIVERED, from, to);
-        long failedCount = shipmentRepository.countByShipperAndStatusAndTime(shipperId, ShipmentStatus.DELIVERY_FAILED, from, to);
+        long pendingPickups = shipmentRepository.countActiveByShipperAndStatusAndTime(shipperId, ShipmentStatus.PENDING, from, to);
+        long activeDeliveries = shipmentRepository.countActiveByShipperAndStatusAndTime(shipperId, ShipmentStatus.RECEIVED, from, to);
+        long deliveredCount = shipmentRepository.countDeliveredByShipperAndTime(shipperId, from, to);
+        long failedCount = shipmentRepository.countFailedByShipperAndTime(shipperId, from, to);
         long totalAssigned = shipmentRepository.countByShipperAndTime(shipperId, from, to);
 
         java.math.BigDecimal totalCodToCollect = shipmentRepository.sumCodToCollectByShipperAndTime(shipperId, from, to);
@@ -141,6 +141,7 @@ public class ShipperOrderService {
                 .branchName(branch.getName())
                 .branchAddress(branch.getAddress())
                 .branchPhone(branch.getPhone() != null ? branch.getPhone() : "1800 6868")
+                .branchEmail(branch.getEmail() != null ? branch.getEmail() : "support@nexustech.vn")
                 .pendingPickups(pendingPickups)
                 .activeDeliveries(activeDeliveries)
                 .deliveredCount(deliveredCount)
@@ -173,7 +174,17 @@ public class ShipperOrderService {
     public Page<Shipment> getShipperTasks(User shipper, ShipmentStatus status, String keyword, LocalDateTime fromDate, LocalDateTime toDate, int page, int size) {
         Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size));
         String sanitizedKeyword = (keyword != null) ? keyword.trim() : "";
-        return shipmentRepository.searchShipperTasksAndTime(shipper.getId(), status, sanitizedKeyword, fromDate, toDate, pageable);
+        Long shipperId = shipper.getId();
+
+        if (status == ShipmentStatus.PENDING || status == ShipmentStatus.RECEIVED) {
+            return shipmentRepository.searchActiveShipperTasksByStatus(shipperId, status, sanitizedKeyword, fromDate, toDate, pageable);
+        } else if (status == ShipmentStatus.DELIVERED) {
+            return shipmentRepository.searchDeliveredShipperTasks(shipperId, sanitizedKeyword, fromDate, toDate, pageable);
+        } else if (status == ShipmentStatus.DELIVERY_FAILED || status == ShipmentStatus.CANCELLED) {
+            return shipmentRepository.searchFailedShipperTasks(shipperId, sanitizedKeyword, fromDate, toDate, pageable);
+        } else {
+            return shipmentRepository.searchAllShipperTasks(shipperId, sanitizedKeyword, fromDate, toDate, pageable);
+        }
     }
 
     /**

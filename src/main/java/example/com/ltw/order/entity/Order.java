@@ -61,7 +61,7 @@ public class Order {
     private User user;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "branch_id", nullable = false)
     private Branch branch;
 
@@ -149,6 +149,10 @@ public class Order {
     @Column(length = 1000)
     private String note;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_staff_id")
+    private User assignedStaff;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -177,5 +181,13 @@ public class Order {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    public User getAssignedStaff() {
+        return assignedStaff;
+    }
+
+    public void setAssignedStaff(User assignedStaff) {
+        this.assignedStaff = assignedStaff;
     }
 }

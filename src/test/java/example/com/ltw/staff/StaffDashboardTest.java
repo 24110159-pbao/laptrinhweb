@@ -16,13 +16,13 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 public class StaffDashboardTest {
 
     @Autowired
-    private StaffOrderController staffOrderController;
+    private org.springframework.web.context.WebApplicationContext webApplicationContext;
 
     @Autowired
     private AuthService authService;
 
     @Test
-    public void testStaffLoginAndDashboardAccess() {
+    public void testStaffLoginAndDashboardAccess() throws Exception {
         MockHttpSession session = new MockHttpSession();
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setEmail("staff1@gamil.com");
@@ -31,11 +31,19 @@ public class StaffDashboardTest {
         User user = authService.login(loginRequest, session);
         System.out.println("Logged in user: " + user.getEmail() + ", role: " + user.getRole() + ", branch: " + user.getBranch());
 
-        Model model = new ExtendedModelMap();
-        RedirectAttributesModelMap redirectAttributes = new RedirectAttributesModelMap();
+        org.springframework.test.web.servlet.MockMvc mockMvc = 
+                org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 
-        String view = staffOrderController.showDashboard(model, session, redirectAttributes);
-        System.out.println("Returned view: " + view);
-        System.out.println("Model attributes: " + model.asMap().keySet());
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/staff/dashboard")
+                .session(session))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/staff/orders")
+                .session(session))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/staff/orders/1")
+                .session(session))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk());
     }
 }
