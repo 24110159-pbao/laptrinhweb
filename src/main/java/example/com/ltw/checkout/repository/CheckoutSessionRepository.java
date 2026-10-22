@@ -24,6 +24,10 @@ public interface CheckoutSessionRepository extends JpaRepository<CheckoutSession
     @Query("select c from CheckoutSession c where c.id = :id")
     Optional<CheckoutSession> findByIdForUpdate(@Param("id") Long id);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select c from CheckoutSession c join fetch c.cart where c.orderCode = :orderCode")
+    Optional<CheckoutSession> findByOrderCodeForUpdate(@Param("orderCode") String orderCode);
+
     boolean existsByCartIdAndStatus(Long cartId, CheckoutStatus status);
 
     Optional<CheckoutSession> findFirstByCartIdAndStatusOrderByIdDesc(Long cartId, CheckoutStatus status);

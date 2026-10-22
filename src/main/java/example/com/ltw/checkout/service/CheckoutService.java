@@ -38,8 +38,8 @@ import example.com.ltw.payment.entity.TransactionStatus;
 import example.com.ltw.payment.repository.PaymentRepository;
 import example.com.ltw.payment.service.VnPayService;
 import example.com.ltw.shipping.entity.Shipment;
-import example.com.ltw.shipping.entity.ShipmentStatus;
 import example.com.ltw.shipping.repository.ShipmentRepository;
+import example.com.ltw.shipping.repository.ShipmentEventRepository;
 import example.com.ltw.user.entity.User;
 import example.com.ltw.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -55,6 +55,7 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -77,6 +78,7 @@ public class CheckoutService {
     private final OrderStatusHistoryRepository orderHistoryRepository;
     private final PaymentRepository paymentRepository;
     private final ShipmentRepository shipmentRepository;
+    private final ShipmentEventRepository shipmentEventRepository;
     private final VnPayService vnPayService;
 
     @Value("${checkout.hold-duration-minutes:15}")
@@ -137,6 +139,7 @@ public class CheckoutService {
             reservation.setCheckoutSession(session);
             reservation.setInventory(inventory);
             reservation.setQuantity(item.getQuantity());
+            reservation.setUnitPrice(price);
             reservation.setExpiresAt(session.getExpiresAt());
             reservation.setConvertedToOrder(false);
             reservationRepository.save(reservation);
@@ -195,9 +198,9 @@ public class CheckoutService {
         }
         List<CartItem> items = lockAndValidateItems(session);
         BigDecimal freshFee = BigDecimal.ZERO;
-        BigDecimal freshDiscount = calculateDiscount(
-                session, items, session.getDiscountCodeValue(), freshFee
-        );
+        BigDecimal freshDiscount = session.isDiscountReserved()
+                ? session.getDiscountAmount()
+                : calculateDiscount(session, items, session.getDiscountCodeValue(), freshFee);
         if (freshFee.compareTo(session.getShippingFee()) != 0
                 || freshDiscount.compareTo(session.getDiscountAmount()) != 0) {
             session.setShippingFee(freshFee);
@@ -208,19 +211,115 @@ public class CheckoutService {
                     "Tổng tiền đã được cập nhật. Vui lòng kiểm tra và xác nhận lại.");
         }
 
+        if (paymentMethod == PaymentMethod.VNPAY) {
+            DiscountCode discountCode = session.getDiscountCode();
+            if (discountCode != null && !session.isDiscountReserved()) {
+                DiscountCode lockedCode = discountCodeRepository.findByCodeForUpdate(discountCode.getCode())
+                        .orElseThrow(() -> new IllegalArgumentException("Mã giảm giá không còn hợp lệ."));
+                validateDiscount(lockedCode, session, items, userId);
+                if (lockedCode.getQuantity() <= 0) {
+                    throw new IllegalArgumentException("Mã giảm giá đã hết lượt sử dụng.");
+                }
+                lockedCode.setQuantity(lockedCode.getQuantity() - 1);
+                session.setDiscountCode(lockedCode);
+                session.setDiscountReserved(true);
+            }
+            LocalDateTime paymentExpiresAt = LocalDateTime.now().plusMinutes(vnPayTimeoutMinutes);
+            if (session.getExpiresAt().isBefore(paymentExpiresAt)) {
+                paymentExpiresAt = session.getExpiresAt();
+            }
+            session.setExpiresAt(paymentExpiresAt);
+            for (InventoryReservation reservation :
+                    reservationRepository.findByCheckoutSessionAndConvertedToOrderFalse(session)) {
+                reservation.setExpiresAt(paymentExpiresAt);
+            }
+            String paymentUrl = vnPayService.createPaymentUrl(
+                    session.getOrderCode(), session.getFinalAmount(), clientIp, paymentExpiresAt
+            );
+            return new FinalizeResult(session.getOrderCode(), paymentUrl, false, null);
+        }
+
+        Order order = createOrderFromCheckout(session, items, paymentMethod, null);
+        return new FinalizeResult(order.getOrderCode(), null, false, null);
+    }
+
+    @Transactional
+    public void completeVnPayCheckout(
+            CheckoutSession session, String gatewayTransaction, String bankCode, String responseCode
+    ) {
+        if (session.getStatus() == CheckoutStatus.COMPLETED) return;
+        if (session.getStatus() != CheckoutStatus.ACTIVE
+                || !session.getExpiresAt().isAfter(LocalDateTime.now())) {
+            if (session.getStatus() == CheckoutStatus.ACTIVE) {
+                releaseCheckout(session, CheckoutStatus.EXPIRED);
+            }
+            log.error("VNPay confirmed payment after checkout {} expired or was cancelled; manual refund is required",
+                    session.getOrderCode());
+            return;
+        }
+        List<CartItem> items = lockReservedItems(session);
+        createOrderFromCheckout(session, items, PaymentMethod.VNPAY,
+                new VnPaySuccess(gatewayTransaction, bankCode, responseCode));
+    }
+
+    @Transactional
+    public void cancelVnPayCheckout(CheckoutSession session) {
+        if (session.getStatus() == CheckoutStatus.ACTIVE) {
+            releaseCheckout(session, session.getExpiresAt().isAfter(LocalDateTime.now())
+                    ? CheckoutStatus.CANCELLED : CheckoutStatus.EXPIRED);
+        }
+    }
+
+    private List<CartItem> lockReservedItems(CheckoutSession session) {
+        Cart cart = cartRepository.findByIdForUpdateAndUserId(session.getCart().getId(), session.getUser().getId())
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy giỏ hàng."));
+        List<CartItem> items = cart.getItems().stream()
+                .sorted(Comparator.comparing(item -> item.getInventory().getId()))
+                .toList();
+        if (items.isEmpty()) throw new IllegalArgumentException("Giỏ hàng không còn sản phẩm.");
+        for (CartItem item : items) {
+            BranchInventory inventory = inventoryRepository.findByIdForUpdate(item.getInventory().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Sản phẩm không còn tồn tại."));
+            InventoryReservation reservation = reservationRepository
+                    .findByCheckoutSessionIdAndInventoryIdAndConvertedToOrderFalse(
+                            session.getId(), inventory.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy lượt giữ hàng của phiên Checkout."));
+            if (reservation.getExpiresAt().isBefore(LocalDateTime.now())
+                    || reservation.getQuantity() != item.getQuantity()
+                    || inventory.getReservedQuantity() < item.getQuantity()
+                    || inventory.getQuantity() < item.getQuantity()) {
+                throw new IllegalArgumentException("Số lượng đã giữ không còn hợp lệ để hoàn tất thanh toán.");
+            }
+        }
+        return items;
+    }
+
+    private Order createOrderFromCheckout(
+            CheckoutSession session, List<CartItem> items, PaymentMethod paymentMethod, VnPaySuccess vnPaySuccess
+    ) {
         DiscountCode discountCode = session.getDiscountCode();
         if (discountCode != null) {
             DiscountCode lockedCode = discountCodeRepository.findByCodeForUpdate(discountCode.getCode())
                     .orElseThrow(() -> new IllegalArgumentException("Mã giảm giá không còn hợp lệ."));
-            validateDiscount(lockedCode, session, items, userId);
-            if (lockedCode.getQuantity() <= 0) {
-                throw new IllegalArgumentException("Mã giảm giá đã hết lượt sử dụng.");
+            if (session.isDiscountReserved()) {
+                discountCode = lockedCode;
+                session.setDiscountReserved(false);
+            } else {
+                validateDiscount(lockedCode, session, items, session.getUser().getId());
+                if (lockedCode.getQuantity() <= 0) {
+                    throw new IllegalArgumentException("Mã giảm giá đã hết lượt sử dụng.");
+                }
+                lockedCode.setQuantity(lockedCode.getQuantity() - 1);
+                discountCode = lockedCode;
             }
-            lockedCode.setQuantity(lockedCode.getQuantity() - 1);
-            discountCode = lockedCode;
         }
-
-        Order order = createOrder(session, items, discountCode, paymentMethod);
+        Map<Long, BigDecimal> reservedPrices = reservationRepository
+                .findByCheckoutSessionAndConvertedToOrderFalse(session).stream()
+                .filter(reservation -> reservation.getUnitPrice() != null)
+                .collect(java.util.stream.Collectors.toMap(
+                        reservation -> reservation.getInventory().getId(), InventoryReservation::getUnitPrice
+                ));
+        Order order = createOrder(session, items, discountCode, paymentMethod, reservedPrices);
         if (discountCode != null) {
             DiscountUsage usage = new DiscountUsage();
             usage.setDiscountCode(discountCode);
@@ -233,7 +332,14 @@ public class CheckoutService {
         payment.setTransactionNo(order.getOrderCode());
         payment.setAmount(order.getFinalAmount());
         payment.setPaymentMethod(paymentMethod);
-        payment.setStatus(TransactionStatus.PENDING);
+        payment.setStatus(vnPaySuccess == null ? TransactionStatus.PENDING : TransactionStatus.SUCCESS);
+        if (vnPaySuccess != null) {
+            payment.setGatewayTransactionNo(vnPaySuccess.transactionNo());
+            payment.setBankCode(vnPaySuccess.bankCode());
+            payment.setResponseCode(vnPaySuccess.responseCode());
+            payment.setPaymentDate(LocalDateTime.now());
+            order.setPaymentStatus(PaymentStatus.PAID);
+        }
         paymentRepository.save(payment);
 
         Shipment shipment = new Shipment();
@@ -259,11 +365,7 @@ public class CheckoutService {
         session.setStatus(CheckoutStatus.COMPLETED);
         cartItemRepository.deleteByCartId(session.getCart().getId());
 
-        String paymentUrl = paymentMethod == PaymentMethod.VNPAY
-                ? vnPayService.createPaymentUrl(order.getOrderCode(), order.getFinalAmount(), clientIp,
-                order.getPaymentExpiresAt())
-                : null;
-        return new FinalizeResult(order.getOrderCode(), paymentUrl, false, null);
+        return order;
     }
 
     @Transactional
@@ -280,6 +382,13 @@ public class CheckoutService {
             }
             inventory.setReservedQuantity(inventory.getReservedQuantity() - reservation.getQuantity());
             reservation.setReleasedAt(LocalDateTime.now());
+        }
+        if (lockedSession.isDiscountReserved() && lockedSession.getDiscountCode() != null) {
+            DiscountCode discountCode = discountCodeRepository
+                    .findByCodeForUpdate(lockedSession.getDiscountCode().getCode())
+                    .orElseThrow(() -> new IllegalStateException("Không tìm thấy mã giảm giá cần hoàn lượt."));
+            discountCode.setQuantity(Math.addExact(discountCode.getQuantity(), 1));
+            lockedSession.setDiscountReserved(false);
         }
         lockedSession.setStatus(terminalStatus);
     }
@@ -314,8 +423,12 @@ public class CheckoutService {
             try {
                 transactionCheck = vnPayService.queryTransaction(payment);
             } catch (IllegalStateException ex) {
-                log.warn("VNPay status is unknown for expired order {}; keep stock until next check: {}",
+                log.error("VNPay status is unknown for expired order {}; cancel it and restore the cart; "
+                                + "a late successful callback will require a refund: {}",
                         order.getOrderCode(), ex.getMessage());
+                cancelUnpaidVnPayOrder(order, payment, "TIMEOUT_UNVERIFIED",
+                        "Tự động hủy: hết hạn thanh toán nhưng không xác minh được trạng thái VNPay; "
+                                + "sản phẩm đã được trả về giỏ hàng.");
                 continue;
             }
             if (transactionCheck.paid()) {
@@ -380,18 +493,33 @@ public class CheckoutService {
             cartItemRepository.save(cartItem);
         }
 
-        OrderStatusHistory history = new OrderStatusHistory();
-        history.setOrder(order);
-        history.setPreviousStatus(order.getStatus().name());
-        history.setNewStatus(OrderStatus.CANCELLED.name());
-        history.setNote(note);
-        orderHistoryRepository.save(history);
         order.setStatus(OrderStatus.CANCELLED);
         order.setPaymentStatus(PaymentStatus.FAILED);
         payment.setStatus(TransactionStatus.FAILED);
         payment.setResponseCode(responseCode);
-        shipmentRepository.findByOrderId(order.getId()).ifPresent(shipment ->
-                shipment.setStatus(ShipmentStatus.CANCELLED));
+        if (order.getCheckoutSession() == null) {
+            throw new IllegalStateException("Không tìm thấy Checkout liên kết với đơn VNPay bị hủy.");
+        }
+        order.getCheckoutSession().setStatus(CheckoutStatus.CANCELLED);
+
+        Long orderId = order.getId();
+        shipmentRepository.findByOrderId(orderId).ifPresent(shipment -> {
+            shipmentEventRepository.deleteByShipmentId(shipment.getId());
+            shipmentRepository.delete(shipment);
+        });
+        paymentRepository.delete(payment);
+        orderItemRepository.deleteByOrderId(orderId);
+        orderHistoryRepository.deleteByOrderId(orderId);
+        if (discountUsageRepository.existsByOrderId(orderId)) {
+            if (order.getDiscountCode() == null) {
+                throw new IllegalStateException("Đơn hàng có lượt dùng mã giảm giá nhưng thiếu mã liên kết.");
+            }
+            DiscountCode usedDiscount = discountCodeRepository.findByCodeForUpdate(order.getDiscountCode().getCode())
+                    .orElseThrow(() -> new IllegalStateException("Không tìm thấy mã giảm giá đã sử dụng."));
+            usedDiscount.setQuantity(Math.addExact(usedDiscount.getQuantity(), 1));
+            discountUsageRepository.deleteByOrderId(orderId);
+        }
+        orderRepository.delete(order);
     }
 
     private CheckoutSession lockActive(Long checkoutId, Long userId) {
@@ -512,16 +640,21 @@ public class CheckoutService {
 
     private BigDecimal eligibleSubtotal(DiscountCode discount, List<CartItem> items) {
         return items.stream()
-                .filter(item -> discount.getEligibleProducts().isEmpty()
-                        && discount.getEligibleCategories().isEmpty()
-                        || discount.getEligibleProducts().contains(item.getInventory().getVariant().getProduct())
-                        || discount.getEligibleCategories().contains(item.getInventory().getVariant().getProduct().getCategory()))
+                .filter(item -> isDiscountEligible(discount, item.getInventory().getVariant()))
                 .map(item -> currentPrice(item.getInventory()).multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    private boolean isDiscountEligible(DiscountCode discountCode, example.com.ltw.catalog.entity.ProductVariant variant) {
+        return discountCode.getEligibleProducts().isEmpty()
+                && discountCode.getEligibleCategories().isEmpty()
+                || discountCode.getEligibleProducts().contains(variant.getProduct())
+                || discountCode.getEligibleCategories().contains(variant.getProduct().getCategory());
+    }
+
     private Order createOrder(
-            CheckoutSession session, List<CartItem> items, DiscountCode discountCode, PaymentMethod method
+            CheckoutSession session, List<CartItem> items, DiscountCode discountCode, PaymentMethod method,
+            Map<Long, BigDecimal> reservedPrices
     ) {
         Order order = new Order();
         order.setOrderCode(session.getOrderCode());
@@ -545,15 +678,8 @@ public class CheckoutService {
         order.setShippingWard(session.getShippingWard());
         order.setShippingWardCode(session.getShippingWardCode());
         order.setShippingStreetAddress(session.getShippingStreetAddress());
-        if (method == PaymentMethod.VNPAY) order.setPaymentExpiresAt(LocalDateTime.now().plusMinutes(vnPayTimeoutMinutes));
         orderRepository.save(order);
 
-        BigDecimal eligibleSubtotal = discountCode == null ? BigDecimal.ZERO : eligibleSubtotal(discountCode, items);
-        BigDecimal discountBase = eligibleSubtotal.add(
-                discountCode != null && discountCode.isAppliesToShipping() ? order.getShippingFee() : BigDecimal.ZERO);
-        BigDecimal merchandiseDiscount = discountBase.signum() == 0 ? BigDecimal.ZERO
-                : order.getDiscountAmount().multiply(eligibleSubtotal)
-                        .divide(discountBase, 2, RoundingMode.DOWN);
         List<OrderItem> createdItems = new ArrayList<>();
         for (CartItem cartItem : items) {
             BranchInventory inventory = cartItem.getInventory();
@@ -570,16 +696,22 @@ public class CheckoutService {
                     .map(example.com.ltw.catalog.entity.ProductImage::getImageUrl)
                     .orElse(null));
             item.setQuantity(cartItem.getQuantity());
-            item.setUnitPrice(currentPrice(inventory));
+            item.setUnitPrice(reservedPrices.getOrDefault(inventory.getId(), currentPrice(inventory)));
             item.setSubtotal(item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
             createdItems.add(item);
         }
+        BigDecimal eligibleSubtotal = discountCode == null ? BigDecimal.ZERO : createdItems.stream()
+                .filter(item -> isDiscountEligible(discountCode, item.getProductVariant()))
+                .map(OrderItem::getSubtotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal discountBase = eligibleSubtotal.add(
+                discountCode != null && discountCode.isAppliesToShipping() ? order.getShippingFee() : BigDecimal.ZERO);
+        BigDecimal merchandiseDiscount = discountBase.signum() == 0 ? BigDecimal.ZERO
+                : order.getDiscountAmount().multiply(eligibleSubtotal)
+                        .divide(discountBase, 2, RoundingMode.DOWN);
         BigDecimal allocatedDiscount = BigDecimal.ZERO;
         List<OrderItem> discountEligibleItems = createdItems.stream()
-                .filter(item -> discountCode != null && (discountCode.getEligibleProducts().isEmpty()
-                        && discountCode.getEligibleCategories().isEmpty()
-                        || discountCode.getEligibleProducts().contains(item.getProductVariant().getProduct())
-                        || discountCode.getEligibleCategories().contains(item.getProductVariant().getProduct().getCategory())))
+                .filter(item -> discountCode != null && isDiscountEligible(discountCode, item.getProductVariant()))
                 .toList();
         for (int index = 0; index < createdItems.size(); index++) {
             OrderItem item = createdItems.get(index);
@@ -620,6 +752,9 @@ public class CheckoutService {
     }
 
     public record FinalizeResult(String orderCode, String paymentUrl, boolean requiresRequote, String message) {
+    }
+
+    private record VnPaySuccess(String transactionNo, String bankCode, String responseCode) {
     }
 
     public static class CheckoutPriceChangedException extends RuntimeException {

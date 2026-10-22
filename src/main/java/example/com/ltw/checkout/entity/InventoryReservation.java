@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "inventory_reservations", uniqueConstraints = {
@@ -41,6 +42,9 @@ public class InventoryReservation {
 
     @Column(nullable = false)
     private int quantity;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal unitPrice;
 
     @Column(nullable = false)
     private LocalDateTime expiresAt;

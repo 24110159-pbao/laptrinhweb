@@ -67,6 +67,9 @@ public class CheckoutSession {
     @Column(nullable = false)
     private boolean discountAppliedToShipping;
 
+    @Column(nullable = false)
+    private boolean discountReserved;
+
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal shippingFee = BigDecimal.ZERO;
 

@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface OrderStatusHistoryRepository extends JpaRepository<OrderStatusHistory, Long> {
     List<OrderStatusHistory> findAllByOrderIdOrderByCreatedAtAsc(Long orderId);
+    void deleteByOrderId(Long orderId);
 }

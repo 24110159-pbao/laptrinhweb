@@ -1,5 +1,9 @@
 package example.com.ltw.order.service;
 
+import example.com.ltw.cart.entity.Cart;
+import example.com.ltw.cart.entity.CartItem;
+import example.com.ltw.cart.repository.CartItemRepository;
+import example.com.ltw.cart.repository.CartRepository;
 import example.com.ltw.inventory.entity.BranchInventory;
 import example.com.ltw.inventory.entity.InventoryTransaction;
 import example.com.ltw.inventory.entity.InventoryTransactionType;
@@ -9,6 +13,7 @@ import example.com.ltw.order.entity.Order;
 import example.com.ltw.order.entity.OrderItem;
 import example.com.ltw.order.entity.OrderStatus;
 import example.com.ltw.order.entity.OrderStatusHistory;
+import example.com.ltw.order.entity.PaymentMethod;
 import example.com.ltw.order.entity.PaymentStatus;
 import example.com.ltw.order.repository.OrderItemRepository;
 import example.com.ltw.order.repository.OrderRepository;
@@ -20,6 +25,7 @@ import example.com.ltw.shipping.entity.Shipment;
 import example.com.ltw.shipping.entity.ShipmentStatus;
 import example.com.ltw.shipping.repository.ShipmentRepository;
 import example.com.ltw.user.entity.User;
+import example.com.ltw.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,10 +43,17 @@ public class OrderService {
     private final InventoryTransactionRepository inventoryTransactionRepository;
     private final PaymentRepository paymentRepository;
     private final ShipmentRepository shipmentRepository;
+    private final CartRepository cartRepository;
+    private final CartItemRepository cartItemRepository;
+    private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
     public List<Order> customerOrders(Long userId) {
-        return orderRepository.findAllByUserIdOrderByCreatedAtDesc(userId);
+        return orderRepository.findAllByUserIdOrderByCreatedAtDesc(userId).stream()
+                .filter(order -> order.getPaymentMethod() != PaymentMethod.VNPAY
+                        || order.getStatus() != OrderStatus.CANCELLED
+                        || order.getPaymentStatus() != PaymentStatus.FAILED)
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -64,6 +77,15 @@ public class OrderService {
             throw new IllegalArgumentException("Chỉ được hủy đơn trước khi chuyển sang trạng thái đang giao.");
         }
         OrderStatus previous = order.getStatus();
+        User cartUser = userRepository.findByIdForUpdate(order.getUser().getId())
+                .orElseThrow(() -> new IllegalStateException("Không tìm thấy khách hàng để khôi phục giỏ hàng."));
+        Cart cart = cartRepository.findByUserIdAndBranchId(cartUser.getId(), order.getBranch().getId())
+                .orElseGet(() -> {
+                    Cart newCart = new Cart();
+                    newCart.setUser(cartUser);
+                    newCart.setBranch(order.getBranch());
+                    return cartRepository.save(newCart);
+                });
         List<OrderItem> items = orderItemRepository.findByOrderIdOrderById(order.getId());
         for (OrderItem item : items.stream()
                 .sorted((left, right) -> left.getProductVariant().getId()
@@ -76,8 +98,19 @@ public class OrderService {
             inventory.setQuantity(after);
             inventoryTransactionRepository.save(InventoryTransaction.create(
                     inventory.getVariant(), inventory.getBranch(), InventoryTransactionType.ORDER_RELEASED,
-                    before, after, order.getOrderCode(), "Hoàn tồn kho do hủy đơn.", actor
+                    before, after, order.getOrderCode(),
+                    "Hoàn tồn kho và trả sản phẩm về giỏ hàng do hủy đơn.", actor
             ));
+            CartItem cartItem = cartItemRepository.findByCartIdAndInventoryId(cart.getId(), inventory.getId())
+                    .orElseGet(() -> {
+                        CartItem newItem = new CartItem();
+                        newItem.setCart(cart);
+                        newItem.setInventory(inventory);
+                        newItem.setQuantity(0);
+                        return newItem;
+                    });
+            cartItem.setQuantity(Math.addExact(cartItem.getQuantity(), item.getQuantity()));
+            cartItemRepository.save(cartItem);
         }
         Payment payment = paymentRepository.findByOrderIdForUpdate(order.getId()).orElse(null);
         if (order.getPaymentStatus() == PaymentStatus.PAID) {

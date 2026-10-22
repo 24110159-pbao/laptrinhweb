@@ -117,7 +117,8 @@ public class CheckoutController {
         if (userId == null) return "redirect:/login";
         try {
             checkoutService.cancel(checkoutId, userId);
-            redirectAttributes.addFlashAttribute("infoMessage", "Đã hủy Checkout và giải phóng số lượng đang giữ.");
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Đã hủy thanh toán thành công. Không có đơn hàng nào được ghi nhận.");
         } catch (IllegalArgumentException | IllegalStateException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }

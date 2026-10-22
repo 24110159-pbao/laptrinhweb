@@ -8,4 +8,5 @@ import java.util.List;
 public interface ShipmentEventRepository extends JpaRepository<ShipmentEvent, Long> {
     boolean existsByEventId(String eventId);
     List<ShipmentEvent> findAllByShipmentIdOrderByCreatedAtAsc(Long shipmentId);
+    void deleteByShipmentId(Long shipmentId);
 }

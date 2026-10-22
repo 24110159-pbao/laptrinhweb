@@ -23,4 +23,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select p from Payment p join fetch p.order where p.transactionNo = :transactionNo")
     Optional<Payment> findByTransactionNoForUpdate(@Param("transactionNo") String transactionNo);
+
+    void deleteByOrderId(Long orderId);
 }

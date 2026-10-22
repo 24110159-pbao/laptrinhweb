@@ -1,6 +1,8 @@
 .order-container { max-width: 1040px; }
 .order-list-card { padding: 18px 0; border-top: 1px solid #e2e8f0; }
 .order-list-heading, .order-list-body, .order-detail-heading, .order-item-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.order-list-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.order-list-actions form { margin: 0; }
 .order-list-heading > div:first-child { display: grid; gap: 4px; }
 .order-list-heading strong, .order-item-info strong { color: #0f172a; }
 .order-muted, .order-summary, .order-item-info span { color: #64748b; font-size: 13px; }
@@ -40,7 +42,7 @@
 .return-summary > span { margin-left: 10px; color: #0369a1; font-size: 13px; font-weight: 700; }
 .return-summary p { margin: 8px 0; color: #64748b; font-size: 13px; }
 .return-line { display: flex; justify-content: space-between; gap: 12px; padding-top: 6px; font-size: 13px; }
-.account-button.danger { background: #b91c1c; }
+.account-button.danger { color: #fff; background: #b91c1c; }
 .account-button.danger:hover { background: #991b1b; }
 .staff-order-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .staff-order-actions form { display: flex; gap: 7px; align-items: center; }

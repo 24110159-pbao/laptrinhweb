@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Map;
 
@@ -36,16 +37,38 @@ public class VnPayController {
             @RequestParam(required = false) String orderCode,
             @RequestParam MultiValueMap<String, String> parameters,
             HttpSession session,
-            Model model
+            Model model,
+            RedirectAttributes redirectAttributes
     ) {
+        Map<String, String> callbackResult = null;
         if (parameters.getFirst("vnp_SecureHash") != null) {
-            callbackService.handle(parameters);
+            callbackResult = callbackService.handle(parameters);
+        }
+        String responseCode = parameters.getFirst("vnp_ResponseCode");
+        String transactionStatus = parameters.getFirst("vnp_TransactionStatus");
+        boolean cancelledOrFailed = "24".equals(responseCode)
+                || (responseCode != null && !"00".equals(responseCode))
+                || "02".equals(transactionStatus);
+        if (callbackResult != null && "00".equals(callbackResult.get("RspCode"))
+                && cancelledOrFailed) {
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "24".equals(responseCode)
+                            ? "Đã hủy thanh toán thành công. Không có đơn hàng nào được ghi nhận."
+                            : "Thanh toán không thành công; không có đơn hàng nào được ghi nhận và sản phẩm đã được trả vào giỏ hàng.");
+            return "redirect:/cart";
         }
         Long userId = currentUserId(session);
         if (userId == null) return "redirect:/login";
         Order order = orderCode == null ? null
                 : orderRepository.findByOrderCodeAndUserId(orderCode, userId).orElse(null);
-        if (order == null) return "redirect:/cart";
+        if (order == null) {
+            if (callbackResult != null && "00".equals(callbackResult.get("RspCode"))
+                    && "00".equals(responseCode) && "00".equals(transactionStatus)) {
+                redirectAttributes.addFlashAttribute("infoMessage",
+                        "Thanh toán được xác nhận nhưng phiên Checkout không còn hiệu lực; yêu cầu hoàn tiền đang cần được xử lý.");
+            }
+            return "redirect:/cart";
+        }
         model.addAttribute("order", order);
         model.addAttribute("paymentStatus", order.getPaymentStatus());
         model.addAttribute("paymentMessage", switch (order.getPaymentStatus()) {

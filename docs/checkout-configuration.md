@@ -2,11 +2,13 @@
 
 Checkout offers free shipping for every order and does not require a GHN fee
 quote or packed-product shipping dimensions. Inventory is held for 15 minutes
-by default, and VNPay payment links expire after 15 minutes by default.
-If the customer cancels and returns from VNPay, the order is cancelled and its
-items are restored to the branch cart immediately. If the customer closes the
-payment page, the expiry check cancels and restores the order after its
-deadline once VNPay confirms that payment did not succeed.
+by default, and VNPay payment links expire after 15 minutes by default. A VNPay
+order is created only after a signed successful payment result is verified.
+Canceling/returning from VNPay releases the inventory hold immediately and
+keeps the cart unchanged; the payment deadline also expires that same Checkout
+session, so there is no second order-payment timeout. If VNPay reports success
+after the Checkout has expired or been canceled, the transaction is logged for
+manual refund handling.
 Production deployments can set either duration explicitly.
 
 ## Required application settings
@@ -21,9 +23,9 @@ Set these as environment variables in the runtime environment:
 
 The existing `vnpay.tmn-code`, `vnpay.hash-secret`, `vnpay.payment-url`, and
 `vnpay.return-url` settings are also required for VNPay. Configure the VNPay
-IPN URL in the merchant sandbox to point to `/payment/vnpay-ipn`. The browser
-return endpoint only displays the order's backend payment status; it does not
-confirm payment.
+IPN URL in the merchant sandbox to point to `/payment/vnpay-ipn`. Both the IPN
+and browser return endpoints verify signed gateway results before completing or
+canceling the Checkout.
 
 The destination address is still validated against the configured
 administrative location API. Shipping charges are always zero, including when
@@ -36,8 +38,8 @@ subtotal, maximum discount, whether shipping is discountable, and per-customer
 use limits. Empty product/category eligibility sets mean the code applies to
 all products; otherwise a cart line must match an eligible product or category.
 `quantity` is treated as remaining global uses and is decremented atomically
-when an order is created. A use is not restored on cancellation because that
-policy has not been specified.
+when an order is created. For VNPay it is reserved when payment starts and
+restored if the Checkout is canceled or expires before successful payment.
 
 ## Orders, carrier callbacks, and returns
 

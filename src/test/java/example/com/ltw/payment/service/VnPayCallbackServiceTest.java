@@ -1,6 +1,9 @@
 package example.com.ltw.payment.service;
 
 import example.com.ltw.checkout.service.CheckoutService;
+import example.com.ltw.checkout.entity.CheckoutSession;
+import example.com.ltw.checkout.entity.CheckoutStatus;
+import example.com.ltw.checkout.repository.CheckoutSessionRepository;
 import example.com.ltw.order.entity.Order;
 import example.com.ltw.order.entity.PaymentMethod;
 import example.com.ltw.order.entity.PaymentStatus;
@@ -31,6 +34,7 @@ class VnPayCallbackServiceTest {
     @Mock private PaymentRepository paymentRepository;
     @Mock private OrderRepository orderRepository;
     @Mock private CheckoutService checkoutService;
+    @Mock private CheckoutSessionRepository checkoutRepository;
 
     @InjectMocks private VnPayCallbackService callbackService;
 
@@ -64,5 +68,50 @@ class VnPayCallbackServiceTest {
         );
         assertEquals(TransactionStatus.PENDING, payment.getStatus());
         assertEquals(PaymentStatus.UNPAID, order.getPaymentStatus());
+    }
+
+    @Test
+    void lateSuccessForCancelledCheckoutIsAcknowledgedWithoutCreatingAnOrder() {
+        MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+        parameters.add("vnp_TxnRef", "NX12");
+        parameters.add("vnp_ResponseCode", "00");
+        parameters.add("vnp_TransactionStatus", "00");
+        parameters.add("vnp_Amount", "12000");
+        parameters.add("vnp_CurrCode", "VND");
+        parameters.add("vnp_TransactionNo", "GATEWAY-12");
+
+        CheckoutSession checkout = new CheckoutSession();
+        checkout.setStatus(CheckoutStatus.CANCELLED);
+        checkout.setFinalAmount(new BigDecimal("120.00"));
+
+        when(vnPayService.verify(parameters)).thenReturn(true);
+        when(orderRepository.findByOrderCodeForUpdate("NX12")).thenReturn(Optional.empty());
+        when(checkoutRepository.findByOrderCodeForUpdate("NX12")).thenReturn(Optional.of(checkout));
+
+        assertEquals("00", callbackService.handle(parameters).get("RspCode"));
+        verify(checkoutService).completeVnPayCheckout(checkout, "GATEWAY-12", null, "00");
+        verify(orderRepository, org.mockito.Mockito.never()).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void cancellationForActiveCheckoutReleasesItWithoutCreatingAnOrder() {
+        MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+        parameters.add("vnp_TxnRef", "NX13");
+        parameters.add("vnp_ResponseCode", "24");
+        parameters.add("vnp_TransactionStatus", "02");
+        parameters.add("vnp_Amount", "12000");
+        parameters.add("vnp_CurrCode", "VND");
+
+        CheckoutSession checkout = new CheckoutSession();
+        checkout.setStatus(CheckoutStatus.ACTIVE);
+        checkout.setFinalAmount(new BigDecimal("120.00"));
+
+        when(vnPayService.verify(parameters)).thenReturn(true);
+        when(orderRepository.findByOrderCodeForUpdate("NX13")).thenReturn(Optional.empty());
+        when(checkoutRepository.findByOrderCodeForUpdate("NX13")).thenReturn(Optional.of(checkout));
+
+        assertEquals("00", callbackService.handle(parameters).get("RspCode"));
+        verify(checkoutService).cancelVnPayCheckout(checkout);
+        verify(orderRepository, org.mockito.Mockito.never()).save(org.mockito.ArgumentMatchers.any());
     }
 }

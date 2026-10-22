@@ -42,7 +42,14 @@
                     <span th:text="${#lists.size(entry.items)} + ' sản phẩm'">0 sản phẩm</span>
                     <strong th:text="${#numbers.formatDecimal(entry.order.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</strong>
                 </div>
-                <a class="account-button secondary" th:href="@{/account/orders/{code}(code=${entry.order.orderCode})}">Xem chi tiết</a>
+                <div class="order-list-actions">
+                    <a class="account-button secondary" th:href="@{/account/orders/{code}(code=${entry.order.orderCode})}">Xem chi tiết</a>
+                    <form th:if="${entry.order.status.name() == 'PENDING' or entry.order.status.name() == 'CONFIRMED'}"
+                          th:action="@{/account/orders/{code}/cancel(code=${entry.order.orderCode})}" method="post"
+                          onsubmit="return confirm('Bạn chắc chắn muốn hủy đơn hàng này?')">
+                        <button class="account-button danger" type="submit">Hủy đơn hàng</button>
+                    </form>
+                </div>
             </div>
         </div>
     </section>

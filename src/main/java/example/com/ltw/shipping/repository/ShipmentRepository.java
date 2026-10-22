@@ -24,4 +24,6 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
     Optional<Shipment> findByGhnOrderCode(String code);
 
     boolean existsByGhnOrderCode(String code);
+
+    void deleteByOrderId(Long orderId);
 }
