@@ -1,8 +1,13 @@
 # Checkout configuration
 
-Checkout deliberately fails closed until external shipping/payment settings and
-inventory packaging data are configured. It never substitutes a zero shipping
-fee or an invented inventory/payment deadline.
+Checkout offers free shipping for every order and does not require a GHN fee
+quote or packed-product shipping dimensions. Inventory is held for 15 minutes
+by default, and VNPay payment links expire after 15 minutes by default.
+If the customer cancels and returns from VNPay, the order is cancelled and its
+items are restored to the branch cart immediately. If the customer closes the
+payment page, the expiry check cancels and restores the order after its
+deadline once VNPay confirms that payment did not succeed.
+Production deployments can set either duration explicitly.
 
 ## Required application settings
 
@@ -10,13 +15,9 @@ Set these as environment variables in the runtime environment:
 
 | Environment variable | Purpose |
 | --- | --- |
-| `CHECKOUT_HOLD_DURATION_MINUTES` | Duration for the inventory hold; must be greater than zero. |
-| `GHN_API_BASE_URL` | GHN API base URL for the selected environment. |
-| `GHN_API_TOKEN` | GHN API token. |
-| `GHN_SHOP_ID` | GHN shop identifier. |
-| `GHN_SERVICE_TYPE_ID` | Supported GHN service type. |
-| `VNPAY_TIMEOUT_MINUTES` | VNPay payment deadline; required for VNPay orders. |
-| `VNPAY_QUERY_URL` | VNPay transaction query endpoint, required to verify payment state before releasing expired orders. |
+| `CHECKOUT_HOLD_DURATION_MINUTES` | Duration for the inventory hold; defaults to 15 minutes and must be greater than zero. |
+| `VNPAY_TIMEOUT_MINUTES` | VNPay payment deadline in minutes; defaults to 15 and must be greater than zero. |
+| `VNPAY_QUERY_URL` | VNPay transaction query endpoint; defaults to the sandbox endpoint. Set the production endpoint explicitly when deploying to production. |
 
 The existing `vnpay.tmn-code`, `vnpay.hash-secret`, `vnpay.payment-url`, and
 `vnpay.return-url` settings are also required for VNPay. Configure the VNPay
@@ -24,20 +25,9 @@ IPN URL in the merchant sandbox to point to `/payment/vnpay-ipn`. The browser
 return endpoint only displays the order's backend payment status; it does not
 confirm payment.
 
-## Branch and product shipping data
-
-The schema adds `branches.ghn_district_id` and `branches.ghn_ward_code`.
-Populate both for each shipping branch using the corresponding GHN location
-codes. Each purchasable product variant needs positive packed-unit values for
-`shipping_weight_grams`, `shipping_length_cm`, `shipping_width_cm`, and
-`shipping_height_cm`. The quote uses total item weight, the maximum item length
-and width, and the sum of packed-unit heights (a conservative vertical-stack
-packing assumption). GHN quoting is rejected if any required value is absent.
-
-The destination address is validated against the configured administrative
-location API and its district/ward codes are sent to GHN. Shipping is quoted
-again immediately before order creation. If GHN fails or the quote changes,
-Checkout cannot finalize until the customer reviews a valid quote.
+The destination address is still validated against the configured
+administrative location API. Shipping charges are always zero, including when
+discount codes are applied.
 
 ## Discount policy fields
 

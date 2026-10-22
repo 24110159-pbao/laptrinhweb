@@ -71,6 +71,10 @@ public class ProductVariant {
     @Column(nullable = false, length = 50)
     private String color;
 
+    @Size(max = 1000)
+    @Column(length = 1000)
+    private String imageUrl;
+
     @NotNull
     @DecimalMin("0.0")
     @Column(nullable = false, precision = 15, scale = 2)

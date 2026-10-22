@@ -138,6 +138,9 @@ public class VnPayService {
         if (!payment.getTransactionNo().equals(response.get("vnp_TxnRef"))) {
             throw new IllegalStateException("VNPay trả về mã đơn hàng không khớp.");
         }
+        if ("91".equals(response.get("vnp_ResponseCode"))) {
+            return new TransactionCheck(false, null, null);
+        }
         if ((response.get("vnp_CurrCode") != null && !"VND".equals(response.get("vnp_CurrCode")))
                 || !Long.toString(Math.multiplyExact(payment.getAmount().longValueExact(), 100L))
                 .equals(response.get("vnp_Amount"))) {

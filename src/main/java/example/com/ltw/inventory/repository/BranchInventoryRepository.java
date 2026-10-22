@@ -1,6 +1,9 @@
 package example.com.ltw.inventory.repository;
 
 import example.com.ltw.inventory.entity.BranchInventory;
+import example.com.ltw.branch.entity.BranchStatus;
+import example.com.ltw.catalog.entity.ProductStatus;
+import example.com.ltw.catalog.entity.ProductVariantStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -12,6 +15,21 @@ import java.util.Optional;
 
 public interface BranchInventoryRepository extends JpaRepository<BranchInventory, Long> {
 
+    @Query("""
+            select i from BranchInventory i
+            join fetch i.branch b
+            join fetch i.variant v
+            join fetch v.product p
+            where b.status = :branchStatus
+              and v.status = :variantStatus
+              and p.status = :productStatus
+            """)
+    List<BranchInventory> findCatalogInventory(
+            @Param("branchStatus") BranchStatus branchStatus,
+            @Param("variantStatus") ProductVariantStatus variantStatus,
+            @Param("productStatus") ProductStatus productStatus
+    );
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select i from BranchInventory i where i.id = :id")
     Optional<BranchInventory> findByIdForUpdate(@Param("id") Long id);
@@ -22,15 +40,4 @@ public interface BranchInventoryRepository extends JpaRepository<BranchInventory
             @Param("branchId") Long branchId, @Param("variantId") Long variantId
     );
 
-    @Query("""
-            select i from BranchInventory i
-            join fetch i.branch b
-            join fetch i.variant v
-            join fetch v.product p
-            where b.status = example.com.ltw.branch.entity.BranchStatus.ACTIVE
-              and v.status = example.com.ltw.catalog.entity.ProductVariantStatus.ACTIVE
-              and p.status = example.com.ltw.catalog.entity.ProductStatus.ACTIVE
-            order by b.name, p.name, v.storage
-            """)
-    List<BranchInventory> findAllAvailableForCart();
 }

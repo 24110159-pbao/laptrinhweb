@@ -8,29 +8,150 @@
     <link rel="stylesheet" th:href="@{/css/product-detail.css}">
 </head>
 <body>
-<header class="product-page-header">
-    <a th:href="@{/}" class="brand-logo">
-        <div class="brand-icon">⚡</div>
-        <div class="brand-title-wrap"><span class="brand-name">NEXUSTECH</span><span class="brand-tagline">FLAGSHIP STORE</span></div>
-    </a>
-    <a th:href="@{/}" class="product-back-link">← Tiếp tục mua sắm</a>
-</header>
+<header th:replace="~{fragments/site :: header}"></header>
 <main class="product-page">
+    <a th:href="${returnTo}" class="product-catalog-back">← Quay lại danh mục sản phẩm</a>
     <section class="product-detail-card">
-        <img class="product-detail-image" th:src="${product.imageUrl}" th:alt="${product.name}">
-        <div class="product-detail-info">
-            <span class="product-brand" th:text="${product.brand}">Thương hiệu</span>
-            <h1 th:text="${product.name}">Tên sản phẩm</h1>
-            <p class="product-review-summary" th:if="${reviewStats.reviewCount > 0}">
-                <strong th:text="${#numbers.formatDecimal(reviewStats.averageRating, 1, 2)}">0.00</strong>
-                <span aria-hidden="true">★</span>
-                <span th:text="'(' + ${reviewStats.reviewCount} + ' đánh giá)'">0 đánh giá</span>
-            </p>
-            <p class="product-review-summary" th:if="${reviewStats.reviewCount == 0}">Chưa có đánh giá</p>
-            <p class="product-detail-specs" th:text="${product.specsLine}">Thông tin sản phẩm</p>
-            <strong class="product-detail-price" th:text="${product.formattedPrice}">Giá</strong>
-            <p class="product-detail-note">Bạn có thể gửi đánh giá sau khi đơn hàng được giao thành công.</p>
+        <div class="product-gallery" th:attr="data-general-image=${product.imageUrl}">
+            <img class="product-detail-image" id="product-image" th:src="${product.imageUrl}" th:alt="${product.name}">
+            <div class="product-image-thumbnails" th:if="${!#lists.isEmpty(product.imageUrls)}">
+                <button type="button" class="product-image-thumbnail"
+                        th:each="image : ${product.imageUrls}"
+                        th:attr="data-image=${image},aria-label='Xem ảnh sản phẩm'"
+                        th:classappend="${image == product.imageUrl} ? ' is-selected' : ''">
+                    <img th:src="${image}" th:alt="${product.name}">
+                </button>
+            </div>
         </div>
+        <div class="product-detail-content">
+            <div class="product-detail-info">
+                <span class="product-brand"
+                      th:if="${product.brand != null and !#strings.isEmpty(#strings.trim(product.brand))}"
+                      th:text="${product.brand}">Thương hiệu</span>
+                <h1 th:text="${product.name}">Tên sản phẩm</h1>
+                <p class="product-review-summary" th:if="${reviewStats.reviewCount > 0}">
+                    <strong th:text="${#numbers.formatDecimal(reviewStats.averageRating, 1, 2)}">0.00</strong>
+                    <span aria-hidden="true">★</span>
+                    <span th:text="'(' + ${reviewStats.reviewCount} + ' đánh giá)'">0 đánh giá</span>
+                </p>
+                <p class="product-review-summary" th:if="${reviewStats.reviewCount == 0}">Chưa có đánh giá</p>
+                <p class="product-detail-specs"
+                   th:if="${product.category != null and !#strings.isEmpty(#strings.trim(product.category))}">
+                    <strong>Danh mục:</strong> <span th:text="${product.category}">Danh mục</span>
+                </p>
+                <div class="product-price-block" th:if="${!#lists.isEmpty(product.variants)}">
+                    <strong class="product-detail-price" id="selected-price"
+                            th:text="${product.variants[0].formattedEffectivePrice}">Giá</strong>
+                    <del id="selected-original-price"
+                         th:if="${product.variants[0].formattedOriginalPrice != null}"
+                         th:text="${product.variants[0].formattedOriginalPrice}">Giá gốc</del>
+                </div>
+                <p class="product-detail-note" id="selected-stock-status" th:if="${!#lists.isEmpty(product.variants)}"
+                   th:text="${product.variants[0].totalStock > 0 ? 'Còn hàng' : 'Hết hàng'}">Tình trạng tồn kho</p>
+                <p class="product-detail-specs" th:if="${!#lists.isEmpty(product.variants)}">
+                    <span id="selected-variant-specs"
+                          th:text="${product.variants[0].ram + ' RAM • ' + product.variants[0].storage + ' • ' + product.variants[0].color}">Cấu hình Variant</span>
+                </p>
+            </div>
+
+            <section class="product-reviews product-variants">
+                <h2>Chọn phiên bản sản phẩm</h2>
+                <p th:if="${#lists.isEmpty(product.variants)}">Sản phẩm hiện chưa có phiên bản đang kinh doanh.</p>
+                <label th:each="variant, variantStat : ${product.variants}" class="product-variant-option">
+                    <input type="radio" name="variantId" th:value="${variant.id}" th:checked="${variantStat.index == 0}"
+                           th:attr="data-label=${variant.ram + ' RAM • ' + variant.storage + ' • ' + variant.color},
+                                    data-price=${variant.formattedEffectivePrice},
+                                    data-original-price=${variant.formattedOriginalPrice},
+                                    data-image=${variant.imageUrl},
+                                    data-ram=${variant.ram},
+                                    data-storage=${variant.storage},
+                                    data-color=${variant.color},
+                                    data-stock=${variant.totalStock}">
+                    <span th:text="${variant.ram + ' RAM • ' + variant.storage + ' • ' + variant.color}">Phiên bản</span>
+                    <strong th:text="${variant.formattedEffectivePrice}">Giá bán</strong>
+                    <del th:if="${variant.formattedOriginalPrice != null}" th:text="${variant.formattedOriginalPrice}">Giá gốc</del>
+                    <span th:text="${variant.totalStock > 0 ? 'Còn hàng' : 'Hết hàng'}">Tình trạng</span>
+                </label>
+            </section>
+
+            <section class="product-reviews branch-stock-section"
+                     th:if="${!#lists.isEmpty(product.branchStocks) and !#lists.isEmpty(product.variants)}">
+                <h2>Tồn kho tại chi nhánh</h2>
+                <div id="branch-stock-list">
+                    <div class="branch-carousel">
+                        <button type="button" class="branch-carousel-arrow" id="branch-previous"
+                                aria-label="Chi nhánh trước" th:if="${#lists.size(product.branchStocks) > 1}">‹</button>
+                        <div class="branch-carousel-content">
+                            <article th:each="branch, branchStat : ${product.branchStocks}"
+                                     class="branch-stock-item" th:hidden="${branchStat.index > 0}">
+                                <h3 th:text="${branch.name}">Chi nhánh</h3>
+                                <p th:if="${branch.address != null and !#strings.isEmpty(#strings.trim(branch.address))}"
+                                   th:text="${branch.address}">Địa chỉ</p>
+                                <p th:if="${branch.phone != null and !#strings.isEmpty(#strings.trim(branch.phone))}"
+                                   th:text="${branch.phone}">Số điện thoại</p>
+                                <div th:each="variantStock : ${branch.variants}" class="branch-variant-stock"
+                                     th:attr="data-variant-id=${variantStock.variantId}">
+                                    <span class="branch-stock-status"
+                                          th:text="${variantStock.quantity > 0 ? 'Còn hàng' : 'Hết hàng'}">Tình trạng</span>
+                                    <form th:if="${variantStock.inventoryId != null and variantStock.quantity > 0}"
+                                          th:action="@{/cart/items}" method="post" class="branch-add-to-cart">
+                                        <input type="hidden" name="inventoryId" th:value="${variantStock.inventoryId}">
+                                        <input type="hidden" name="quantity" value="1">
+                                        <button type="submit">Thêm vào giỏ hàng</button>
+                                    </form>
+                                </div>
+                            </article>
+                        </div>
+                        <button type="button" class="branch-carousel-arrow" id="branch-next"
+                                aria-label="Chi nhánh tiếp theo" th:if="${#lists.size(product.branchStocks) > 1}">›</button>
+                    </div>
+                    <p class="branch-carousel-position" id="branch-carousel-position" aria-live="polite"
+                       th:text="'1 / ' + ${#lists.size(product.branchStocks)}">1 / 1</p>
+                </div>
+            </section>
+        </div>
+    </section>
+
+    <section class="product-reviews product-description" th:if="${product.description != null and !#strings.isEmpty(#strings.trim(product.description))}">
+        <h2>Thông tin chung</h2>
+        <p th:text="${product.description}">Mô tả sản phẩm</p>
+    </section>
+
+    <section class="product-reviews product-description"
+             th:if="${(!#lists.isEmpty(product.variants))
+                 or (product.operatingSystem != null and !#strings.isEmpty(#strings.trim(product.operatingSystem)))
+                 or (product.chipset != null and !#strings.isEmpty(#strings.trim(product.chipset)))
+                 or product.screenSize != null
+                 or product.batteryCapacity != null}">
+        <h2>Thông số kỹ thuật</h2>
+        <dl class="product-specification-list">
+            <th:block th:if="${!#lists.isEmpty(product.variants)}">
+                <div class="product-specification-row" id="specification-ram-row"
+                     th:hidden="${product.variants[0].ram == null or #strings.isEmpty(#strings.trim(product.variants[0].ram))}">
+                    <dt>RAM</dt><dd id="specification-ram" th:text="${product.variants[0].ram}"></dd>
+                </div>
+                <div class="product-specification-row" id="specification-storage-row"
+                     th:hidden="${product.variants[0].storage == null or #strings.isEmpty(#strings.trim(product.variants[0].storage))}">
+                    <dt>Dung lượng lưu trữ</dt><dd id="specification-storage" th:text="${product.variants[0].storage}"></dd>
+                </div>
+                <div class="product-specification-row" id="specification-color-row"
+                     th:hidden="${product.variants[0].color == null or #strings.isEmpty(#strings.trim(product.variants[0].color))}">
+                    <dt>Màu sắc</dt><dd id="specification-color" th:text="${product.variants[0].color}"></dd>
+                </div>
+            </th:block>
+            <th:block th:if="${product.operatingSystem != null and !#strings.isEmpty(#strings.trim(product.operatingSystem))}">
+                <dt>Hệ điều hành</dt><dd th:text="${product.operatingSystem}"></dd>
+            </th:block>
+            <th:block th:if="${product.chipset != null and !#strings.isEmpty(#strings.trim(product.chipset))}">
+                <dt>Chipset</dt><dd th:text="${product.chipset}"></dd>
+            </th:block>
+            <th:block th:if="${product.screenSize != null}">
+                <dt>Kích thước màn hình</dt><dd th:text="${product.screenSize + ' inch'}"></dd>
+            </th:block>
+            <th:block th:if="${product.batteryCapacity != null}">
+                <dt>Dung lượng pin</dt><dd th:text="${product.batteryCapacity + ' mAh'}"></dd>
+            </th:block>
+        </dl>
     </section>
 
     <section class="product-reviews">
@@ -52,5 +173,90 @@
         </article>
     </section>
 </main>
+<footer th:replace="~{fragments/site :: footer}"></footer>
+<script>
+    const variantInputs = document.querySelectorAll('input[name="variantId"]');
+    const selectedPrice = document.getElementById('selected-price');
+    const selectedSpecs = document.getElementById('selected-variant-specs');
+    const stockStatus = document.getElementById('selected-stock-status');
+    const specificationRam = document.getElementById('specification-ram');
+    const specificationStorage = document.getElementById('specification-storage');
+    const specificationColor = document.getElementById('specification-color');
+    const specificationRamRow = document.getElementById('specification-ram-row');
+    const specificationStorageRow = document.getElementById('specification-storage-row');
+    const specificationColorRow = document.getElementById('specification-color-row');
+    const productImage = document.getElementById('product-image');
+    const imageGallery = document.querySelector('.product-gallery');
+    const branchList = document.getElementById('branch-stock-list');
+    const branchCards = branchList ? Array.from(branchList.querySelectorAll('.branch-stock-item')) : [];
+    const branchPosition = document.getElementById('branch-carousel-position');
+    let currentBranchIndex = 0;
+
+    function showBranch(index) {
+        if (!branchCards.length) return;
+        currentBranchIndex = (index + branchCards.length) % branchCards.length;
+        branchCards.forEach((branch, branchIndex) => {
+            branch.hidden = branchIndex !== currentBranchIndex;
+        });
+        if (branchPosition) {
+            branchPosition.textContent = `${currentBranchIndex + 1} / ${branchCards.length}`;
+        }
+    }
+
+    function updateVariant(input) {
+        if (selectedPrice) selectedPrice.textContent = input.dataset.price;
+        const priceBlock = document.querySelector('.product-price-block');
+        let originalPrice = document.getElementById('selected-original-price');
+        if (!originalPrice && input.dataset.originalPrice && priceBlock) {
+            const original = document.createElement('del');
+            original.id = 'selected-original-price';
+            original.textContent = input.dataset.originalPrice;
+            priceBlock.append(original);
+            originalPrice = original;
+        } else if (originalPrice) {
+            originalPrice.textContent = input.dataset.originalPrice || '';
+            originalPrice.hidden = !input.dataset.originalPrice;
+        }
+        if (selectedSpecs) selectedSpecs.textContent = input.dataset.label;
+        if (specificationRam) specificationRam.textContent = input.dataset.ram;
+        if (specificationStorage) specificationStorage.textContent = input.dataset.storage;
+        if (specificationColor) specificationColor.textContent = input.dataset.color;
+        if (specificationRamRow) specificationRamRow.hidden = !input.dataset.ram?.trim();
+        if (specificationStorageRow) specificationStorageRow.hidden = !input.dataset.storage?.trim();
+        if (specificationColorRow) specificationColorRow.hidden = !input.dataset.color?.trim();
+        if (stockStatus) stockStatus.textContent = Number(input.dataset.stock) > 0 ? 'Còn hàng' : 'Hết hàng';
+        if (productImage) {
+            productImage.src = input.dataset.image || imageGallery.dataset.generalImage;
+            document.querySelectorAll('.product-image-thumbnail').forEach(button => {
+                button.classList.toggle('is-selected', button.dataset.image === productImage.src);
+            });
+        }
+        if (branchList) {
+            branchList.querySelectorAll('.branch-variant-stock').forEach(stock => {
+                const isSelected = stock.dataset.variantId === input.value;
+                stock.hidden = !isSelected;
+                const addForm = stock.querySelector('.branch-add-to-cart');
+                if (addForm) addForm.hidden = !isSelected || stock.querySelector('.branch-stock-status').textContent !== 'Còn hàng';
+            });
+        }
+    }
+
+    variantInputs.forEach(input => input.addEventListener('change', () => updateVariant(input)));
+    const defaultVariant = document.querySelector('input[name="variantId"]:checked');
+    if (defaultVariant) updateVariant(defaultVariant);
+    showBranch(0);
+
+    document.querySelectorAll('.product-image-thumbnail').forEach(button => {
+        button.addEventListener('click', () => {
+            productImage.src = button.dataset.image;
+            document.querySelectorAll('.product-image-thumbnail').forEach(item => item.classList.remove('is-selected'));
+            button.classList.add('is-selected');
+        });
+    });
+    const previousBranch = document.getElementById('branch-previous');
+    const nextBranch = document.getElementById('branch-next');
+    if (previousBranch) previousBranch.addEventListener('click', () => showBranch(currentBranchIndex - 1));
+    if (nextBranch) nextBranch.addEventListener('click', () => showBranch(currentBranchIndex + 1));
+</script>
 </body>
 </html>

@@ -1,7 +1,6 @@
 package example.com.ltw.cart.service;
 
 import example.com.ltw.cart.dto.CartLineView;
-import example.com.ltw.cart.dto.CartOption;
 import example.com.ltw.cart.dto.CartView;
 import example.com.ltw.cart.entity.Cart;
 import example.com.ltw.cart.entity.CartItem;
@@ -36,24 +35,8 @@ public class CartService {
     @Transactional(readOnly = true)
     public List<CartView> getCarts(Long userId) {
         return cartRepository.findAllByUserIdOrderByUpdatedAtDesc(userId).stream()
+                .filter(cart -> !cart.getItems().isEmpty())
                 .map(this::toCartView)
-                .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public List<CartOption> getCartOptions() {
-        return inventoryRepository.findAllAvailableForCart().stream()
-                .filter(inventory -> inventory.getAvailableQuantity() > 0)
-                .map(inventory -> new CartOption(
-                        inventory.getId(),
-                        inventory.getBranch().getName() + " — "
-                                + inventory.getVariant().getProduct().getName() + " "
-                                + inventory.getVariant().getRam() + " "
-                                + inventory.getVariant().getStorage() + " "
-                                + inventory.getVariant().getColor()
-                                + " (còn " + inventory.getAvailableQuantity() + ")",
-                        inventory.getAvailableQuantity()
-                ))
                 .toList();
     }
 
@@ -177,6 +160,7 @@ public class CartService {
     private BigDecimal currentPrice(BranchInventory inventory) {
         BigDecimal salePrice = inventory.getVariant().getSalePrice();
         return salePrice != null && salePrice.signum() > 0
+                && salePrice.compareTo(inventory.getVariant().getPrice()) < 0
                 ? salePrice
                 : inventory.getVariant().getPrice();
     }

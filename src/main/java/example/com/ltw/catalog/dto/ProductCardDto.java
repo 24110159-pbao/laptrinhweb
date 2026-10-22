@@ -9,6 +9,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Locale;
+import java.util.List;
 
 @Getter
 @Setter
@@ -26,6 +27,16 @@ public class ProductCardDto {
     private BigDecimal originalPrice;
     private String imageUrl;
     private String slug;
+    private Integer totalStock;
+    private Long quantitySold;
+    private String operatingSystem;
+    private String chipset;
+    private java.math.BigDecimal screenSize;
+    private Integer batteryCapacity;
+    private String description;
+    private List<ProductVariantDto> variants;
+    private List<BranchStockDto> branchStocks;
+    private List<String> imageUrls;
 
     public String getFormattedPrice() {
         if (price == null) return "Liên hệ";

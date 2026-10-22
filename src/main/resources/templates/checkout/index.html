@@ -9,13 +9,7 @@
     <link rel="stylesheet" th:href="@{/css/cart.css}">
 </head>
 <body class="account-page">
-<header class="account-topbar">
-    <a th:href="@{/}" class="brand-logo">
-        <div class="brand-icon">⚡</div>
-        <div class="brand-title-wrap"><span class="brand-name">NEXUSTECH</span><span class="brand-tagline">FLAGSHIP STORE</span></div>
-    </a>
-    <a th:href="@{/cart}" class="account-back-link">← Quay lại giỏ hàng</a>
-</header>
+<header th:replace="~{fragments/site :: header}"></header>
 <main class="account-container cart-container checkout-container">
     <div th:if="${successMessage}" class="account-alert success" th:text="${successMessage}"></div>
     <div th:if="${infoMessage}" class="account-alert info" th:text="${infoMessage}"></div>
@@ -33,7 +27,7 @@
           method="post" class="checkout-form" id="addressForm">
         <section class="account-card">
             <div class="account-section-heading">
-                <div><h2>1. Địa chỉ nhận hàng</h2><p>Phí vận chuyển được tính lại mỗi khi địa chỉ thay đổi.</p></div>
+                <div><h2>1. Địa chỉ nhận hàng</h2><p>Miễn phí vận chuyển cho mọi đơn hàng.</p></div>
             </div>
             <div th:if="${!#lists.isEmpty(addresses)}" class="checkout-address-list">
                 <label th:each="address : ${addresses}" class="checkout-address-option">
@@ -113,18 +107,16 @@
             <div class="checkout-totals">
                 <div><span>Tổng tiền hàng</span><strong th:text="${#numbers.formatDecimal(checkout.subtotal, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></strong></div>
                 <div><span>Giảm giá</span><strong th:text="'− ' + ${#numbers.formatDecimal(checkout.discountAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></strong></div>
-                <div><span>Phí vận chuyển GHN</span>
-                    <strong th:if="${checkout.ghnQuoteToken != null}" th:text="${#numbers.formatDecimal(checkout.shippingFee, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></strong>
-                    <strong th:unless="${checkout.ghnQuoteToken != null}">Chưa tính</strong>
+                <div><span>Phí vận chuyển</span>
+                    <strong>Miễn phí</strong>
                 </div>
                 <div class="checkout-grand-total"><span>Tổng thanh toán</span>
-                    <strong th:if="${checkout.ghnQuoteToken != null}" th:text="${#numbers.formatDecimal(checkout.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></strong>
-                    <strong th:unless="${checkout.ghnQuoteToken != null}">Chờ phí GHN</strong>
+                    <strong th:text="${#numbers.formatDecimal(checkout.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></strong>
                 </div>
             </div>
             <div class="checkout-quote-actions">
-                <button class="account-button secondary" type="submit">Tính lại phí giao hàng và mã giảm giá</button>
-                <button class="account-button small secondary" type="submit" form="cancelCheckoutForm">Hủy Checkout</button>
+                <button class="account-button secondary" type="submit">Xác nhận địa chỉ và áp dụng mã giảm giá</button>
+                <button class="account-button small secondary" type="submit" form="cancelCheckoutForm">Hủy</button>
             </div>
         </section>
         </form>
@@ -143,10 +135,10 @@
                 <input type="radio" name="paymentMethod" value="VNPAY">
                 <span><strong>VNPay Sandbox</strong><small>Thanh toán trực tuyến qua cổng thử nghiệm VNPay.</small></span>
             </label>
-            <p class="checkout-confirm-note" th:if="${checkout.ghnQuoteToken == null}">
-                Hãy tính phí vận chuyển hợp lệ trước khi xác nhận đơn hàng.
+            <p class="checkout-confirm-note" th:if="${checkout.receiverName == null}">
+                Hãy xác nhận địa chỉ nhận hàng trước khi đặt đơn.
             </p>
-            <button class="account-button" type="submit" th:disabled="${checkout.ghnQuoteToken == null}">
+            <button class="account-button" type="submit" th:disabled="${checkout.receiverName == null}">
                 Xác nhận đặt hàng
             </button>
         </form>
@@ -162,5 +154,6 @@
     var selectedAddress = document.querySelector('input[name="addressId"]:checked');
     if (selectedAddress) document.querySelector('.checkout-new-address').hidden = selectedAddress.value !== '';
 </script>
+<footer th:replace="~{fragments/site :: footer}"></footer>
 </body>
 </html>

@@ -200,21 +200,6 @@
     margin-top: 6px;
 }
 
-.cart-add-card .account-section-heading {
-    margin-bottom: 16px;
-}
-
-.cart-add-form {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 130px auto;
-    align-items: end;
-    gap: 14px;
-}
-
-.cart-add-submit {
-    white-space: nowrap;
-}
-
 .checkout-title {
     display: flex;
     align-items: center;
@@ -501,14 +486,6 @@
         align-items: flex-start;
         flex-direction: column;
         gap: 8px;
-    }
-
-    .cart-add-form {
-        grid-template-columns: minmax(0, 1fr) 96px;
-    }
-
-    .cart-add-submit {
-        grid-column: 1 / -1;
     }
 
     .cart-quantity-form {

@@ -7,6 +7,7 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body class="account-page">
+<header th:replace="~{fragments/site :: header}"></header>
 <main class="account-container narrow">
     <a th:href="@{/account/profile}" class="account-back-link">← Quay lại hồ sơ</a>
     <section class="account-card">
@@ -23,5 +24,6 @@
         </form>
     </section>
 </main>
+<footer th:replace="~{fragments/site :: footer}"></footer>
 </body>
 </html>

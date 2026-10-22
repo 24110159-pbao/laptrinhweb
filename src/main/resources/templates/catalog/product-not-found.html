@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sản phẩm không khả dụng - NEXUSTECH</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header th:replace="~{fragments/site :: header}"></header>
+<main class="catalog-page container">
+    <section class="catalog-empty">
+        <h1>Sản phẩm không tồn tại hoặc không còn được kinh doanh</h1>
+        <p>Sản phẩm này hiện không khả dụng. Bạn có thể tham khảo các sản phẩm mới nhất dưới đây.</p>
+        <h2>Sản phẩm mới nhất</h2>
+        <div class="products-grid">
+            <article th:each="product : ${suggestions}" class="product-card">
+                <div class="product-thumb-wrap">
+                    <img th:src="${product.imageUrl}" th:alt="${product.name}" class="product-img">
+                </div>
+                <div class="product-body">
+                    <h3 class="product-title" th:text="${product.name}">Tên sản phẩm</h3>
+                    <span class="current-price" th:text="${product.formattedPrice}">Giá</span>
+                    <a th:href="@{'/product/' + ${product.slug}}" class="btn-view-details">Xem chi tiết</a>
+                </div>
+            </article>
+        </div>
+    </section>
+</main>
+<footer th:replace="~{fragments/site :: footer}"></footer>
+</body>
+</html>

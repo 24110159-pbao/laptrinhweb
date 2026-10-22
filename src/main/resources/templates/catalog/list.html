@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sản phẩm - NEXUSTECH</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header th:replace="~{fragments/site :: header}"></header>
+
+<main class="catalog-page container">
+    <h1 class="section-main-title">Danh sách sản phẩm</h1>
+    <div class="catalog-layout">
+        <form th:action="@{/products}" method="get" class="catalog-filters">
+            <h2>Bộ lọc sản phẩm</h2>
+            <label class="catalog-field">
+                <span>Từ khóa</span>
+                <input type="search" name="keyword" th:value="${keyword}" placeholder="Tên sản phẩm">
+            </label>
+            <fieldset>
+                <legend>Danh mục</legend>
+                <label th:each="category : ${categories}" class="catalog-check">
+                    <input type="checkbox" name="category" th:value="${category.id}"
+                           th:checked="${selectedCategories.contains(category.id)}">
+                    <span th:text="${category.name}">Danh mục</span>
+                </label>
+            </fieldset>
+            <fieldset>
+                <legend>Thương hiệu</legend>
+                <label th:each="brand : ${brands}" class="catalog-check">
+                    <input type="checkbox" name="brand" th:value="${brand.id}"
+                           th:checked="${selectedBrands.contains(brand.id)}">
+                    <span th:text="${brand.name}">Thương hiệu</span>
+                </label>
+            </fieldset>
+            <fieldset>
+                <legend>Khoảng giá (₫)</legend>
+                <label class="catalog-field">
+                    <span>Giá tối thiểu</span>
+                    <input type="number" name="minPrice" min="0" step="1" th:value="${minPrice}">
+                </label>
+                <label class="catalog-field">
+                    <span>Giá tối đa</span>
+                    <input type="number" name="maxPrice" min="0" step="1" th:value="${maxPrice}">
+                </label>
+            </fieldset>
+            <fieldset>
+                <legend>Tình trạng tồn kho</legend>
+                <label class="catalog-check"><input type="radio" name="stock" value="" th:checked="${stock == ''}"> Tất cả</label>
+                <label class="catalog-check"><input type="radio" name="stock" value="in" th:checked="${stock == 'in'}"> Còn hàng</label>
+                <label class="catalog-check"><input type="radio" name="stock" value="out" th:checked="${stock == 'out'}"> Hết hàng</label>
+            </fieldset>
+            <label class="catalog-field">
+                <span>Sắp xếp</span>
+                <select name="sort">
+                    <option value="newest" th:selected="${sort == 'newest'}">Mới nhất</option>
+                    <option value="price_asc" th:selected="${sort == 'price_asc'}">Giá tăng dần</option>
+                    <option value="price_desc" th:selected="${sort == 'price_desc'}">Giá giảm dần</option>
+                    <option value="best_selling" th:selected="${sort == 'best_selling'}">Bán chạy</option>
+                </select>
+            </label>
+            <input type="hidden" name="page" th:value="${pageNumber}">
+            <button type="submit" class="btn-view-details">Áp dụng bộ lọc</button>
+            <a th:href="@{/products}" class="catalog-reset">Xóa từ khóa và bộ lọc</a>
+        </form>
+
+        <section class="catalog-results">
+            <div class="section-header-row">
+                <h2 class="section-main-title" th:text="${totalElements + ' sản phẩm'}">Sản phẩm</h2>
+                <span class="section-subtitle" th:text="'Trang ' + ${pageNumber} + ' / ' + ${totalPages}">Trang</span>
+            </div>
+            <div class="products-grid" th:if="${!#lists.isEmpty(products)}">
+                <article th:each="product : ${products}" class="product-card">
+                    <div class="product-thumb-wrap">
+                        <img th:src="${product.imageUrl}" th:alt="${product.name}" class="product-img">
+                    </div>
+                    <div class="product-body">
+                        <p class="product-specs" th:text="${product.brand + ' • ' + product.category}">Thương hiệu • Danh mục</p>
+                        <h3 class="product-title" th:text="${product.name}">Tên sản phẩm</h3>
+                        <div class="product-specs" th:text="${product.specsLine}">Thông số</div>
+                        <p class="catalog-stock" th:text="${product.totalStock > 0 ? 'Còn hàng' : 'Hết hàng toàn hệ thống'}">Tình trạng</p>
+                        <div class="product-price-row">
+                            <span class="current-price" th:text="${product.formattedPrice}">Giá</span>
+                            <span th:if="${product.formattedOriginalPrice != null}" class="original-price" th:text="${product.formattedOriginalPrice}">Giá gốc</span>
+                        </div>
+                        <a th:href="@{/product/{slug}(slug=${product.slug},returnTo=${catalogReturnUrl})}" class="btn-view-details">Xem chi tiết</a>
+                    </div>
+                </article>
+            </div>
+
+            <div class="catalog-empty" th:if="${#lists.isEmpty(products)}">
+                <h2>Không tìm thấy sản phẩm phù hợp</h2>
+                <p>Hãy điều chỉnh hoặc xóa từ khóa và bộ lọc để thử lại.</p>
+                <a th:href="@{/products}" class="filter-pill">Xóa bộ lọc</a>
+                <h2>Sản phẩm mới nhất</h2>
+                <div class="products-grid" th:if="${!#lists.isEmpty(suggestions)}">
+                    <article th:each="product : ${suggestions}" class="product-card">
+                        <div class="product-thumb-wrap"><img th:src="${product.imageUrl}" th:alt="${product.name}" class="product-img"></div>
+                        <div class="product-body">
+                            <h3 class="product-title" th:text="${product.name}">Tên sản phẩm</h3>
+                            <span class="current-price" th:text="${product.formattedPrice}">Giá</span>
+                            <a th:href="@{/product/{slug}(slug=${product.slug},returnTo=${catalogReturnUrl})}" class="btn-view-details">Xem chi tiết</a>
+                        </div>
+                    </article>
+                </div>
+            </div>
+
+            <nav class="catalog-pagination" th:if="${totalPages > 1}" aria-label="Phân trang sản phẩm">
+                <a th:if="${pageNumber > 1}"
+                   th:href="@{/products(keyword=${keyword},category=${selectedCategories},brand=${selectedBrands},minPrice=${minPrice},maxPrice=${maxPrice},stock=${stock},sort=${sort},page=${pageNumber - 1})}">← Trước</a>
+                <a th:each="page : ${#numbers.sequence(1, totalPages)}"
+                   th:href="@{/products(keyword=${keyword},category=${selectedCategories},brand=${selectedBrands},minPrice=${minPrice},maxPrice=${maxPrice},stock=${stock},sort=${sort},page=${page})}"
+                   th:text="${page}" th:classappend="${page == pageNumber ? 'active' : ''}">1</a>
+                <a th:if="${pageNumber < totalPages}"
+                   th:href="@{/products(keyword=${keyword},category=${selectedCategories},brand=${selectedBrands},minPrice=${minPrice},maxPrice=${maxPrice},stock=${stock},sort=${sort},page=${pageNumber + 1})}">Sau →</a>
+            </nav>
+        </section>
+    </div>
+</main>
+<footer th:replace="~{fragments/site :: footer}"></footer>
+</body>
+</html>

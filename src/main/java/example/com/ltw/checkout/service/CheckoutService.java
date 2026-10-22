@@ -40,7 +40,6 @@ import example.com.ltw.payment.service.VnPayService;
 import example.com.ltw.shipping.entity.Shipment;
 import example.com.ltw.shipping.entity.ShipmentStatus;
 import example.com.ltw.shipping.repository.ShipmentRepository;
-import example.com.ltw.shipping.service.GhnShippingService;
 import example.com.ltw.user.entity.User;
 import example.com.ltw.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -71,7 +70,6 @@ public class CheckoutService {
     private final InventoryTransactionRepository inventoryTransactionRepository;
     private final UserRepository userRepository;
     private final CheckoutAddressService checkoutAddressService;
-    private final GhnShippingService ghnShippingService;
     private final DiscountCodeRepository discountCodeRepository;
     private final DiscountUsageRepository discountUsageRepository;
     private final OrderRepository orderRepository;
@@ -81,7 +79,7 @@ public class CheckoutService {
     private final ShipmentRepository shipmentRepository;
     private final VnPayService vnPayService;
 
-    @Value("${checkout.hold-duration-minutes:0}")
+    @Value("${checkout.hold-duration-minutes:15}")
     private int holdDurationMinutes;
 
     @Value("${checkout.vnpay-timeout-minutes:0}")
@@ -178,26 +176,25 @@ public class CheckoutService {
 
         setAddressSnapshot(session, address);
         List<CartItem> items = lockAndValidateItems(session);
-        BigDecimal shippingFee = ghnShippingService.quote(session.getCart().getBranch(), items, session);
+        BigDecimal shippingFee = BigDecimal.ZERO;
         BigDecimal discount = calculateDiscount(session, items, discountCode, shippingFee);
         session.setShippingFee(shippingFee);
         session.setDiscountAmount(discount);
         session.setFinalAmount(session.getSubtotal().subtract(discount).add(shippingFee));
-        session.setGhnQuoteToken(UUID.randomUUID().toString());
         return session;
     }
 
     @Transactional(noRollbackFor = CheckoutPriceChangedException.class)
     public FinalizeResult finalizeOrder(Long checkoutId, Long userId, PaymentMethod paymentMethod, String clientIp) {
         CheckoutSession session = lockActive(checkoutId, userId);
-        if (session.getReceiverName() == null || session.getGhnQuoteToken() == null) {
-            throw new IllegalArgumentException("Hãy nhập địa chỉ và tính phí vận chuyển trước khi xác nhận đơn.");
+        if (session.getReceiverName() == null) {
+            throw new IllegalArgumentException("Hãy nhập địa chỉ nhận hàng trước khi xác nhận đơn.");
         }
         if (paymentMethod == PaymentMethod.VNPAY && vnPayTimeoutMinutes <= 0) {
             throw new IllegalStateException("Chưa cấu hình thời hạn thanh toán VNPay.");
         }
         List<CartItem> items = lockAndValidateItems(session);
-        BigDecimal freshFee = ghnShippingService.quote(session.getCart().getBranch(), items, session);
+        BigDecimal freshFee = BigDecimal.ZERO;
         BigDecimal freshDiscount = calculateDiscount(
                 session, items, session.getDiscountCodeValue(), freshFee
         );
@@ -208,7 +205,7 @@ public class CheckoutService {
             session.setFinalAmount(session.getSubtotal().subtract(freshDiscount).add(freshFee));
             session.setGhnQuoteToken(UUID.randomUUID().toString());
             return new FinalizeResult(null, null, true,
-                    "Phí vận chuyển hoặc mức giảm đã thay đổi. Vui lòng kiểm tra và xác nhận lại.");
+                    "Tổng tiền đã được cập nhật. Vui lòng kiểm tra và xác nhận lại.");
         }
 
         DiscountCode discountCode = session.getDiscountCode();
@@ -331,34 +328,70 @@ public class CheckoutService {
                 continue;
             }
 
-            for (OrderItem item : orderItemRepository.findByOrderId(order.getId())) {
-                BranchInventory inventory = inventoryRepository.findByBranchIdAndVariantIdForUpdate(
-                                order.getBranch().getId(), item.getProductVariant().getId())
-                        .orElseThrow();
-                int before = inventory.getQuantity();
-                int after = Math.addExact(before, item.getQuantity());
-                inventory.setQuantity(after);
-                inventoryTransactionRepository.save(InventoryTransaction.create(
-                        inventory.getVariant(), inventory.getBranch(), InventoryTransactionType.ORDER_RELEASED,
-                        before, after, order.getOrderCode(), "Hoàn tồn kho sau khi đơn VNPay hết hạn.",
-                        order.getUser()
-                ));
-            }
-            OrderStatusHistory history = new OrderStatusHistory();
-            history.setOrder(order);
-            history.setPreviousStatus(order.getStatus().name());
-            history.setNewStatus(OrderStatus.CANCELLED.name());
-            history.setNote("Tự động hủy: hết hạn thanh toán VNPay.");
-            orderHistoryRepository.save(history);
-            order.setStatus(OrderStatus.CANCELLED);
-            order.setPaymentStatus(PaymentStatus.FAILED);
-            shipmentRepository.findByOrderId(order.getId()).ifPresent(shipment ->
-                    shipment.setStatus(ShipmentStatus.CANCELLED));
-            if (payment != null && payment.getStatus() == TransactionStatus.PENDING) {
-                payment.setStatus(TransactionStatus.FAILED);
-                payment.setResponseCode("TIMEOUT");
-            }
+            cancelUnpaidVnPayOrder(order, payment, "TIMEOUT",
+                    "Tự động hủy: hết hạn thanh toán VNPay; sản phẩm đã được trả về giỏ hàng.");
         }
+    }
+
+    @Transactional
+    public void cancelUnpaidVnPayOrder(Order order, Payment payment, String responseCode, String note) {
+        if (order.getPaymentMethod() != PaymentMethod.VNPAY
+                || order.getPaymentStatus() != PaymentStatus.PENDING
+                || order.getStatus() == OrderStatus.CANCELLED
+                || payment.getStatus() == TransactionStatus.SUCCESS) {
+            return;
+        }
+
+        User cartUser = userRepository.findByIdForUpdate(order.getUser().getId())
+                .orElseThrow(() -> new IllegalStateException("Không tìm thấy khách hàng để khôi phục giỏ hàng."));
+        Cart cart = cartRepository.findByUserIdAndBranchId(cartUser.getId(), order.getBranch().getId())
+                .orElseGet(() -> {
+                    Cart newCart = new Cart();
+                    newCart.setUser(cartUser);
+                    newCart.setBranch(order.getBranch());
+                    return cartRepository.save(newCart);
+                });
+
+        List<OrderItem> items = orderItemRepository.findByOrderIdOrderById(order.getId()).stream()
+                .sorted(Comparator.comparing(item -> item.getProductVariant().getId()))
+                .toList();
+        for (OrderItem item : items) {
+            BranchInventory inventory = inventoryRepository.findByBranchIdAndVariantIdForUpdate(
+                            order.getBranch().getId(), item.getProductVariant().getId())
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Không tìm thấy tồn kho để khôi phục sản phẩm vào giỏ hàng."));
+            int before = inventory.getQuantity();
+            int after = Math.addExact(before, item.getQuantity());
+            inventory.setQuantity(after);
+            inventoryTransactionRepository.save(InventoryTransaction.create(
+                    inventory.getVariant(), inventory.getBranch(), InventoryTransactionType.ORDER_RELEASED,
+                    before, after, order.getOrderCode(), note, cartUser
+            ));
+
+            CartItem cartItem = cartItemRepository.findByCartIdAndInventoryId(cart.getId(), inventory.getId())
+                    .orElseGet(() -> {
+                        CartItem newItem = new CartItem();
+                        newItem.setCart(cart);
+                        newItem.setInventory(inventory);
+                        newItem.setQuantity(0);
+                        return newItem;
+                    });
+            cartItem.setQuantity(Math.addExact(cartItem.getQuantity(), item.getQuantity()));
+            cartItemRepository.save(cartItem);
+        }
+
+        OrderStatusHistory history = new OrderStatusHistory();
+        history.setOrder(order);
+        history.setPreviousStatus(order.getStatus().name());
+        history.setNewStatus(OrderStatus.CANCELLED.name());
+        history.setNote(note);
+        orderHistoryRepository.save(history);
+        order.setStatus(OrderStatus.CANCELLED);
+        order.setPaymentStatus(PaymentStatus.FAILED);
+        payment.setStatus(TransactionStatus.FAILED);
+        payment.setResponseCode(responseCode);
+        shipmentRepository.findByOrderId(order.getId()).ifPresent(shipment ->
+                shipment.setStatus(ShipmentStatus.CANCELLED));
     }
 
     private CheckoutSession lockActive(Long checkoutId, Long userId) {
@@ -401,7 +434,7 @@ public class CheckoutService {
             session.setDiscountAppliedToShipping(false);
             session.setDiscountAmount(BigDecimal.ZERO);
             session.setGhnQuoteToken(null);
-            throw new CheckoutPriceChangedException("Giá sản phẩm đã thay đổi. Vui lòng kiểm tra lại Checkout và phí vận chuyển.");
+            throw new CheckoutPriceChangedException("Giá sản phẩm đã thay đổi. Vui lòng kiểm tra lại Checkout.");
         }
         return items;
     }
@@ -574,7 +607,10 @@ public class CheckoutService {
 
     private BigDecimal currentPrice(BranchInventory inventory) {
         BigDecimal salePrice = inventory.getVariant().getSalePrice();
-        return salePrice != null && salePrice.signum() > 0 ? salePrice : inventory.getVariant().getPrice();
+        return salePrice != null && salePrice.signum() > 0
+                && salePrice.compareTo(inventory.getVariant().getPrice()) < 0
+                ? salePrice
+                : inventory.getVariant().getPrice();
     }
 
     private void validateHoldConfiguration() {

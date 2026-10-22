@@ -34,9 +34,13 @@ public class VnPayController {
     @GetMapping("/payment/vnpay-return")
     public String returnFromGateway(
             @RequestParam(required = false) String orderCode,
+            @RequestParam MultiValueMap<String, String> parameters,
             HttpSession session,
             Model model
     ) {
+        if (parameters.getFirst("vnp_SecureHash") != null) {
+            callbackService.handle(parameters);
+        }
         Long userId = currentUserId(session);
         if (userId == null) return "redirect:/login";
         Order order = orderCode == null ? null
@@ -47,7 +51,7 @@ public class VnPayController {
         model.addAttribute("paymentMessage", switch (order.getPaymentStatus()) {
             case PAID -> "Thanh toán đã được hệ thống xác minh thành công.";
             case REFUND_REQUIRED -> "Giao dịch thành công đến sau khi đơn đã hết hạn; yêu cầu hoàn tiền đang cần được xử lý.";
-            case FAILED -> "Thanh toán chưa thành công. Đơn sẽ được giữ đến thời hạn thanh toán.";
+            case FAILED -> "Thanh toán đã bị hủy hoặc không thành công; đơn đã hủy và sản phẩm đã được trả về giỏ hàng.";
             default -> "Đang chờ backend xác minh kết quả thanh toán từ VNPay.";
         });
         return "checkout/payment-result";

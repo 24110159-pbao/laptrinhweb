@@ -1,6 +1,7 @@
 package example.com.ltw.order.repository;
 
 import example.com.ltw.order.entity.OrderItem;
+import example.com.ltw.order.entity.OrderStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -12,6 +13,14 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.EntityGraph;
 
 public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
+    @Query("""
+            select oi.productVariant.product.id as productId, sum(oi.quantity) as quantitySold
+            from OrderItem oi
+            where oi.order.status = :status
+            group by oi.productVariant.product.id
+            """)
+    List<OrderItemCatalogProjection> findSalesByProduct(@Param("status") OrderStatus status);
+
     List<OrderItem> findByOrderId(Long orderId);
 
     @EntityGraph(attributePaths = {"productVariant", "order"})

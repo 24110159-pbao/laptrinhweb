@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.text.NumberFormat;
 import java.math.BigDecimal;
@@ -27,18 +26,17 @@ public class HomeController {
 
     @GetMapping({"/", "/home"})
     public String index(
-            @RequestParam(value = "brand", required = false, defaultValue = "all") String brand,
-            @RequestParam(value = "keyword", required = false) String keyword,
             HttpSession session,
             Model model
     ) {
-        List<ProductCardDto> products = productService.getFeaturedProducts(brand, keyword);
+        List<ProductCardDto> newestProducts = productService.getNewestProducts();
+        List<ProductCardDto> bestSellingProducts = productService.getBestSellingProducts();
         Object sessionUser = session.getAttribute(AuthService.SESSION_CURRENT_USER);
         User currentUser = sessionUser instanceof User user ? user : null;
 
-        model.addAttribute("products", products);
-        model.addAttribute("selectedBrand", brand != null ? brand.toLowerCase() : "all");
-        model.addAttribute("keyword", keyword != null ? keyword : "");
+        model.addAttribute("newestProducts", newestProducts);
+        model.addAttribute("bestSellingProducts", bestSellingProducts);
+        model.addAttribute("keyword", "");
         model.addAttribute("currentUser", currentUser);
 
         // Header metrics matching the design

@@ -9,16 +9,7 @@
     <link rel="stylesheet" th:href="@{/css/cart.css}">
 </head>
 <body class="account-page">
-<header class="account-topbar">
-    <a th:href="@{/}" class="brand-logo">
-        <div class="brand-icon">⚡</div>
-        <div class="brand-title-wrap">
-            <span class="brand-name">NEXUSTECH</span>
-            <span class="brand-tagline">FLAGSHIP STORE</span>
-        </div>
-    </a>
-    <a th:href="@{/}" class="account-back-link">← Tiếp tục mua sắm</a>
-</header>
+<header th:replace="~{fragments/site :: header}"></header>
 
 <main class="account-container cart-container">
     <div th:if="${successMessage}" class="account-alert success" th:text="${successMessage}"></div>
@@ -104,41 +95,15 @@
                         0 ₫
                     </strong>
                 </div>
-                <p>Phí vận chuyển và giá cuối cùng sẽ được xác nhận ở bước thanh toán.</p>
+                <p>Đơn hàng được miễn phí vận chuyển; tổng tiền sẽ được xác nhận ở bước thanh toán.</p>
                 <form th:action="@{/cart/{cartId}/checkout(cartId=${cart.cartId})}" method="post">
-                    <button class="account-button" type="submit">Tiến hành Checkout</button>
+                    <button class="account-button" type="submit">Đặt hàng</button>
                 </form>
             </div>
         </article>
     </section>
 
-    <section class="account-card cart-add-card">
-        <div class="account-section-heading">
-            <div>
-                <h2>Thêm sản phẩm vào giỏ</h2>
-                <p>Sản phẩm ở chi nhánh khác sẽ được tự động lưu vào một giỏ riêng.</p>
-            </div>
-        </div>
-        <form th:action="@{/cart/items}" method="post" class="cart-add-form">
-            <div class="account-field">
-                <label for="inventoryId">Sản phẩm và chi nhánh</label>
-                <select id="inventoryId" name="inventoryId" required>
-                    <option value="">Chọn sản phẩm</option>
-                    <option th:each="option : ${cartOptions}"
-                            th:value="${option.inventoryId}"
-                            th:text="${option.label}"></option>
-                </select>
-                <small th:if="${#lists.isEmpty(cartOptions)}">Hiện không có sản phẩm khả dụng trong kho.</small>
-            </div>
-            <div class="account-field cart-add-quantity">
-                <label for="quantity">Số lượng</label>
-                <input id="quantity" type="number" name="quantity" min="1" value="1" required>
-            </div>
-            <button class="account-button cart-add-submit" type="submit" th:disabled="${#lists.isEmpty(cartOptions)}">
-                Thêm vào giỏ
-            </button>
-        </form>
-    </section>
 </main>
+<footer th:replace="~{fragments/site :: footer}"></footer>
 </body>
 </html>

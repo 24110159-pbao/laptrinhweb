@@ -66,7 +66,7 @@ public class CheckoutController {
         if (userId == null) return "redirect:/login";
         try {
             CheckoutSession checkout = checkoutService.quote(checkoutId, userId, addressId, addressRequest, discountCode);
-            redirectAttributes.addFlashAttribute("successMessage", "Đã xác minh địa chỉ, tồn kho và tính lại phí vận chuyển.");
+            redirectAttributes.addFlashAttribute("successMessage", "Đã xác nhận địa chỉ. Đơn hàng được miễn phí vận chuyển.");
             return "redirect:/checkout/" + checkout.getId();
         } catch (CheckoutService.CheckoutPriceChangedException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());

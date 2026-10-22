@@ -27,7 +27,6 @@ public class CartController {
             return "redirect:/login";
         }
         model.addAttribute("carts", cartService.getCarts(userId));
-        model.addAttribute("cartOptions", cartService.getCartOptions());
         model.addAttribute("currentUser", session.getAttribute(AuthService.SESSION_CURRENT_USER));
         return "cart/index";
     }

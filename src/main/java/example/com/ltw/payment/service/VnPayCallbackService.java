@@ -5,6 +5,7 @@ import example.com.ltw.order.entity.OrderStatus;
 import example.com.ltw.order.entity.PaymentMethod;
 import example.com.ltw.order.entity.PaymentStatus;
 import example.com.ltw.order.repository.OrderRepository;
+import example.com.ltw.checkout.service.CheckoutService;
 import example.com.ltw.payment.entity.Payment;
 import example.com.ltw.payment.entity.TransactionStatus;
 import example.com.ltw.payment.repository.PaymentRepository;
@@ -26,6 +27,7 @@ public class VnPayCallbackService {
     private final VnPayService vnPayService;
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
+    private final CheckoutService checkoutService;
 
     @Transactional
     public Map<String, String> handle(MultiValueMap<String, String> parameters) {
@@ -56,21 +58,26 @@ public class VnPayCallbackService {
             log.warn("VNPay amount mismatch for order {}", orderCode);
             return result("04", "Invalid amount");
         }
+        boolean paid = "00".equals(responseCode) && "00".equals(transactionStatus);
+        boolean failed = !"00".equals(responseCode) || "02".equals(transactionStatus);
         String gatewayTransaction = parameters.getFirst("vnp_TransactionNo");
-        if (gatewayTransaction == null || gatewayTransaction.isBlank()) {
+        if (paid && (gatewayTransaction == null || gatewayTransaction.isBlank())) {
             return result("99", "Missing transaction number");
         }
 
         if (payment.getStatus() == TransactionStatus.SUCCESS) {
-            if (!gatewayTransaction.equals(payment.getGatewayTransactionNo())) {
+            if (paid && !gatewayTransaction.equals(payment.getGatewayTransactionNo())) {
                 return result("04", "Transaction number mismatch");
             }
             return result("00", "Confirm Success");
         }
-        payment.setGatewayTransactionNo(gatewayTransaction);
+        if (!paid && !failed) return result("00", "Payment status is still pending");
+        if (gatewayTransaction != null && !gatewayTransaction.isBlank()) {
+            payment.setGatewayTransactionNo(gatewayTransaction);
+        }
         payment.setBankCode(parameters.getFirst("vnp_BankCode"));
         payment.setResponseCode(responseCode);
-        if ("00".equals(responseCode) && "00".equals(transactionStatus)) {
+        if (paid) {
             payment.setStatus(TransactionStatus.SUCCESS);
             payment.setPaymentDate(LocalDateTime.now());
             if (order.getStatus() == OrderStatus.CANCELLED) {
@@ -80,7 +87,8 @@ public class VnPayCallbackService {
                 order.setPaymentStatus(PaymentStatus.PAID);
             }
         } else {
-            payment.setStatus(TransactionStatus.FAILED);
+            checkoutService.cancelUnpaidVnPayOrder(order, payment, responseCode,
+                    "Khách hàng hủy hoặc không hoàn tất thanh toán VNPay; sản phẩm đã được trả về giỏ hàng.");
         }
         return result("00", "Confirm Success");
     }

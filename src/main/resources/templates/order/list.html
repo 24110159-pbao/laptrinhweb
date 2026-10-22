@@ -9,10 +9,7 @@
     <link rel="stylesheet" th:href="@{/css/order.css}">
 </head>
 <body class="account-page">
-<header class="account-topbar">
-    <a th:href="@{/}" class="brand-logo"><div class="brand-icon">⚡</div><div class="brand-title-wrap"><span class="brand-name">NEXUSTECH</span><span class="brand-tagline">FLAGSHIP STORE</span></div></a>
-    <a th:href="@{/}" class="account-back-link">← Tiếp tục mua sắm</a>
-</header>
+<header th:replace="~{fragments/site :: header}"></header>
 <main class="account-container order-container">
     <nav class="account-nav" aria-label="Quản lý tài khoản">
         <a th:href="@{/account/profile}">Hồ sơ cá nhân</a>
@@ -50,5 +47,6 @@
         </div>
     </section>
 </main>
+<footer th:replace="~{fragments/site :: footer}"></footer>
 </body>
 </html>
