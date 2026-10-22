@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${isEdit ? 'Cập nhật sản phẩm' : 'Thêm sản phẩm'} + ' | NEXUSTECH'">Sản phẩm | NEXUSTECH</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+          rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+
+    <style>
+        .product-form-panel {
+            padding: 24px;
+        }
+
+        .product-form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .product-field {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            min-width: 0;
+        }
+
+        .product-field.full {
+            grid-column: 1 / -1;
+        }
+
+        .product-field label {
+            color: #475569;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .product-field input,
+        .product-field select,
+        .product-field textarea {
+            width: 100%;
+            min-height: 42px;
+            padding: 10px 12px;
+            border: 1px solid #dbe2ea;
+            border-radius: 8px;
+            background: #fff;
+            color: #334155;
+            font: inherit;
+            font-size: 14px;
+        }
+
+        .product-field textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        .product-field input:focus,
+        .product-field select:focus,
+        .product-field textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, .12);
+        }
+
+        .product-field .error {
+            color: #dc2626;
+            font-size: 12px;
+        }
+
+        .product-form-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 22px;
+        }
+
+        .product-form-actions a,
+        .product-form-actions button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            min-height: 42px;
+            text-decoration: none;
+        }
+
+        .product-variant-form {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .product-variant-actions {
+            margin-top: 14px;
+        }
+
+        .product-variant-actions button {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .product-variant-table td {
+            vertical-align: top;
+        }
+
+        .product-variant-id {
+            display: inline-flex;
+            padding: 5px 9px;
+            border-radius: 6px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .product-empty {
+            padding: 28px 15px !important;
+            text-align: center;
+            color: #64748b;
+        }
+
+        .product-empty i {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        @media (max-width: 768px) {
+            .product-form-panel {
+                padding: 16px;
+            }
+
+            .product-form-grid,
+            .product-variant-form {
+                grid-template-columns: 1fr;
+            }
+
+            .product-field.full {
+                grid-column: auto;
+            }
+
+            .product-form-actions a,
+            .product-form-actions button {
+                flex: 1;
+            }
+        }
+    </style>
+
+
+</head>
+
+<body class="admin-page">
+
+<!-- NAVBAR -->
+
+<nav class="admin-navbar navbar navbar-dark">
+    <div class="container-fluid px-3 px-lg-4">
+        <a class="admin-brand" th:href="@{/admin}">
+<span class="admin-brand-icon">
+<i class="bi bi-cpu-fill"></i>
+</span>
+            <span>
+<strong>NEXUSTECH</strong>
+<small>ADMINISTRATION</small>
+</span>
+        </a>
+
+        <div class="d-flex align-items-center gap-2">
+        <span class="text-secondary d-none d-md-inline small">
+            <i class="bi bi-person-circle me-1"></i>
+            <span th:text="${admin.fullName}">Administrator</span>
+        </span>
+            <a class="btn btn-outline-light btn-sm" th:href="@{/}">
+                <i class="bi bi-house-door me-1"></i> Trang chủ
+            </a>
+        </div>
+    </div>
+
+
+</nav>
+
+<div class="admin-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+        <div class="sidebar-heading">MENU QUẢN TRỊ</div>
+
+        <a class="sidebar-link" th:href="@{/admin}">
+            <i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span>
+        </a>
+        <a class="sidebar-link" th:href="@{/admin/users}">
+            <i class="bi bi-people-fill"></i><span>Quản lý người dùng</span>
+        </a>
+        <a class="sidebar-link" th:href="@{/admin/managers}">
+            <i class="bi bi-person-badge-fill"></i><span>Quản lý Manager</span>
+        </a>
+        <a class="sidebar-link" th:href="@{/admin/branches}">
+            <i class="bi bi-building"></i><span>Quản lý chi nhánh</span>
+        </a>
+        <a class="sidebar-link active" th:href="@{/admin/products}">
+            <i class="bi bi-box-seam-fill"></i><span>Quản lý sản phẩm</span>
+        </a>
+        <a class="sidebar-link" th:href="@{/admin/products/allocate}">
+            <i class="bi bi-boxes"></i><span>Phân bổ tồn kho</span>
+        </a>
+        <a class="sidebar-link" th:href="@{/admin/discounts}">
+            <i class="bi bi-ticket-perforated-fill"></i><span>Mã giảm giá</span>
+        </a>
+        <a class="sidebar-link" th:href="@{/admin/branch-revenues}">
+            <i class="bi bi-graph-up-arrow"></i><span>Doanh thu chi nhánh</span>
+        </a>
+
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-footer">
+            <i class="bi bi-shield-check"></i>
+            <small>HỆ THỐNG QUẢN TRỊ</small>
+            <strong>NEXUSTECH Admin</strong>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="admin-main">
+
+        <section class="admin-page-heading">
+            <div>
+                <span class="admin-eyebrow">PRODUCT MANAGEMENT</span>
+                <h1 th:text="${isEdit ? 'Cập nhật sản phẩm' : 'Thêm sản phẩm mới'}">
+                    Thêm sản phẩm mới
+                </h1>
+                <p>
+                    Xin chào,
+                    <strong th:text="${admin.fullName}">Administrator</strong>.
+                    Quản lý thông tin sản phẩm và các cấu hình biến thể.
+                </p>
+            </div>
+        </section>
+
+        <!-- ERROR -->
+        <div th:if="${errorMessage}"
+             class="branch-list-alert branch-list-alert-error"
+             role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span th:text="${errorMessage}"></span>
+        </div>
+
+        <!-- PRODUCT INFORMATION -->
+        <section class="admin-section branch-list-section">
+            <div class="section-heading">
+                <div>
+                    <h2>Thông tin sản phẩm</h2>
+                    <p>Nhập thông tin cơ bản, thương hiệu và thông số kỹ thuật.</p>
+                </div>
+                <span class="chart-badge">
+                <i class="bi bi-box-seam"></i> Sản phẩm
+            </span>
+            </div>
+
+            <div class="admin-panel table-panel branch-list-panel">
+                <div class="product-form-panel">
+                    <form th:object="${form}"
+                          th:action="${isEdit} ? @{/admin/products/{id}/edit(id=${form.id})} : @{/admin/products/new}"
+                          method="post">
+
+                        <input type="hidden" th:field="*{id}">
+
+                        <div class="product-form-grid">
+
+                            <div class="product-field full">
+                                <label for="name">Tên sản phẩm *</label>
+                                <input id="name" th:field="*{name}"
+                                       maxlength="200" required>
+                                <span class="error" th:errors="*{name}"></span>
+                            </div>
+
+                            <div class="product-field">
+                                <label for="slug">Slug (để trống sẽ tự tạo)</label>
+                                <input id="slug" th:field="*{slug}" maxlength="220">
+                                <span class="error" th:errors="*{slug}"></span>
+                            </div>
+
+                            <div class="product-field">
+                                <label for="brandId">Thương hiệu *</label>
+                                <select id="brandId" th:field="*{brandId}" required>
+                                    <option value="">-- Chọn thương hiệu --</option>
+                                    <option th:each="b : ${brands}"
+                                            th:value="${b.id}"
+                                            th:text="${b.name}"></option>
+                                </select>
+                                <span class="error" th:errors="*{brandId}"></span>
+                            </div>
+
+                            <div class="product-field">
+                                <label for="categoryId">Danh mục *</label>
+                                <select id="categoryId" th:field="*{categoryId}" required>
+                                    <option value="">-- Chọn danh mục --</option>
+                                    <option th:each="c : ${categories}"
+                                            th:value="${c.id}"
+                                            th:text="${c.name}"></option>
+                                </select>
+                                <span class="error" th:errors="*{categoryId}"></span>
+                            </div>
+
+                            <div class="product-field">
+                                <label for="operatingSystem">Hệ điều hành</label>
+                                <input id="operatingSystem"
+                                       th:field="*{operatingSystem}" maxlength="100">
+                            </div>
+
+                            <div class="product-field">
+                                <label for="chipset">Chipset</label>
+                                <input id="chipset" th:field="*{chipset}" maxlength="150">
+                            </div>
+
+                            <div class="product-field">
+                                <label for="screenSize">Kích thước màn hình (inch)</label>
+                                <input id="screenSize" type="number" step="0.01" min="0"
+                                       th:field="*{screenSize}">
+                                <span class="error" th:errors="*{screenSize}"></span>
+                            </div>
+
+                            <div class="product-field">
+                                <label for="batteryCapacity">Dung lượng pin (mAh)</label>
+                                <input id="batteryCapacity" type="number" min="0"
+                                       th:field="*{batteryCapacity}">
+                            </div>
+
+                            <div class="product-field">
+                                <label for="status">Trạng thái</label>
+                                <select id="status" th:field="*{status}">
+                                    <option th:each="s : ${statuses}"
+                                            th:value="${s}" th:text="${s}"></option>
+                                </select>
+                            </div>
+
+                            <div class="product-field full">
+                                <label for="description">Mô tả</label>
+                                <textarea id="description"
+                                          th:field="*{description}"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="product-form-actions">
+                            <button class="btn-admin-primary" type="submit">
+                                <i class="bi bi-check-lg"></i>
+                                <span th:text="${isEdit ? 'Lưu sản phẩm' : 'Tạo sản phẩm'}">
+                                Tạo sản phẩm
+                            </span>
+                            </button>
+
+                            <a class="btn-user-reset" th:href="@{/admin/products}">
+                                <i class="bi bi-arrow-left"></i> Quay lại
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- EXISTING VARIANTS -->
+        <section class="admin-section branch-list-section" th:if="${isEdit}">
+            <div class="section-heading">
+                <div>
+                    <h2>Danh sách biến thể</h2>
+                    <p>Quản lý RAM, bộ nhớ, màu sắc, giá và trạng thái từng cấu hình.</p>
+                </div>
+                <span class="chart-badge">
+                <i class="bi bi-layers"></i> Biến thể
+            </span>
+            </div>
+
+            <div class="admin-panel table-panel branch-list-panel">
+                <div class="table-header">
+                    <div>
+                        <h3>Cấu hình sản phẩm</h3>
+                        <p>Cập nhật thông tin trực tiếp cho từng biến thể.</p>
+                    </div>
+                </div>
+
+                <div class="table-wrap branch-list-table-wrap">
+                    <table class="admin-table branch-list-table product-variant-table">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>THÔNG TIN BIẾN THỂ</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr th:each="v : ${variants}">
+                            <td>
+                                <span class="product-variant-id" th:text="${v.id}">1</span>
+                            </td>
+
+                            <td>
+                                <form method="post"
+                                      th:action="@{/admin/products/variants/{id}/edit(id=${v.id})}">
+
+                                    <input type="hidden" name="productId"
+                                           th:value="${product.id}">
+
+                                    <div class="product-variant-form">
+                                        <div class="product-field">
+                                            <label>RAM</label>
+                                            <input name="ram" th:value="${v.ram}"
+                                                   required maxlength="30">
+                                        </div>
+
+                                        <div class="product-field">
+                                            <label>Bộ nhớ</label>
+                                            <input name="storage" th:value="${v.storage}"
+                                                   required maxlength="30">
+                                        </div>
+
+                                        <div class="product-field">
+                                            <label>Màu</label>
+                                            <input name="color" th:value="${v.color}"
+                                                   required maxlength="50">
+                                        </div>
+
+                                        <div class="product-field">
+                                            <label>Giá gốc</label>
+                                            <input type="number" name="price" min="0"
+                                                   step="0.01" th:value="${v.price}" required>
+                                        </div>
+
+                                        <div class="product-field">
+                                            <label>Giá khuyến mãi</label>
+                                            <input type="number" name="salePrice" min="0"
+                                                   step="0.01" th:value="${v.salePrice}">
+                                        </div>
+
+                                        <div class="product-field">
+                                            <label>Trạng thái</label>
+                                            <select name="status">
+                                                <option th:each="s : ${variantStatuses}"
+                                                        th:value="${s}" th:text="${s}"
+                                                        th:selected="${v.status == s}"></option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="product-variant-actions">
+                                        <button class="btn-admin-primary" type="submit">
+                                            <i class="bi bi-check-lg"></i> Lưu biến thể
+                                        </button>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+
+                        <tr th:if="${#lists.isEmpty(variants)}">
+                            <td colspan="2">
+                                <div class="product-empty">
+                                    <i class="bi bi-layers"></i>
+                                    <strong>Chưa có biến thể</strong>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ADD VARIANT -->
+        <section class="admin-section branch-list-section" th:if="${isEdit}">
+            <div class="section-heading">
+                <div>
+                    <h2>Thêm biến thể mới</h2>
+                    <p>Thêm cấu hình RAM, bộ nhớ, màu sắc và giá bán cho sản phẩm.</p>
+                </div>
+                <span class="chart-badge">
+                <i class="bi bi-plus-circle"></i> Thêm cấu hình
+            </span>
+            </div>
+
+            <div class="admin-panel table-panel branch-list-panel">
+                <div class="product-form-panel">
+                    <form th:object="${variantForm}"
+                          th:action="@{/admin/products/{id}/variants(id=${product.id})}"
+                          method="post">
+
+                        <input type="hidden" th:field="*{productId}">
+
+                        <div class="product-form-grid">
+                            <div class="product-field">
+                                <label for="newRam">RAM *</label>
+                                <input id="newRam" th:field="*{ram}"
+                                       required maxlength="30">
+                            </div>
+
+                            <div class="product-field">
+                                <label for="newStorage">Bộ nhớ *</label>
+                                <input id="newStorage" th:field="*{storage}"
+                                       required maxlength="30">
+                            </div>
+
+                            <div class="product-field">
+                                <label for="newColor">Màu sắc *</label>
+                                <input id="newColor" th:field="*{color}"
+                                       required maxlength="50">
+                            </div>
+
+                            <div class="product-field">
+                                <label for="newPrice">Giá gốc *</label>
+                                <input id="newPrice" type="number" th:field="*{price}"
+                                       min="0" step="0.01" required>
+                            </div>
+
+                            <div class="product-field">
+                                <label for="newSalePrice">Giá khuyến mãi</label>
+                                <input id="newSalePrice" type="number"
+                                       th:field="*{salePrice}" min="0" step="0.01">
+                            </div>
+
+                            <div class="product-field">
+                                <label for="newStatus">Trạng thái</label>
+                                <select id="newStatus" th:field="*{status}">
+                                    <option th:each="s : ${variantStatuses}"
+                                            th:value="${s}" th:text="${s}"></option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="product-form-actions">
+                            <button class="btn-admin-primary" type="submit">
+                                <i class="bi bi-plus-lg"></i> Thêm biến thể
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <footer class="admin-footer">
+            NEXUSTECH ADMINISTRATION
+            <span class="mx-2">•</span>
+            PRODUCT MANAGEMENT
+        </footer>
+
+    </main>
+
+
+</div>
+
+</body>
+</html>

@@ -143,6 +143,19 @@
                         </svg>
                         <span>Quản lý chi nhánh</span>
                     </a>
+                    <a th:if="${currentUser.role.name() == 'ADMIN'}"
+                       th:href="@{/admin/dashboard}"
+                       class="dropdown-link">
+                        <svg width="16" height="16" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                        <span>Trang quản trị Admin</span>
+                    </a>
                     <div class="dropdown-divider"></div>
                     <a th:href="@{/logout}" class="dropdown-link" style="color: #f87171;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
