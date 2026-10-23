@@ -18,346 +18,6 @@
 
     <!-- CSS Admin dùng chung -->
     <link rel="stylesheet" th:href="@{/css/admin.css}">
-
-    <!-- CSS riêng cho trang sản phẩm -->
-    <style>
-        /* ================= PRODUCT MANAGEMENT ================= */
-
-        .product-filter-panel {
-            padding: 22px;
-        }
-
-        .product-filter-form {
-            display: grid;
-            grid-template-columns: minmax(220px, 2fr)
-                                   repeat(3, minmax(150px, 1fr));
-            gap: 14px;
-            align-items: end;
-        }
-
-        .product-filter-form .filter-field {
-            min-width: 0;
-        }
-
-        .product-filter-form label {
-            display: block;
-            margin-bottom: 7px;
-            color: #475569;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: .35px;
-        }
-
-        .product-filter-form .form-control,
-        .product-filter-form .form-select {
-            min-height: 43px;
-            border: 1px solid #dbe3ed;
-            border-radius: 9px;
-            font-size: 13px;
-            box-shadow: none;
-        }
-
-        .product-filter-form .form-control:focus,
-        .product-filter-form .form-select:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, .10);
-        }
-
-        .product-filter-actions {
-            display: flex;
-            gap: 9px;
-            flex-wrap: wrap;
-            margin-top: 17px;
-            padding-top: 17px;
-            border-top: 1px solid #edf1f6;
-        }
-
-        .btn-product-search,
-        .btn-product-reset,
-        .btn-product-edit,
-        .btn-product-toggle {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 7px;
-            padding: 9px 13px;
-            border: 1px solid transparent;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 650;
-            text-decoration: none;
-            cursor: pointer;
-            transition: all .2s ease;
-        }
-
-        .btn-product-search {
-            color: #fff;
-            background: #2563eb;
-        }
-
-        .btn-product-search:hover {
-            color: #fff;
-            background: #1d4ed8;
-            transform: translateY(-1px);
-        }
-
-        .btn-product-reset {
-            color: #475569;
-            background: #fff;
-            border-color: #dbe3ed;
-        }
-
-        .btn-product-reset:hover {
-            color: #1e293b;
-            background: #f8fafc;
-            border-color: #94a3b8;
-        }
-
-        .product-id {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 36px;
-            padding: 6px 9px;
-            border-radius: 8px;
-            background: #eff6ff;
-            color: #1d4ed8;
-            font-size: 12px;
-            font-weight: 750;
-        }
-
-        .product-name-cell {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            min-width: 180px;
-        }
-
-        .product-icon {
-            display: flex;
-            flex: 0 0 38px;
-            width: 38px;
-            height: 38px;
-            align-items: center;
-            justify-content: center;
-            border-radius: 10px;
-            background: #eff6ff;
-            color: #2563eb;
-            font-size: 18px;
-        }
-
-        .product-name-text {
-            color: #1e293b;
-            font-size: 13px;
-            font-weight: 700;
-            line-height: 1.5;
-        }
-
-        .product-subtext {
-            display: block;
-            margin-top: 2px;
-            color: #94a3b8;
-            font-size: 11px;
-        }
-
-        .product-category-cell {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            color: #475569;
-            font-size: 12px;
-        }
-
-        .product-spec-value {
-            color: #475569;
-            font-size: 12px;
-        }
-
-        .product-empty-value {
-            color: #94a3b8;
-        }
-
-        .product-status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 750;
-            white-space: nowrap;
-        }
-
-        .product-status-badge.ACTIVE {
-            color: #15803d;
-            background: #dcfce7;
-        }
-
-        .product-status-badge.INACTIVE {
-            color: #b91c1c;
-            background: #fee2e2;
-        }
-
-        .product-status-badge:not(.ACTIVE):not(.INACTIVE) {
-            color: #475569;
-            background: #f1f5f9;
-        }
-
-        .btn-product-edit {
-            color: #1d4ed8;
-            background: #eff6ff;
-            border-color: #dbeafe;
-        }
-
-        .btn-product-edit:hover {
-            color: #1e40af;
-            background: #dbeafe;
-        }
-
-        .btn-product-toggle {
-            color: #b91c1c;
-            background: #fff1f2;
-            border-color: #ffe4e6;
-        }
-
-        .btn-product-toggle:hover {
-            color: #991b1b;
-            background: #ffe4e6;
-        }
-
-        .product-action-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 7px;
-            min-width: 190px;
-        }
-
-        .product-action-group form {
-            display: inline-flex;
-            margin: 0;
-        }
-
-        .product-list-alert {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 13px 16px;
-            margin-bottom: 18px;
-            border: 1px solid transparent;
-            border-radius: 10px;
-            font-size: 13px;
-        }
-
-        .product-list-alert-success {
-            color: #166534;
-            background: #f0fdf4;
-            border-color: #bbf7d0;
-        }
-
-        .product-list-alert-error {
-            color: #991b1b;
-            background: #fef2f2;
-            border-color: #fecaca;
-        }
-
-        .product-list-empty {
-            padding: 55px 20px;
-            text-align: center;
-        }
-
-        .product-list-empty > i {
-            display: inline-flex;
-            width: 68px;
-            height: 68px;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 16px;
-            border-radius: 20px;
-            background: #eff6ff;
-            color: #2563eb;
-            font-size: 30px;
-        }
-
-        .product-list-empty h3 {
-            margin-bottom: 9px;
-            color: #1e293b;
-            font-size: 18px;
-            font-weight: 750;
-        }
-
-        .product-list-empty p {
-            max-width: 460px;
-            margin: 0 auto 20px;
-            color: #64748b;
-            font-size: 13px;
-            line-height: 1.7;
-        }
-
-        .product-table-footer {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 15px 20px;
-            border-top: 1px solid #edf1f6;
-            color: #64748b;
-            font-size: 12px;
-        }
-
-        .product-table-footer i {
-            color: #2563eb;
-        }
-
-        .product-table-wrap {
-            overflow-x: auto;
-        }
-
-        .product-table {
-            width: 100%;
-            min-width: 1050px;
-        }
-
-        .product-table th,
-        .product-table td {
-            vertical-align: middle;
-        }
-
-        .product-table th {
-            white-space: nowrap;
-        }
-
-        .product-table tbody tr {
-            transition: background .15s ease;
-        }
-
-        .product-table tbody tr:hover {
-            background: #f8fbff;
-        }
-
-        @media (max-width: 1100px) {
-            .product-filter-form {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-
-        @media (max-width: 576px) {
-            .product-filter-panel {
-                padding: 15px;
-            }
-
-            .product-filter-form {
-                grid-template-columns: 1fr;
-            }
-
-            .product-filter-actions {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .product-filter-actions > * {
-                width: 100%;
-            }
-        }
-    </style>
 </head>
 
 <body class="admin-page">
@@ -462,9 +122,11 @@
 
                 <p>
                     Xin chào,
-                    <strong th:text="${admin.fullName}">Administrator</strong>.
-                    Quản lý danh mục sản phẩm, thương hiệu, thông số kỹ thuật
-                    và trạng thái kinh doanh trong hệ thống.
+                    <strong th:text="${admin.fullName}">
+                        Administrator
+                    </strong>.
+                    Quản lý sản phẩm, thương hiệu, danh mục và trạng thái
+                    kinh doanh trong hệ thống.
                 </p>
             </div>
 
@@ -505,7 +167,7 @@
                 <div>
                     <h2>Tìm kiếm và lọc sản phẩm</h2>
                     <p>
-                        Tìm nhanh sản phẩm theo tên, thương hiệu,
+                        Tìm kiếm theo tên sản phẩm, thương hiệu,
                         danh mục hoặc trạng thái hoạt động.
                     </p>
                 </div>
@@ -554,7 +216,8 @@
                             <option th:each="c : ${categories}"
                                     th:value="${c.id}"
                                     th:text="${c.name}"
-                                    th:selected="${selectedCategoryId == c.id}">
+                                    th:selected="${selectedCategoryId != null
+                                        and selectedCategoryId == c.id}">
                             </option>
                         </select>
                     </div>
@@ -575,7 +238,8 @@
                             <option th:each="b : ${brands}"
                                     th:value="${b.id}"
                                     th:text="${b.name}"
-                                    th:selected="${selectedBrandId == b.id}">
+                                    th:selected="${selectedBrandId != null
+                                        and selectedBrandId == b.id}">
                             </option>
                         </select>
                     </div>
@@ -601,11 +265,11 @@
                         </select>
                     </div>
 
-                    <!-- ACTIONS -->
-                    <div class="product-filter-actions"
-                         style="grid-column: 1 / -1;">
+                    <!-- FILTER ACTIONS -->
+                    <div class="product-filter-actions">
 
-                        <button class="btn-product-search" type="submit">
+                        <button class="btn-admin-primary"
+                                type="submit">
                             <i class="bi bi-search"></i>
                             Tìm kiếm
                         </button>
@@ -629,7 +293,7 @@
         </section>
 
         <!-- ================= PRODUCT TABLE ================= -->
-        <section class="admin-section branch-list-section">
+        <section class="admin-section">
 
             <div class="section-heading">
                 <div>
@@ -646,8 +310,9 @@
                 </span>
             </div>
 
-            <div class="admin-panel table-panel branch-list-panel">
+            <div class="admin-panel table-panel product-list-panel">
 
+                <!-- TABLE HEADER -->
                 <div class="table-header">
                     <div>
                         <h3>Thông tin sản phẩm</h3>
@@ -656,16 +321,17 @@
                         </p>
                     </div>
 
-                    <a class="btn-branch-add"
+                    <a class="btn-admin-primary"
                        th:href="@{/admin/products/new}">
                         <i class="bi bi-plus-lg"></i>
                         Thêm mới
                     </a>
                 </div>
 
+                <!-- TABLE -->
                 <div class="table-wrap product-table-wrap">
 
-                    <table class="admin-table branch-list-table product-table">
+                    <table class="admin-table product-table">
 
                         <thead>
                         <tr>
@@ -708,13 +374,13 @@
 
                             <!-- BRAND -->
                             <td>
-                                <div class="product-category-cell"
-                                     th:if="${p.brand != null}">
+                                <span class="product-category-cell"
+                                      th:if="${p.brand != null}">
                                     <i class="bi bi-bookmark"></i>
                                     <span th:text="${p.brand.name}">
                                         Thương hiệu
                                     </span>
-                                </div>
+                                </span>
 
                                 <span class="product-empty-value"
                                       th:if="${p.brand == null}">
@@ -724,13 +390,13 @@
 
                             <!-- CATEGORY -->
                             <td>
-                                <div class="product-category-cell"
-                                     th:if="${p.category != null}">
+                                <span class="product-category-cell"
+                                      th:if="${p.category != null}">
                                     <i class="bi bi-grid"></i>
                                     <span th:text="${p.category.name}">
                                         Danh mục
                                     </span>
-                                </div>
+                                </span>
 
                                 <span class="product-empty-value"
                                       th:if="${p.category == null}">
@@ -742,14 +408,14 @@
                             <td>
                                 <span class="product-spec-value"
                                       th:if="${p.operatingSystem != null
-                                              and !#strings.isEmpty(p.operatingSystem)}"
+                                          and !#strings.isEmpty(p.operatingSystem)}"
                                       th:text="${p.operatingSystem}">
                                     Android
                                 </span>
 
                                 <span class="product-empty-value"
                                       th:if="${p.operatingSystem == null
-                                              or #strings.isEmpty(p.operatingSystem)}">
+                                          or #strings.isEmpty(p.operatingSystem)}">
                                     —
                                 </span>
                             </td>
@@ -758,14 +424,14 @@
                             <td>
                                 <span class="product-spec-value"
                                       th:if="${p.chipset != null
-                                              and !#strings.isEmpty(p.chipset)}"
+                                          and !#strings.isEmpty(p.chipset)}"
                                       th:text="${p.chipset}">
                                     Chipset
                                 </span>
 
                                 <span class="product-empty-value"
                                       th:if="${p.chipset == null
-                                              or #strings.isEmpty(p.chipset)}">
+                                          or #strings.isEmpty(p.chipset)}">
                                     —
                                 </span>
                             </td>
@@ -789,8 +455,7 @@
 
                                     <a class="btn-product-edit"
                                        th:href="@{/admin/products/{id}/edit(id=${p.id})}"
-                                       title="Chỉnh sửa sản phẩm và biến thể"
-                                       aria-label="Chỉnh sửa sản phẩm">
+                                       title="Chỉnh sửa sản phẩm và biến thể">
 
                                         <i class="bi bi-pencil-square"></i>
                                         Sửa / Biến thể
@@ -800,7 +465,7 @@
                                           th:action="@{/admin/products/{id}/toggle-status(id=${p.id})}"
                                           onsubmit="return confirm('Bạn có chắc muốn đổi trạng thái sản phẩm?');">
 
-                                        <!-- Giữ CSRF token nếu Spring Security bật -->
+                                        <!-- CSRF token nếu Spring Security bật -->
                                         <input type="hidden"
                                                th:if="${_csrf != null}"
                                                th:name="${_csrf.parameterName}"
@@ -808,18 +473,21 @@
 
                                         <button class="btn-product-toggle"
                                                 type="submit"
-                                                th:title="${p.status != null and p.status.name() == 'ACTIVE'
+                                                th:title="${p.status != null
+                                                    and p.status.name() == 'ACTIVE'
                                                     ? 'Ngừng kinh doanh sản phẩm'
                                                     : 'Kích hoạt sản phẩm'}">
 
                                             <i class="bi"
-                                               th:classappend="${p.status != null and p.status.name() == 'ACTIVE'
+                                               th:classappend="${p.status != null
+                                                   and p.status.name() == 'ACTIVE'
                                                    ? ' bi-pause-circle'
                                                    : ' bi-play-circle'}">
                                             </i>
 
                                             <span
-                                                    th:text="${p.status != null and p.status.name() == 'ACTIVE'
+                                                    th:text="${p.status != null
+                                                    and p.status.name() == 'ACTIVE'
                                                     ? 'Ngừng'
                                                     : 'Kích hoạt'}">
                                                 Ngừng
@@ -836,7 +504,6 @@
                         <!-- EMPTY STATE -->
                         <tr th:if="${#lists.isEmpty(products)}">
                             <td colspan="8">
-
                                 <div class="product-list-empty">
                                     <i class="bi bi-box-seam"></i>
 
@@ -855,7 +522,6 @@
                                         Thêm sản phẩm
                                     </a>
                                 </div>
-
                             </td>
                         </tr>
 
