@@ -183,58 +183,6 @@
             </div>
         </section>
 
-        <section class="manager-panel mb-4">
-            <div class="panel-heading">
-                <div>
-                    <h2>
-                        <i class="bi bi-truck me-2 text-info"></i>
-                        Xử lý đơn hàng
-                    </h2>
-                    <p>Theo dõi tiến trình và thao tác với đơn hàng</p>
-                </div>
-            </div>
-
-            <div class="order-action-list">
-                <div class="order-action-item">
-                    <div>
-                        <strong>Trạng thái đơn hàng</strong>
-                        <p>Cập nhật tiến trình xử lý đơn</p>
-                    </div>
-                    <span class="status-badge"
-                          th:text="${order.status}">
-                PENDING
-            </span>
-                </div>
-
-                <div class="order-action-item">
-                    <div>
-                        <strong>Thanh toán</strong>
-                        <p>Theo dõi trạng thái thanh toán của đơn</p>
-                    </div>
-                    <span class="status-badge"
-                          th:text="${order.paymentStatus}">
-                UNPAID
-            </span>
-                </div>
-
-                <div class="order-action-item">
-                    <div>
-                        <strong>Giao hàng</strong>
-                        <p>Kiểm tra trạng thái giao nhận</p>
-                    </div>
-                    <i class="bi bi-truck fs-4 text-secondary"></i>
-                </div>
-
-                <div class="order-action-item">
-                    <div>
-                        <strong>Hủy đơn và hoàn tiền</strong>
-                        <p>Kiểm tra điều kiện trước khi thực hiện</p>
-                    </div>
-                    <i class="bi bi-arrow-counterclockwise fs-4 text-secondary"></i>
-                </div>
-            </div>
-        </section>
-
         <section class="manager-panel">
             <div class="panel-heading">
                 <div>

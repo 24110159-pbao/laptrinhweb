@@ -788,3 +788,460 @@ body.manager-page {
         align-items: flex-start;
     }
 }
+
+/* ==============================
+   NEXUSTECH - DASHBOARD ANALYTICS
+   ============================== */
+
+/* Khu vực thống kê */
+.dashboard-charts {
+    margin-top: 30px;
+}
+
+.dashboard-charts .chart-heading {
+    margin-bottom: 24px;
+}
+
+.dashboard-charts .chart-heading h2 {
+    margin: 8px 0;
+    color: var(--text);
+    font-size: clamp(22px, 2.5vw, 28px);
+    font-weight: 800;
+}
+
+.dashboard-charts .chart-heading p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+/* Tiêu đề biểu đồ */
+.chart-card-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px;
+
+    padding: 22px 24px;
+    border-bottom: 1px solid var(--border);
+}
+
+.chart-card-heading h3 {
+    margin: 0 0 7px;
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.chart-card-heading p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+/* Nhãn doanh thu */
+.chart-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+
+    padding: 7px 12px;
+    border: 1px solid rgba(56, 189, 248, .25);
+    border-radius: 30px;
+
+    background: rgba(56, 189, 248, .08);
+    color: var(--cyan);
+
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Khung chứa Chart.js */
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 320px;
+    padding: 22px 24px;
+}
+
+.chart-container-doughnut {
+    height: 320px;
+    padding: 24px;
+}
+
+.chart-container-small {
+    height: 300px;
+    padding: 22px 24px 26px;
+}
+
+/* Đảm bảo canvas hiển thị đúng kích thước */
+.chart-container canvas {
+    display: block;
+    max-width: 100%;
+}
+
+/* Ghi chú biểu đồ */
+.chart-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+
+    margin: 0 24px 22px;
+    padding: 12px 14px;
+
+    border: 1px solid rgba(56, 189, 248, .15);
+    border-radius: 9px;
+
+    background: rgba(56, 189, 248, .05);
+    color: var(--muted);
+
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+.chart-note i {
+    margin-top: 1px;
+    color: var(--cyan);
+    font-size: 14px;
+}
+
+/* Đồng bộ thẻ doanh thu và đơn chờ xử lý */
+.manager-panel > .row.g-4 {
+    padding: 24px;
+}
+
+.manager-panel .manager-stat-card {
+    background: var(--surface-light);
+    border-color: var(--border);
+}
+
+.manager-panel .manager-stat-card:hover {
+    border-color: #42617f;
+}
+
+/* Tối ưu biểu đồ trạng thái đơn hàng */
+.chart-panel {
+    height: 100%;
+    transition: border-color .2s ease,
+                box-shadow .2s ease;
+}
+
+.chart-panel:hover {
+    border-color: #354b67;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, .18);
+}
+
+/* Responsive: tablet */
+@media (max-width: 991px) {
+    .dashboard-charts {
+        margin-top: 24px;
+    }
+
+    .chart-container {
+        height: 290px;
+        padding: 20px;
+    }
+
+    .chart-container-doughnut {
+        height: 300px;
+    }
+
+    .chart-container-small {
+        height: 280px;
+    }
+
+    .chart-card-heading {
+        padding: 20px;
+    }
+
+    .chart-note {
+        margin: 0 20px 20px;
+    }
+
+    .manager-panel > .row.g-4 {
+        padding: 20px;
+    }
+}
+
+/* Responsive: điện thoại */
+@media (max-width: 575.98px) {
+    .dashboard-charts {
+        margin-top: 20px;
+    }
+
+    .dashboard-charts .chart-heading {
+        margin-bottom: 18px;
+    }
+
+    .chart-card-heading {
+        padding: 18px;
+        gap: 12px;
+    }
+
+    .chart-card-heading h3 {
+        font-size: 15px;
+    }
+
+    .chart-container {
+        height: 260px;
+        padding: 18px 12px;
+    }
+
+    .chart-container-doughnut {
+        height: 290px;
+        padding: 18px 12px;
+    }
+
+    .chart-container-small {
+        height: 250px;
+        padding: 18px 12px;
+    }
+
+    .chart-note {
+        margin: 0 14px 16px;
+        padding: 10px;
+    }
+
+    .manager-panel > .row.g-4 {
+        padding: 14px;
+    }
+
+    .chart-badge {
+        padding: 6px 10px;
+        font-size: 10px;
+    }
+}
+
+/* ==============================
+   NEXUSTECH - LIGHTER DARK THEME
+   ============================== */
+
+:root {
+    --bg: #182438;
+    --surface: #22324a;
+    --surface-light: #2b3d57;
+    --border: #405570;
+
+    --primary: #0284c7;
+    --cyan: #38bdf8;
+    --purple: #a5b4fc;
+
+    --text: #ffffff;
+    --muted: #ffffff;
+
+    --radius: 14px;
+}
+
+/* Nền tổng thể */
+body.manager-page {
+    background: var(--bg);
+    color: #ffffff;
+}
+
+/* Navbar và sidebar */
+.manager-navbar {
+    background: #141f33;
+    border-bottom-color: var(--border);
+}
+
+.manager-sidebar {
+    background: #1d2b42;
+    border-right-color: var(--border);
+}
+
+/* Chuyển chữ xám thành trắng */
+.manager-page,
+.manager-page p,
+.manager-page span,
+.manager-page small,
+.manager-page label,
+.manager-page td,
+.manager-page th,
+.manager-page .stat-label,
+.manager-page .stat-description,
+.manager-page .manager-help-text,
+.manager-page .manager-footer,
+.manager-page .panel-heading p,
+.manager-page .chart-card-heading p,
+.manager-page .chart-heading p,
+.manager-page .detail-label,
+.manager-page .payment-row,
+.manager-page .sidebar-link,
+.manager-page .sidebar-branch small,
+.manager-page .quick-action span,
+.manager-page .order-action-item p {
+    color: #ffffff;
+}
+
+/* Card và panel */
+.manager-stat-card,
+.manager-panel {
+    background: var(--surface);
+    border-color: var(--border);
+}
+
+.quick-action {
+    background: var(--surface-light);
+    border-color: var(--border);
+    color: #ffffff;
+}
+
+.manager-stat-card:hover,
+.quick-action:hover,
+.chart-panel:hover {
+    border-color: var(--cyan);
+}
+
+/* Tiêu đề và số liệu */
+.manager-page h1,
+.manager-page h2,
+.manager-page h3,
+.manager-page .stat-value,
+.manager-page .table-primary-text,
+.manager-page .detail-value,
+.manager-page .order-action-item strong {
+    color: #ffffff;
+}
+
+/* Bảng dữ liệu */
+.manager-table {
+    --bs-table-bg: transparent;
+    --bs-table-color: #ffffff;
+    --bs-table-border-color: var(--border);
+    --bs-table-hover-bg: rgba(56, 189, 248, 0.08);
+    --bs-table-hover-color: #ffffff;
+}
+
+.manager-table thead th {
+    background: #2b3d57;
+    color: #ffffff;
+}
+
+.manager-table tbody td {
+    color: #ffffff;
+}
+
+/* Form và ô nhập liệu */
+.manager-page .form-control,
+.manager-page .form-select,
+.manager-page .input-group-text {
+    color: #ffffff;
+    background-color: #1d2b42;
+    border-color: #405570;
+}
+
+.manager-page .form-control::placeholder {
+    color: #ffffff;
+    opacity: 0.7;
+}
+
+.manager-page .form-control:focus,
+.manager-page .form-select:focus {
+    color: #ffffff;
+    background-color: #22324a;
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+}
+
+.manager-page .form-select option {
+    color: #ffffff;
+    background: #22324a;
+}
+
+.manager-page .form-label,
+.manager-page .manager-form-label,
+.manager-page .detail-label {
+    color: #ffffff;
+}
+
+/* Menu */
+.sidebar-link:hover,
+.sidebar-link.active {
+    color: #ffffff;
+    background: linear-gradient(
+        90deg,
+        rgba(2, 132, 199, 0.35),
+        rgba(37, 99, 235, 0.20)
+    );
+}
+
+/* Chip và nhãn biểu đồ */
+.branch-chip,
+.spec-chip,
+.quantity-chip,
+.chart-badge {
+    color: #ffffff;
+    background: rgba(56, 189, 248, 0.12);
+    border-color: rgba(56, 189, 248, 0.35);
+}
+
+/* Khu vực biểu đồ */
+.chart-note {
+    color: #ffffff;
+    background: rgba(56, 189, 248, 0.08);
+    border-color: rgba(56, 189, 248, 0.25);
+}
+
+.chart-note i,
+.panel-icon,
+.quick-action > i {
+    color: var(--cyan);
+}
+
+/* Thông tin chi nhánh */
+.sidebar-branch {
+    background: var(--surface);
+    border-color: var(--border);
+}
+
+/* Chi tiết đơn hàng */
+.order-action-item {
+    border-bottom-color: var(--border);
+}
+
+/* Liên kết */
+.stat-link {
+    color: var(--cyan);
+}
+
+.stat-link:hover {
+    color: #ffffff;
+}
+
+/* Thông báo */
+.manager-page .alert-info {
+    color: #ffffff;
+}
+
+.manager-page .alert-success {
+    color: #ffffff;
+}
+
+/* Giữ màu trạng thái */
+.status-active {
+    color: #86efac;
+    background: rgba(34, 197, 94, 0.13);
+}
+
+.status-inactive {
+    color: #fca5a5;
+    background: rgba(239, 68, 68, 0.13);
+}
+
+.status-pending {
+    color: #fcd34d;
+    background: rgba(245, 158, 11, 0.13);
+}
+
+/* Lỗi form */
+.form-error {
+    color: #fca5a5;
+}
+
+/* Footer */
+.manager-footer {
+    color: #ffffff;
+}

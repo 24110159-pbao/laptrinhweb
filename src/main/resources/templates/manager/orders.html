@@ -17,8 +17,9 @@
     document.addEventListener('DOMContentLoaded', function () {
         const search = document.getElementById('orderSearch');
         const filter = document.getElementById('orderStatusFilter');
+
         const rows = document.querySelectorAll(
-            'tbody tr[data-status]'
+            'tbody tr[data-status][data-search]'
         );
 
         function filterOrders() {
@@ -26,13 +27,12 @@
             const status = filter.value;
 
             rows.forEach(function (row) {
-                const text = (
-                    row.dataset.search || ''
-                ).toLowerCase();
+                const text = (row.dataset.search || '').toLowerCase();
+                const rowStatus = row.dataset.status;
 
                 const matchesKeyword = text.includes(keyword);
                 const matchesStatus =
-                    !status || row.dataset.status === status;
+                    status === '' || rowStatus === status;
 
                 row.hidden = !(matchesKeyword && matchesStatus);
             });
@@ -122,7 +122,7 @@
                     <input type="text"
                            id="orderSearch"
                            class="form-control"
-                           placeholder="Tìm mã đơn hoặc tên khách hàng...">
+                           placeholder="Tìm mã đơn hoặc tên khách hàng">
                 </div>
 
                 <div class="order-filter">
@@ -154,7 +154,9 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="order : ${orders}">
+                    <tr th:each="order : ${orders}"
+                        th:attr="data-status=${order.status.name()},
+                                 data-search=|${order.orderCode} ${order.user.fullName}|">
                         <td>
                             <span class="order-code" th:text="${order.orderCode}">ORD001</span>
                         </td>

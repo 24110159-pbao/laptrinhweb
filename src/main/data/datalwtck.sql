@@ -3,7 +3,7 @@ CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
 
 
-USE lwtck_schema;
+USE lwtck;
 
 -- =====================================================
 -- 1. BRANCHES
