@@ -3,6 +3,7 @@ package example.com.ltw.order.entity;
 import example.com.ltw.branch.entity.Branch;
 import example.com.ltw.discount.entity.DiscountCode;
 import example.com.ltw.user.entity.User;
+import example.com.ltw.checkout.entity.CheckoutSession;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -38,6 +39,10 @@ import java.time.LocalDateTime;
                 @UniqueConstraint(
                         name = "uk_orders_order_code",
                         columnNames = "order_code"
+                ),
+                @UniqueConstraint(
+                        name = "uk_orders_checkout_session",
+                        columnNames = "checkout_session_id"
                 )
         }
 )
@@ -69,6 +74,10 @@ public class Order {
     @JoinColumn(name = "discount_code_id")
     private DiscountCode discountCode;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "checkout_session_id", unique = true)
+    private CheckoutSession checkoutSession;
+
     @NotNull
     @DecimalMin("0.0")
     @Column(nullable = false, precision = 15, scale = 2)
@@ -78,6 +87,9 @@ public class Order {
     @DecimalMin("0.0")
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal discountAmount;
+
+    @Column(nullable = false)
+    private boolean discountAppliedToShipping;
 
     @NotNull
     @DecimalMin("0.0")
@@ -152,6 +164,10 @@ public class Order {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_staff_id")
     private User assignedStaff;
+
+    @Column
+    private LocalDateTime paymentExpiresAt;
+
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

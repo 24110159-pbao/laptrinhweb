@@ -45,6 +45,12 @@ public class Branch {
     @Column(nullable = false, length = 255)
     private String address;
 
+    @Column
+    private Integer ghnDistrictId;
+
+    @Column(length = 20)
+    private String ghnWardCode;
+
     @Size(max = 20)
     @Column(length = 20)
     private String phone;

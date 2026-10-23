@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán - NEXUSTECH</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/account.css}">
+    <link rel="stylesheet" th:href="@{/css/cart.css}">
+</head>
+<body class="account-page">
+<header th:replace="~{fragments/site :: header}"></header>
+<main class="account-container cart-container checkout-container">
+    <div th:if="${successMessage}" class="account-alert success" th:text="${successMessage}"></div>
+    <div th:if="${infoMessage}" class="account-alert info" th:text="${infoMessage}"></div>
+    <div th:if="${errorMessage}" class="account-alert error" th:text="${errorMessage}"></div>
+
+    <div class="checkout-title">
+        <div><span class="cart-eyebrow">Thanh toán an toàn</span><h1>Hoàn tất đơn hàng</h1></div>
+        <div class="checkout-expiry">
+            <span>Thời gian giữ hàng đến</span>
+            <strong th:text="${#temporals.format(checkout.expiresAt, 'HH:mm dd/MM/yyyy')}"></strong>
+        </div>
+    </div>
+
+    <form th:action="@{/checkout/{id}/quote(id=${checkout.id})}" th:object="${addressRequest}"
+          method="post" class="checkout-form" id="addressForm">
+        <section class="account-card">
+            <div class="account-section-heading">
+                <div><h2>1. Địa chỉ nhận hàng</h2><p>Miễn phí vận chuyển cho mọi đơn hàng.</p></div>
+            </div>
+            <div th:if="${!#lists.isEmpty(addresses)}" class="checkout-address-list">
+                <label th:each="address : ${addresses}" class="checkout-address-option">
+                    <input type="radio" name="addressId" th:value="${address.id}"
+                           th:checked="${checkout.shippingAddressId == address.id}">
+                    <span>
+                        <strong th:text="${address.receiverName + ' · ' + address.phone}"></strong>
+                        <small th:text="${address.streetAddress + ', ' + address.ward + ', ' + address.district + ', ' + address.province}"></small>
+                        <em th:if="${address.isDefault}">Mặc định</em>
+                    </span>
+                </label>
+            </div>
+            <label class="checkout-new-address-choice">
+                <input type="radio" name="addressId" value="" th:checked="${checkout.receiverName == null}">
+                <strong>Nhập địa chỉ mới</strong>
+                <small>Địa chỉ mới sẽ được lưu vào sổ địa chỉ và không đặt làm mặc định.</small>
+            </label>
+
+            <div class="checkout-new-address">
+                <div class="account-form-grid">
+                    <div class="account-field">
+                        <label for="receiverName">Người nhận</label>
+                        <input id="receiverName" th:field="*{receiverName}" maxlength="150" autocomplete="name">
+                    </div>
+                    <div class="account-field">
+                        <label for="addressPhone">Số điện thoại</label>
+                        <input id="addressPhone" type="tel" th:field="*{phone}" pattern="(?:\+?84|0)[1-9][0-9]{8}" maxlength="13">
+                    </div>
+                    <div class="account-field">
+                        <label for="provinceSelect">Tỉnh/thành phố</label>
+                        <select id="provinceSelect" th:field="*{provinceId}"
+                                th:attr="data-selected=${checkout.shippingProvinceId}">
+                            <option value="">Chọn tỉnh/thành phố</option>
+                        </select>
+                        <input type="hidden" th:field="*{province}">
+                    </div>
+                    <div class="account-field">
+                        <label for="districtSelect">Quận/huyện</label>
+                        <select id="districtSelect" th:field="*{districtId}"
+                                th:attr="data-selected=${checkout.shippingDistrictId}" disabled>
+                            <option value="">Chọn quận/huyện</option>
+                        </select>
+                        <input type="hidden" th:field="*{district}">
+                    </div>
+                    <div class="account-field">
+                        <label for="wardSelect">Phường/xã</label>
+                        <select id="wardSelect" th:field="*{wardCode}"
+                                th:attr="data-selected=${checkout.shippingWardCode}" disabled>
+                            <option value="">Chọn phường/xã</option>
+                        </select>
+                        <input type="hidden" th:field="*{ward}">
+                    </div>
+                    <div class="account-field">
+                        <label for="streetAddress">Địa chỉ chi tiết</label>
+                        <input id="streetAddress" th:field="*{streetAddress}" maxlength="255"
+                               placeholder="Số nhà, tên đường, căn hộ...">
+                    </div>
+                </div>
+                <div id="locationError" class="field-error" role="alert"></div>
+            </div>
+        </section>
+
+        <section class="account-card">
+            <div class="account-section-heading">
+                <div><h2>2. Sản phẩm</h2><p th:text="'Chi nhánh gửi: ' + ${cart.branchName}">Chi nhánh</p></div>
+            </div>
+            <div th:each="line : ${cart.lines}" class="checkout-product-row">
+                <div><strong th:text="${line.productName}"></strong><small th:text="${line.variantDescription}"></small></div>
+                <span th:text="${line.quantity} + ' × ' + ${#numbers.formatDecimal(line.unitPrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></span>
+                <strong th:text="${#numbers.formatDecimal(line.lineTotal, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></strong>
+            </div>
+            <div class="checkout-discount">
+                <label for="discountCode">Mã giảm giá</label>
+                <input id="discountCode" name="discountCode" maxlength="50"
+                       th:value="${checkout.discountCodeValue}" placeholder="Nhập mã (không bắt buộc)">
+            </div>
+            <div class="checkout-totals">
+                <div><span>Tổng tiền hàng</span><strong th:text="${#numbers.formatDecimal(checkout.subtotal, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></strong></div>
+                <div><span>Giảm giá</span><strong th:text="'− ' + ${#numbers.formatDecimal(checkout.discountAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></strong></div>
+                <div><span>Phí vận chuyển</span>
+                    <strong>Miễn phí</strong>
+                </div>
+                <div class="checkout-grand-total"><span>Tổng thanh toán</span>
+                    <strong th:text="${#numbers.formatDecimal(checkout.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></strong>
+                </div>
+            </div>
+            <div class="checkout-quote-actions">
+                <button class="account-button secondary" type="submit">Xác nhận địa chỉ và áp dụng mã giảm giá</button>
+                <button class="account-button small secondary" type="submit" form="cancelCheckoutForm">Hủy</button>
+            </div>
+        </section>
+        </form>
+        <form id="cancelCheckoutForm" th:action="@{/checkout/{id}/cancel(id=${checkout.id})}" method="post"></form>
+
+    <section class="account-card">
+        <div class="account-section-heading">
+            <div><h2>3. Phương thức thanh toán</h2><p>Backend sẽ xác minh giao dịch VNPay; trang chuyển hướng không được xem là bằng chứng thanh toán.</p></div>
+        </div>
+        <form th:action="@{/checkout/{id}/confirm(id=${checkout.id})}" method="post" class="checkout-confirm-form">
+            <label class="checkout-payment-option">
+                <input type="radio" name="paymentMethod" value="COD" checked>
+                <span><strong>Thanh toán khi nhận hàng (COD)</strong><small>Thanh toán cho nhân viên giao hàng.</small></span>
+            </label>
+            <label class="checkout-payment-option">
+                <input type="radio" name="paymentMethod" value="VNPAY">
+                <span><strong>VNPay Sandbox</strong><small>Thanh toán trực tuyến qua cổng thử nghiệm VNPay.</small></span>
+            </label>
+            <p class="checkout-confirm-note" th:if="${checkout.receiverName == null}">
+                Hãy xác nhận địa chỉ nhận hàng trước khi đặt đơn.
+            </p>
+            <button class="account-button" type="submit" th:disabled="${checkout.receiverName == null}">
+                Xác nhận đặt hàng
+            </button>
+        </form>
+    </section>
+</main>
+<script th:src="@{/js/account.js}"></script>
+<script>
+    document.querySelectorAll('input[name="addressId"]').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+            document.querySelector('.checkout-new-address').hidden = radio.value !== '';
+        });
+    });
+    var selectedAddress = document.querySelector('input[name="addressId"]:checked');
+    if (selectedAddress) document.querySelector('.checkout-new-address').hidden = selectedAddress.value !== '';
+</script>
+<footer th:replace="~{fragments/site :: footer}"></footer>
+</body>
+</html>

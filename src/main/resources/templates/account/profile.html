@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ sơ tài khoản - NEXUSTECH</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="account-page">
+<header th:replace="~{fragments/site :: header}"></header>
+<main class="account-container">
+    <nav class="account-nav" aria-label="Quản lý tài khoản">
+        <a class="active" th:href="@{/account/profile}">Hồ sơ cá nhân</a>
+        <a th:href="@{/account/addresses}">Sổ địa chỉ</a>
+        <a th:href="@{/account/orders}">Đơn hàng</a>
+    </nav>
+
+    <div th:if="${successMessage}" class="account-alert success" th:text="${successMessage}"></div>
+    <div th:if="${infoMessage}" class="account-alert info" th:text="${infoMessage}"></div>
+    <div th:if="${errorMessage}" class="account-alert error" th:text="${errorMessage}"></div>
+
+    <section class="account-card">
+        <div class="account-section-heading">
+            <div><h1>Hồ sơ cá nhân</h1><p>Cập nhật thông tin liên hệ và thông tin cá nhân của bạn.</p></div>
+        </div>
+        <div class="avatar-editor">
+            <img class="account-avatar" th:src="${currentUser.avatarUrl}" alt="Ảnh đại diện"
+                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80';">
+            <form th:action="@{/account/profile/avatar}" method="post" enctype="multipart/form-data" class="avatar-form">
+                <label for="avatarFile">Ảnh đại diện</label>
+                <input id="avatarFile" name="avatar" type="file" accept="image/jpeg,image/png,image/webp" required>
+                <small>JPG, PNG hoặc WEBP; tối đa 5 MB. Ảnh được lưu trên Cloudinary.</small>
+                <button class="account-button secondary" type="submit">Tải ảnh lên</button>
+            </form>
+        </div>
+        <form th:action="@{/account/profile}" th:object="${profileRequest}" method="post" class="account-form">
+            <div class="account-field">
+                <label for="fullName">Họ và tên</label>
+                <input id="fullName" th:field="*{fullName}" maxlength="150" required>
+                <small th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}" class="field-error"></small>
+            </div>
+            <div class="account-field">
+                <label for="phone">Số điện thoại</label>
+                <input id="phone" type="tel" th:field="*{phone}" maxlength="20" pattern="(?:\+?84|0)[1-9][0-9]{8}"
+                       title="Nhập số điện thoại Việt Nam hợp lệ, ví dụ 0912345678">
+                <small th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="field-error"></small>
+            </div>
+            <div class="account-field">
+                <label for="email">Email hiện tại</label>
+                <input id="email" th:value="${currentUser.email}" type="email" disabled>
+                <small>Email chỉ được đổi sau khi xác minh OTP gửi đến email mới.</small>
+            </div>
+            <div class="account-field">
+                <label for="dateOfBirth">Ngày sinh</label>
+                <input id="dateOfBirth" type="text" th:field="*{dateOfBirth}" inputmode="numeric"
+                       placeholder="dd/mm/yyyy" pattern="(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/[0-9]{4}"
+                       title="Nhập ngày sinh theo định dạng ngày/tháng/năm, ví dụ 25/12/2000">
+                <small th:if="${#fields.hasErrors('dateOfBirth')}" th:errors="*{dateOfBirth}" class="field-error"></small>
+            </div>
+            <div class="account-field">
+                <label for="gender">Giới tính</label>
+                <select id="gender" th:field="*{gender}">
+                    <option value="">Chưa chọn</option>
+                    <option th:each="gender : ${genders}" th:value="${gender}"
+                            th:text="${gender.name() == 'MALE' ? 'Nam' : (gender.name() == 'FEMALE' ? 'Nữ' : 'Khác')}"></option>
+                </select>
+            </div>
+            <div class="account-form-actions">
+                <button class="account-button" type="submit">Lưu hồ sơ</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="account-card">
+        <div class="account-section-heading"><div><h2>Thay đổi email</h2><p>Email mới chỉ được lưu sau khi nhập đúng mã OTP.</p></div></div>
+        <form th:action="@{/account/profile/email}" th:object="${emailChangeRequest}" method="post" class="account-inline-form">
+            <div class="account-field">
+                <label for="newEmail">Email mới</label>
+                <input id="newEmail" th:field="*{email}" type="email" maxlength="150" required>
+                <small th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="field-error"></small>
+            </div>
+            <button class="account-button" type="submit">Gửi mã xác minh</button>
+        </form>
+    </section>
+
+    <section class="account-card">
+        <div class="account-section-heading"><div><h2>Đổi mật khẩu</h2><p>Nhập mật khẩu hiện tại để xác thực trước khi thay đổi.</p></div></div>
+        <form th:action="@{/account/profile/password}" th:object="${passwordRequest}" method="post" class="account-form">
+            <div class="account-field">
+                <label for="currentPassword">Mật khẩu hiện tại</label>
+                <input id="currentPassword" th:field="*{currentPassword}" type="password" autocomplete="current-password" required>
+            </div>
+            <div class="account-field">
+                <label for="newPassword">Mật khẩu mới</label>
+                <input id="newPassword" th:field="*{newPassword}" type="password" minlength="6" maxlength="72" autocomplete="new-password" required>
+                <small th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}" class="field-error"></small>
+            </div>
+            <div class="account-field">
+                <label for="confirmPassword">Xác nhận mật khẩu mới</label>
+                <input id="confirmPassword" th:field="*{confirmPassword}" type="password" minlength="6" maxlength="72" autocomplete="new-password" required>
+                <small th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}" class="field-error"></small>
+            </div>
+            <div class="account-form-actions"><button class="account-button" type="submit">Đổi mật khẩu</button></div>
+        </form>
+    </section>
+</main>
+<footer th:replace="~{fragments/site :: footer}"></footer>
+</body>
+</html>

@@ -5,6 +5,125 @@
 /* --------------------------------------------------------------------------
    TOP HEADER & NAVIGATION
    -------------------------------------------------------------------------- */
+.site-page-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    min-height: 66px;
+    padding: 10px max(24px, calc((100vw - 1200px) / 2));
+    border-bottom: 1px solid #1e293b;
+    background: #0f172a;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.2);
+}
+
+.site-page-nav {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.site-page-nav a,
+.site-page-footer a {
+    color: #e2e8f0;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.site-page-nav a:hover,
+.site-page-footer a:hover {
+    color: #38bdf8;
+}
+
+.site-page-search {
+    display: flex;
+    gap: 6px;
+    max-width: 240px;
+}
+
+.site-page-search input {
+    width: 100%;
+    min-width: 0;
+    padding: 9px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+}
+
+.site-page-search button {
+    padding: 0 12px;
+    border: 0;
+    border-radius: 6px;
+    background: #0284c7;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.site-page-footer {
+    margin-top: 48px;
+    padding: 32px 24px 20px;
+    background: #0f172a;
+    color: #cbd5e1;
+}
+
+.site-page-footer-inner {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 16px 28px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.site-page-footer-inner > p {
+    margin: 0;
+    font-size: 13px;
+}
+
+.site-page-footer-inner nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.site-page-footer-inner small {
+    grid-column: 1 / -1;
+    padding-top: 14px;
+    border-top: 1px solid #334155;
+    color: #94a3b8;
+}
+
+@media (max-width: 760px) {
+    .site-page-header {
+        position: relative;
+        flex-wrap: wrap;
+        padding: 12px 18px;
+    }
+
+    .site-page-nav {
+        order: 3;
+        width: 100%;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .site-page-search {
+        flex: 1 1 180px;
+    }
+
+    .site-page-footer-inner {
+        grid-template-columns: 1fr;
+    }
+
+    .site-page-footer-inner small {
+        grid-column: 1;
+    }
+}
+
 .top-navbar {
     background-color: var(--bg-header);
     color: var(--text-white);

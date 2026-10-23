@@ -28,7 +28,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "payments")
+@Table(name = "payments", uniqueConstraints = {
+        @jakarta.persistence.UniqueConstraint(name = "uk_payments_transaction_no", columnNames = "transaction_no")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -46,6 +48,10 @@ public class Payment {
     @Size(max = 100)
     @Column(length = 100)
     private String transactionNo;
+
+    @Size(max = 100)
+    @Column(length = 100)
+    private String gatewayTransactionNo;
 
     @Size(max = 50)
     @Column(length = 50)

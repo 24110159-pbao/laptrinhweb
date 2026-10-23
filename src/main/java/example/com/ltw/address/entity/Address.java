@@ -21,6 +21,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "addresses")
 @Getter
@@ -82,6 +84,9 @@ public class Address {
 
     @Column(nullable = false)
     private boolean isDefault = false;
+
+    @Column
+    private LocalDateTime deletedAt;
 
     @PrePersist
     protected void onCreate() {

@@ -13,6 +13,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -62,9 +64,12 @@ public class Review {
     @Column(nullable = false)
     private Integer rating;
 
-    @Size(max = 2000)
+    @Size(max = 500)
     @Column(columnDefinition = "TEXT")
     private String comment;
+
+    @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ReviewMedia> media = new ArrayList<>();
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

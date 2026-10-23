@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sản phẩm yêu thích - NEXUSTECH</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/account.css}">
+    <link rel="stylesheet" th:href="@{/css/favorite.css}">
+</head>
+<body class="account-page">
+<header th:replace="~{fragments/site :: header}"></header>
+
+<main class="account-container favorite-container">
+    <div th:if="${successMessage}" class="account-alert success" th:text="${successMessage}"></div>
+    <div th:if="${infoMessage}" class="account-alert info" th:text="${infoMessage}"></div>
+    <div th:if="${errorMessage}" class="account-alert error" th:text="${errorMessage}"></div>
+
+    <section class="account-card">
+        <div class="account-section-heading">
+            <div>
+                <h1>Sản phẩm yêu thích</h1>
+                <p>Danh sách được lưu riêng cho tài khoản của bạn.</p>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(favorites)}" class="favorite-empty">
+            <div class="favorite-empty-icon" aria-hidden="true">♡</div>
+            <h2>Danh sách yêu thích đang trống</h2>
+            <p>Các sản phẩm bạn lưu sẽ xuất hiện tại đây.</p>
+            <a class="account-button" th:href="@{/}">Khám phá sản phẩm</a>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(favorites)}" class="favorite-grid">
+            <article th:each="product : ${favorites}" class="favorite-card">
+                <a th:href="@{'/product/' + ${product.slug}}" class="favorite-image-link">
+                    <img th:src="${product.imageUrl}" th:alt="${product.name}" class="favorite-image">
+                </a>
+                <div class="favorite-card-body">
+                    <h2 th:text="${product.name}">Sản phẩm</h2>
+                    <p class="favorite-specs" th:text="${product.specsLine}">Thông tin sản phẩm</p>
+                    <strong class="favorite-price" th:text="${product.formattedPrice}">0₫</strong>
+                    <a th:href="@{'/product/' + ${product.slug}}" class="account-button small secondary">
+                        Xem sản phẩm
+                    </a>
+                    <form th:action="@{/favorites/{productId}/remove(productId=${product.id})}" method="post">
+                        <button class="favorite-remove" type="submit">Xóa khỏi yêu thích</button>
+                    </form>
+                </div>
+            </article>
+        </div>
+    </section>
+</main>
+<footer th:replace="~{fragments/site :: footer}"></footer>
+</body>
+</html>

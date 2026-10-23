@@ -6,9 +6,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 import java.util.Optional;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import java.util.List;
+
 
 @Repository
 public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
@@ -256,4 +260,22 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
 
     @org.springframework.data.jpa.repository.Query("SELECT MAX(s.createdAt) FROM Shipment s WHERE s.shipper.id = :shipperId")
     java.time.LocalDateTime findLatestAssignmentTimeByShipper(@org.springframework.data.repository.query.Param("shipperId") Long shipperId);
+
+
+    Optional<Shipment> findByOrderId(Long orderId);
+
+    boolean existsByOrderIdAndStatusAndDeliveredAtIsNotNull(
+            Long orderId,
+            example.com.ltw.shipping.entity.ShipmentStatus status
+    );
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select s from Shipment s join fetch s.order where s.ghnOrderCode = :code")
+    Optional<Shipment> findByGhnOrderCodeForUpdate(@Param("code") String code);
+
+
+    boolean existsByGhnOrderCode(String code);
+
+    void deleteByOrderId(Long orderId);
+
 }

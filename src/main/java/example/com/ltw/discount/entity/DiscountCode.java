@@ -8,11 +8,16 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PostLoad;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.JoinColumn;
+import example.com.ltw.catalog.entity.Category;
+import example.com.ltw.catalog.entity.Product;
 
 import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -24,6 +29,8 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(
@@ -51,9 +58,36 @@ public class DiscountCode {
 
     @NotNull
     @DecimalMin("0.0")
-    @DecimalMax("100.0")
-    @Column(nullable = false, precision = 5, scale = 2)
+    @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal discountValue;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private DiscountType type = DiscountType.PERCENTAGE;
+
+    @Column(nullable = false, precision = 15, scale = 2)
+    private BigDecimal minimumOrderAmount = BigDecimal.ZERO;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal maximumDiscount;
+
+    @Column(nullable = false)
+    private boolean appliesToShipping;
+
+    @Column
+    private Integer perCustomerLimit;
+
+    @ManyToMany
+    @JoinTable(name = "discount_eligible_products",
+            joinColumns = @JoinColumn(name = "discount_code_id"),
+            inverseJoinColumns = @JoinColumn(name = "product_id"))
+    private Set<Product> eligibleProducts = new HashSet<>();
+
+    @ManyToMany
+    @JoinTable(name = "discount_eligible_categories",
+            joinColumns = @JoinColumn(name = "discount_code_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id"))
+    private Set<Category> eligibleCategories = new HashSet<>();
 
     @NotNull
     @PositiveOrZero
@@ -77,5 +111,13 @@ public class DiscountCode {
         if (status == null) {
             status = DiscountStatus.ACTIVE;
         }
+        if (type == null) type = DiscountType.PERCENTAGE;
+        if (minimumOrderAmount == null) minimumOrderAmount = BigDecimal.ZERO;
+    }
+
+    @PostLoad
+    protected void applyLegacyDefaults() {
+        if (type == null) type = DiscountType.PERCENTAGE;
+        if (minimumOrderAmount == null) minimumOrderAmount = BigDecimal.ZERO;
     }
 }
