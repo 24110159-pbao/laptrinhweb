@@ -23,3 +23,9 @@
 
 /* 7. Responsive Breakpoints (Tablet & Mobile) */
 @import url('responsive.css');
+
+/* 8. Staff Branch Management Portal */
+@import url('staff.css');
+
+/* 9. Shipper Delivery Portal */
+@import url('shipper.css');

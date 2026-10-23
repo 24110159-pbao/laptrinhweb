@@ -15,6 +15,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByEmail(String email);
 
+    java.util.List<User> findAllByBranch_IdAndRoleOrderByCreatedAtDesc(Long branchId, example.com.ltw.user.entity.Role role);
+
+    Optional<User> findByIdAndBranch_IdAndRole(Long id, Long branchId, example.com.ltw.user.entity.Role role);
+
+    long countByBranch_IdAndRole(Long branchId, example.com.ltw.user.entity.Role role);
     boolean existsByEmailAndIdNot(String email, Long id);
 
     List<User> findAllByBranch_IdAndRoleOrderByCreatedAtDesc(Long branchId, Role role);

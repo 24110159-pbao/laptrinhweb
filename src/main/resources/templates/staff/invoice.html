@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Hóa đơn bán hàng #' + ${order.orderCode} + ' - NEXUSTECH'">Hóa đơn bán hàng</title>
+    <style>
+        /* Base Screen Styles */
+        body {
+            background-color: #0b1120;
+            color: #1e293b;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 30px 20px;
+        }
+
+        /* Non-printable Action Toolbar */
+        .invoice-toolbar {
+            max-width: 800px;
+            margin: 0 auto 20px auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-toolbar {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-print {
+            background: #10b981;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-print:hover {
+            background: #059669;
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* A4 Paper Document Styling */
+        .invoice-paper {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            color: #1e293b;
+            padding: 40px 48px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        /* Header */
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #0f172a;
+            padding-bottom: 18px;
+            margin-bottom: 24px;
+        }
+
+        .brand-title {
+            font-size: 22px;
+            font-weight: 900;
+            color: #0f172a;
+            margin: 0 0 4px 0;
+            letter-spacing: 0.5px;
+        }
+
+        .brand-sub {
+            font-size: 13px;
+            color: #475569;
+            line-height: 1.5;
+        }
+
+        .invoice-title-block {
+            text-align: right;
+        }
+
+        .invoice-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #10b981;
+            margin: 0 0 6px 0;
+            text-transform: uppercase;
+        }
+
+        .invoice-meta {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        /* Customer & Order Details Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .info-box-title {
+            font-weight: 800;
+            color: #0f172a;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 4px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Items Table */
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-bottom: 24px;
+        }
+
+        .invoice-table th {
+            background: #f8fafc;
+            color: #0f172a;
+            font-weight: 700;
+            text-align: left;
+            padding: 10px 12px;
+            border-top: 1px solid #cbd5e1;
+            border-bottom: 1px solid #cbd5e1;
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+
+        .invoice-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+
+        .invoice-table .col-center { text-align: center; }
+        .invoice-table .col-right { text-align: right; }
+
+        /* Calculation Summary */
+        .summary-wrap {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .summary-box {
+            width: 320px;
+            font-size: 13px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            color: #475569;
+        }
+
+        .summary-row.total-row {
+            font-size: 16px;
+            font-weight: 800;
+            color: #0f172a;
+            border-top: 2px solid #0f172a;
+            padding-top: 8px;
+            margin-top: 4px;
+        }
+
+        .amount-in-words {
+            background: #f1f5f9;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-style: italic;
+            color: #334155;
+            margin-bottom: 30px;
+            border-left: 3px solid #10b981;
+        }
+
+        /* Signatures */
+        .signature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            text-align: center;
+            margin-top: 40px;
+            font-size: 13px;
+        }
+
+        .sig-title {
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+
+        .sig-sub {
+            font-size: 11px;
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        .sig-space {
+            height: 70px;
+        }
+
+        .sig-name {
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        /* Media Print Optimization */
+        @media print {
+            body {
+                background: #ffffff !important;
+                padding: 0 !important;
+            }
+
+            .invoice-toolbar {
+                display: none !important;
+            }
+
+            .invoice-paper {
+                box-shadow: none !important;
+                max-width: 100% !important;
+                padding: 20px !important;
+            }
+
+            @page {
+                size: A4 portrait;
+                margin: 1.5cm;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Non-printable Controls -->
+    <div class="invoice-toolbar">
+        <a th:href="@{'/staff/orders/' + ${order.id}}" class="btn-toolbar btn-back">
+            &larr; Quay lại đơn hàng
+        </a>
+        <button onclick="window.print()" class="btn-toolbar btn-print">
+            🖨️ In Hóa Đơn / Lưu PDF
+        </button>
+    </div>
+
+    <!-- Official Printable Invoice Paper -->
+    <div class="invoice-paper">
+
+        <!-- Top Header -->
+        <div class="invoice-header">
+            <div>
+                <h1 class="brand-title">⚡ NEXUSTECH FLAGSHIP STORE</h1>
+                <div class="brand-sub">
+                    <strong>Chi nhánh:</strong> <span th:text="${order.branch.name}">NexusTech Flagship Quận 1</span><br>
+                    <strong>Địa chỉ:</strong> <span th:text="${order.branch.address}">68 Nguyễn Huệ, Quận 1, TP.HCM</span><br>
+                    <strong>Hotline:</strong> <span th:text="${order.branch.phone}">1800 6936</span>
+                </div>
+            </div>
+
+            <div class="invoice-title-block">
+                <h2 class="invoice-title">HÓA ĐƠN BÁN HÀNG</h2>
+                <div class="invoice-meta">
+                    <strong>Số HĐ:</strong> <span style="font-family: monospace; font-size: 14px;" th:text="${order.orderCode}">ORD-2026-0001</span><br>
+                    <strong>Ngày lập:</strong> <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">19/10/2026 10:00</span><br>
+                    <strong>Nhân viên:</strong> <span th:text="${staff.fullName}">Nguyễn Bán Hàng</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer & Order Details Info Grid -->
+        <div class="info-grid">
+            <div>
+                <div class="info-box-title">THÔNG TIN KHÁCH HÀNG</div>
+                <div><strong>Người nhận:</strong> <span th:text="${order.receiverName}">Nguyễn Văn An</span></div>
+                <div><strong>Điện thoại:</strong> <span th:text="${order.receiverPhone}">0912345678</span></div>
+                <div><strong>Địa chỉ:</strong> <span th:text="${order.shippingStreetAddress + ', ' + order.shippingWard + ', ' + order.shippingDistrict + ', ' + order.shippingProvince}">Số 15 Lê Lợi, Bến Nghé, Quận 1, TP.HCM</span></div>
+            </div>
+
+            <div>
+                <div class="info-box-title">PHƯƠNG THỨC THANH TOÁN</div>
+                <div><strong>Hình thức:</strong> <span style="text-transform: uppercase;" th:text="${order.paymentMethod}">COD (Thanh toán khi nhận)</span></div>
+                <div><strong>Tình trạng:</strong> <span th:text="${order.paymentStatus == T(example.com.ltw.order.entity.PaymentStatus).PAID ? 'ĐÃ THANH TOÁN' : 'CHƯA THANH TOÁN'}">CHƯA THANH TOÁN</span></div>
+                <div><strong>Ghi chú:</strong> <span th:text="${order.note != null && !order.note.isEmpty() ? order.note : 'Không có ghi chú'}">Giao giờ hành chính</span></div>
+            </div>
+        </div>
+
+        <!-- Items Table -->
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th class="col-center" style="width: 40px;">STT</th>
+                    <th>Tên Sản Phẩm / Quy Cách</th>
+                    <th>Phân Loại / Cấu Hình</th>
+                    <th class="col-center" style="width: 60px;">SL</th>
+                    <th class="col-right" style="width: 120px;">Đơn Giá</th>
+                    <th class="col-right" style="width: 130px;">Thành Tiền</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="item, stat : ${orderItems}">
+                    <td class="col-center" th:text="${stat.count}">1</td>
+                    <td>
+                        <strong th:text="${item.productNameSnapshot}">iPhone 16 Pro Max 256GB</strong>
+                    </td>
+                    <td style="color: #64748b;" th:text="${item.variantSnapshot}">Titan Sa Mạc - 256GB</td>
+                    <td class="col-center" th:text="${item.quantity}">1</td>
+                    <td class="col-right" th:text="${#numbers.formatDecimal(item.unitPrice, 0, 'POINT', 0, 'COMMA') + '₫'}">34.990.000₫</td>
+                    <td class="col-right">
+                        <strong th:text="${#numbers.formatDecimal(item.subtotal, 0, 'POINT', 0, 'COMMA') + '₫'}">34.990.000₫</strong>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Summary Totals -->
+        <div class="summary-wrap">
+            <div class="summary-box">
+                <div class="summary-row">
+                    <span>Tổng tiền hàng:</span>
+                    <span th:text="${#numbers.formatDecimal(order.subtotal, 0, 'POINT', 0, 'COMMA') + '₫'}">34.990.000₫</span>
+                </div>
+                <div class="summary-row">
+                    <span>Phí vận chuyển:</span>
+                    <span th:text="${#numbers.formatDecimal(order.shippingFee, 0, 'POINT', 0, 'COMMA') + '₫'}">30.000₫</span>
+                </div>
+                <div class="summary-row" th:if="${order.discountAmount != null && order.discountAmount > 0}">
+                    <span>Giảm giá voucher:</span>
+                    <span style="color: #ef4444;" th:text="'-' + ${#numbers.formatDecimal(order.discountAmount, 0, 'POINT', 0, 'COMMA') + '₫'}">-500.000₫</span>
+                </div>
+                <div class="summary-row total-row">
+                    <span>TỔNG THANH TOÁN:</span>
+                    <span style="color: #10b981;" th:text="${#numbers.formatDecimal(order.finalAmount, 0, 'POINT', 0, 'COMMA') + '₫'}">34.520.000₫</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Amount In Words -->
+        <div class="amount-in-words">
+            <strong>Bằng chữ:</strong> <span th:text="${amountInWords}">Ba mươi tư triệu năm trăm hai mươi nghìn đồng chẵn.</span>
+        </div>
+
+        <!-- 3-party Signatures -->
+        <div class="signature-grid">
+            <div>
+                <div class="sig-title">Người Mua Hàng</div>
+                <div class="sig-sub">(Ký, ghi rõ họ tên)</div>
+                <div class="sig-space"></div>
+                <div class="sig-name" th:text="${order.receiverName}">Nguyễn Văn An</div>
+            </div>
+
+            <div>
+                <div class="sig-title">Thủ Kho / Giao Nhận</div>
+                <div class="sig-sub">(Ký, ghi rõ họ tên)</div>
+                <div class="sig-space"></div>
+                <div class="sig-name">................................</div>
+            </div>
+
+            <div>
+                <div class="sig-title">Nhân Viên Lập Phiếu</div>
+                <div class="sig-sub">(Ký, ghi rõ họ tên)</div>
+                <div class="sig-space"></div>
+                <div class="sig-name" th:text="${staff.fullName}">Nguyễn Bán Hàng</div>
+            </div>
+        </div>
+
+        <!-- Footer Notice -->
+        <div style="margin-top: 40px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px dashed #cbd5e1; padding-top: 12px;">
+            Cảm ơn Quý khách đã mua sắm tại NEXUSTECH FLAGSHIP STORE! Hóa đơn này kiêm phiếu giao nhận hàng hóa.
+        </div>
+
+    </div>
+
+</body>
+</html>
