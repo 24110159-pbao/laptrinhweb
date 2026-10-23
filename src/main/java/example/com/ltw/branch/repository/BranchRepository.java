@@ -16,4 +16,12 @@ public interface BranchRepository extends JpaRepository<Branch, Long> {
     Optional<Branch> findFirstByStatusOrderByIdAsc(BranchStatus status);
 
     Optional<Branch> findFirstByOrderByIdAsc();
+  
+    List<Branch> findAllByOrderByCreatedAtDesc();
+
+    boolean existsByName(String name);
+
+    boolean existsByNameAndIdNot(String name, Long id);
 }
+
+
