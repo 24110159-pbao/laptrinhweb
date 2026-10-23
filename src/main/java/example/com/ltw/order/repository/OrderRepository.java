@@ -2,6 +2,8 @@ package example.com.ltw.order.repository;
 
 import example.com.ltw.order.entity.Order;
 import example.com.ltw.order.entity.OrderStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import example.com.ltw.order.entity.PaymentMethod;
 import example.com.ltw.order.entity.PaymentStatus;
 import example.com.ltw.user.entity.User;
