@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Quản lý sản phẩm | NEXUSTECH</title>
+
+    <!-- Bootstrap -->
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+            rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+            rel="stylesheet">
+
+    <!-- CSS Admin dùng chung -->
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+
+<body class="admin-page">
+
+<!-- ================= NAVBAR ================= -->
+<nav class="admin-navbar navbar navbar-dark">
+    <div class="container-fluid px-3 px-lg-4">
+
+        <a class="admin-brand" th:href="@{/admin}">
+            <span class="admin-brand-icon">
+                <i class="bi bi-cpu-fill"></i>
+            </span>
+
+            <span>
+                <strong>NEXUSTECH</strong>
+                <small>ADMINISTRATION</small>
+            </span>
+        </a>
+
+        <div class="d-flex align-items-center gap-2">
+            <span class="text-secondary d-none d-md-inline small">
+                <i class="bi bi-person-circle me-1"></i>
+                <span th:text="${admin.fullName}">Administrator</span>
+            </span>
+
+            <a class="btn btn-outline-light btn-sm" th:href="@{/}">
+                <i class="bi bi-house-door me-1"></i>
+                Trang chủ
+            </a>
+        </div>
+
+    </div>
+</nav>
+
+<!-- ================= LAYOUT ================= -->
+<div class="admin-layout">
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="admin-sidebar">
+
+        <div class="sidebar-heading">MENU QUẢN TRỊ</div>
+
+        <a class="sidebar-link" th:href="@{/admin}">
+            <i class="bi bi-grid-1x2-fill"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/users}">
+            <i class="bi bi-people-fill"></i>
+            <span>Quản lý người dùng</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/managers}">
+            <i class="bi bi-person-badge-fill"></i>
+            <span>Quản lý Manager</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/branches}">
+            <i class="bi bi-building"></i>
+            <span>Quản lý chi nhánh</span>
+        </a>
+
+        <a class="sidebar-link active" th:href="@{/admin/products}">
+            <i class="bi bi-box-seam-fill"></i>
+            <span>Quản lý sản phẩm</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/products/allocate}">
+            <i class="bi bi-boxes"></i>
+            <span>Phân bổ tồn kho</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/discounts}">
+            <i class="bi bi-ticket-perforated-fill"></i>
+            <span>Mã giảm giá</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/branch-revenues}">
+            <i class="bi bi-graph-up-arrow"></i>
+            <span>Doanh thu chi nhánh</span>
+        </a>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-footer">
+            <i class="bi bi-shield-check"></i>
+            <small>HỆ THỐNG QUẢN TRỊ</small>
+            <strong>NEXUSTECH Admin</strong>
+        </div>
+
+    </aside>
+
+    <!-- ================= MAIN CONTENT ================= -->
+    <main class="admin-main">
+
+        <!-- PAGE HEADING -->
+        <section class="admin-page-heading">
+            <div>
+                <span class="admin-eyebrow">PRODUCT MANAGEMENT</span>
+
+                <h1>Quản lý sản phẩm</h1>
+
+                <p>
+                    Xin chào,
+                    <strong th:text="${admin.fullName}">
+                        Administrator
+                    </strong>.
+                    Quản lý sản phẩm, thương hiệu, danh mục và trạng thái
+                    kinh doanh trong hệ thống.
+                </p>
+            </div>
+
+            <a class="btn-admin-primary"
+               th:href="@{/admin/products/new}">
+                <i class="bi bi-plus-circle"></i>
+                Thêm sản phẩm
+            </a>
+        </section>
+
+        <!-- ================= ALERTS ================= -->
+        <div th:if="${successMessage}"
+             class="product-list-alert product-list-alert-success"
+             role="status">
+
+            <i class="bi bi-check-circle-fill"></i>
+
+            <span th:text="${successMessage}">
+                Thao tác thành công.
+            </span>
+        </div>
+
+        <div th:if="${errorMessage}"
+             class="product-list-alert product-list-alert-error"
+             role="alert">
+
+            <i class="bi bi-exclamation-triangle-fill"></i>
+
+            <span th:text="${errorMessage}">
+                Đã xảy ra lỗi.
+            </span>
+        </div>
+
+        <!-- ================= PRODUCT FILTER ================= -->
+        <section class="admin-section">
+
+            <div class="section-heading">
+                <div>
+                    <h2>Tìm kiếm và lọc sản phẩm</h2>
+                    <p>
+                        Tìm kiếm theo tên sản phẩm, thương hiệu,
+                        danh mục hoặc trạng thái hoạt động.
+                    </p>
+                </div>
+
+                <span class="chart-badge">
+                    <i class="bi bi-funnel-fill"></i>
+                    Bộ lọc
+                </span>
+            </div>
+
+            <div class="admin-panel product-filter-panel">
+
+                <form class="product-filter-form"
+                      th:action="@{/admin/products}"
+                      method="get">
+
+                    <!-- KEYWORD -->
+                    <div class="filter-field">
+                        <label for="keyword">
+                            <i class="bi bi-search me-1"></i>
+                            TỪ KHÓA
+                        </label>
+
+                        <input
+                                id="keyword"
+                                type="text"
+                                class="form-control"
+                                name="keyword"
+                                placeholder="Tên sản phẩm, thương hiệu..."
+                                th:value="${keyword}">
+                    </div>
+
+                    <!-- CATEGORY -->
+                    <div class="filter-field">
+                        <label for="categoryId">
+                            <i class="bi bi-grid me-1"></i>
+                            DANH MỤC
+                        </label>
+
+                        <select id="categoryId"
+                                class="form-select"
+                                name="categoryId">
+
+                            <option value="">Tất cả danh mục</option>
+
+                            <option th:each="c : ${categories}"
+                                    th:value="${c.id}"
+                                    th:text="${c.name}"
+                                    th:selected="${selectedCategoryId != null
+                                        and selectedCategoryId == c.id}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- BRAND -->
+                    <div class="filter-field">
+                        <label for="brandId">
+                            <i class="bi bi-tags me-1"></i>
+                            THƯƠNG HIỆU
+                        </label>
+
+                        <select id="brandId"
+                                class="form-select"
+                                name="brandId">
+
+                            <option value="">Tất cả thương hiệu</option>
+
+                            <option th:each="b : ${brands}"
+                                    th:value="${b.id}"
+                                    th:text="${b.name}"
+                                    th:selected="${selectedBrandId != null
+                                        and selectedBrandId == b.id}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- STATUS -->
+                    <div class="filter-field">
+                        <label for="status">
+                            <i class="bi bi-toggle-on me-1"></i>
+                            TRẠNG THÁI
+                        </label>
+
+                        <select id="status"
+                                class="form-select"
+                                name="status">
+
+                            <option value="">Tất cả trạng thái</option>
+
+                            <option th:each="s : ${statuses}"
+                                    th:value="${s}"
+                                    th:text="${s}"
+                                    th:selected="${selectedStatus == s}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- FILTER ACTIONS -->
+                    <div class="product-filter-actions">
+
+                        <button class="btn-admin-primary"
+                                type="submit">
+                            <i class="bi bi-search"></i>
+                            Tìm kiếm
+                        </button>
+
+                        <a class="btn-product-reset"
+                           th:href="@{/admin/products}">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                            Xóa bộ lọc
+                        </a>
+
+                        <a class="btn-product-reset"
+                           th:href="@{/admin/products/allocate}">
+                            <i class="bi bi-boxes"></i>
+                            Phân bổ tồn kho
+                        </a>
+
+                    </div>
+
+                </form>
+            </div>
+        </section>
+
+        <!-- ================= PRODUCT TABLE ================= -->
+        <section class="admin-section">
+
+            <div class="section-heading">
+                <div>
+                    <h2>Danh sách sản phẩm</h2>
+                    <p>
+                        Theo dõi thông tin cơ bản, thông số kỹ thuật
+                        và trạng thái hoạt động của từng sản phẩm.
+                    </p>
+                </div>
+
+                <span class="chart-badge">
+                    <i class="bi bi-box-seam-fill"></i>
+                    Sản phẩm
+                </span>
+            </div>
+
+            <div class="admin-panel table-panel product-list-panel">
+
+                <!-- TABLE HEADER -->
+                <div class="table-header">
+                    <div>
+                        <h3>Thông tin sản phẩm</h3>
+                        <p>
+                            Danh sách sản phẩm theo điều kiện tìm kiếm hiện tại.
+                        </p>
+                    </div>
+
+                    <a class="btn-admin-primary"
+                       th:href="@{/admin/products/new}">
+                        <i class="bi bi-plus-lg"></i>
+                        Thêm mới
+                    </a>
+                </div>
+
+                <!-- TABLE -->
+                <div class="table-wrap product-table-wrap">
+
+                    <table class="admin-table product-table">
+
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>TÊN SẢN PHẨM</th>
+                            <th>THƯƠNG HIỆU</th>
+                            <th>DANH MỤC</th>
+                            <th>HỆ ĐIỀU HÀNH</th>
+                            <th>CHIPSET</th>
+                            <th>TRẠNG THÁI</th>
+                            <th>THAO TÁC</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+
+                        <tr th:each="p : ${products}">
+
+                            <!-- ID -->
+                            <td>
+                                <span class="product-id"
+                                      th:text="${p.id}">
+                                    1
+                                </span>
+                            </td>
+
+                            <!-- PRODUCT NAME -->
+                            <td>
+                                <div class="product-name-cell">
+                                    <span class="product-icon">
+                                        <i class="bi bi-phone"></i>
+                                    </span>
+
+                                    <span class="product-name-text"
+                                          th:text="${p.name}">
+                                        Tên sản phẩm
+                                    </span>
+                                </div>
+                            </td>
+
+                            <!-- BRAND -->
+                            <td>
+                                <span class="product-category-cell"
+                                      th:if="${p.brand != null}">
+                                    <i class="bi bi-bookmark"></i>
+                                    <span th:text="${p.brand.name}">
+                                        Thương hiệu
+                                    </span>
+                                </span>
+
+                                <span class="product-empty-value"
+                                      th:if="${p.brand == null}">
+                                    —
+                                </span>
+                            </td>
+
+                            <!-- CATEGORY -->
+                            <td>
+                                <span class="product-category-cell"
+                                      th:if="${p.category != null}">
+                                    <i class="bi bi-grid"></i>
+                                    <span th:text="${p.category.name}">
+                                        Danh mục
+                                    </span>
+                                </span>
+
+                                <span class="product-empty-value"
+                                      th:if="${p.category == null}">
+                                    —
+                                </span>
+                            </td>
+
+                            <!-- OPERATING SYSTEM -->
+                            <td>
+                                <span class="product-spec-value"
+                                      th:if="${p.operatingSystem != null
+                                          and !#strings.isEmpty(p.operatingSystem)}"
+                                      th:text="${p.operatingSystem}">
+                                    Android
+                                </span>
+
+                                <span class="product-empty-value"
+                                      th:if="${p.operatingSystem == null
+                                          or #strings.isEmpty(p.operatingSystem)}">
+                                    —
+                                </span>
+                            </td>
+
+                            <!-- CHIPSET -->
+                            <td>
+                                <span class="product-spec-value"
+                                      th:if="${p.chipset != null
+                                          and !#strings.isEmpty(p.chipset)}"
+                                      th:text="${p.chipset}">
+                                    Chipset
+                                </span>
+
+                                <span class="product-empty-value"
+                                      th:if="${p.chipset == null
+                                          or #strings.isEmpty(p.chipset)}">
+                                    —
+                                </span>
+                            </td>
+
+                            <!-- STATUS -->
+                            <td>
+                                <span class="product-status-badge"
+                                      th:classappend="${p.status != null
+                                          ? ' ' + p.status.name()
+                                          : ''}"
+                                      th:text="${p.status != null
+                                          ? p.status
+                                          : 'UNKNOWN'}">
+                                    ACTIVE
+                                </span>
+                            </td>
+
+                            <!-- ACTIONS -->
+                            <td>
+                                <div class="product-action-group">
+
+                                    <a class="btn-product-edit"
+                                       th:href="@{/admin/products/{id}/edit(id=${p.id})}"
+                                       title="Chỉnh sửa sản phẩm và biến thể">
+
+                                        <i class="bi bi-pencil-square"></i>
+                                        Sửa / Biến thể
+                                    </a>
+
+                                    <form method="post"
+                                          th:action="@{/admin/products/{id}/toggle-status(id=${p.id})}"
+                                          onsubmit="return confirm('Bạn có chắc muốn đổi trạng thái sản phẩm?');">
+
+                                        <!-- CSRF token nếu Spring Security bật -->
+                                        <input type="hidden"
+                                               th:if="${_csrf != null}"
+                                               th:name="${_csrf.parameterName}"
+                                               th:value="${_csrf.token}">
+
+                                        <button class="btn-product-toggle"
+                                                type="submit"
+                                                th:title="${p.status != null
+                                                    and p.status.name() == 'ACTIVE'
+                                                    ? 'Ngừng kinh doanh sản phẩm'
+                                                    : 'Kích hoạt sản phẩm'}">
+
+                                            <i class="bi"
+                                               th:classappend="${p.status != null
+                                                   and p.status.name() == 'ACTIVE'
+                                                   ? ' bi-pause-circle'
+                                                   : ' bi-play-circle'}">
+                                            </i>
+
+                                            <span
+                                                    th:text="${p.status != null
+                                                    and p.status.name() == 'ACTIVE'
+                                                    ? 'Ngừng'
+                                                    : 'Kích hoạt'}">
+                                                Ngừng
+                                            </span>
+
+                                        </button>
+                                    </form>
+
+                                </div>
+                            </td>
+
+                        </tr>
+
+                        <!-- EMPTY STATE -->
+                        <tr th:if="${#lists.isEmpty(products)}">
+                            <td colspan="8">
+                                <div class="product-list-empty">
+                                    <i class="bi bi-box-seam"></i>
+
+                                    <h3>Không tìm thấy sản phẩm</h3>
+
+                                    <p>
+                                        Không có sản phẩm phù hợp với điều kiện
+                                        tìm kiếm hiện tại hoặc hệ thống chưa có
+                                        sản phẩm nào. Bạn có thể xóa bộ lọc
+                                        hoặc thêm sản phẩm mới.
+                                    </p>
+
+                                    <a class="btn-admin-primary"
+                                       th:href="@{/admin/products/new}">
+                                        <i class="bi bi-plus-circle"></i>
+                                        Thêm sản phẩm
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+
+                        </tbody>
+                    </table>
+
+                </div>
+
+                <!-- TABLE FOOTER -->
+                <div class="product-table-footer">
+                    <i class="bi bi-info-circle"></i>
+
+                    <span>
+                        Thông tin sản phẩm, thương hiệu, danh mục
+                        và trạng thái được quản lý bởi hệ thống NEXUSTECH.
+                    </span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= FOOTER ================= -->
+        <footer class="admin-footer">
+            NEXUSTECH ADMINISTRATION
+            <span class="mx-2">•</span>
+            PRODUCT MANAGEMENT
+        </footer>
+
+    </main>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Phân bổ tồn kho | NEXUSTECH</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+          rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+
+
+</head>
+
+<body class="admin-page">
+
+<!-- NAVBAR -->
+
+<nav class="admin-navbar navbar navbar-dark">
+    <div class="container-fluid px-3 px-lg-4">
+        <a class="admin-brand" th:href="@{/admin}">
+<span class="admin-brand-icon">
+<i class="bi bi-cpu-fill"></i>
+</span>
+            <span>
+<strong>NEXUSTECH</strong>
+<small>ADMINISTRATION</small>
+</span>
+        </a>
+
+        <div class="d-flex align-items-center gap-2">
+        <span class="text-secondary d-none d-md-inline small">
+            <i class="bi bi-person-circle me-1"></i>
+            <span th:text="${admin.fullName}">Administrator</span>
+        </span>
+            <a class="btn btn-outline-light btn-sm" th:href="@{/}">
+                <i class="bi bi-house-door me-1"></i> Trang chủ
+            </a>
+        </div>
+    </div>
+
+
+</nav>
+
+<div class="admin-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+        <div class="sidebar-heading">MENU QUẢN TRỊ</div>
+
+        <a class="sidebar-link" th:href="@{/admin}">
+            <i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span>
+        </a>
+        <a class="sidebar-link" th:href="@{/admin/users}">
+            <i class="bi bi-people-fill"></i><span>Quản lý người dùng</span>
+        </a>
+        <a class="sidebar-link" th:href="@{/admin/managers}">
+            <i class="bi bi-person-badge-fill"></i><span>Quản lý Manager</span>
+        </a>
+        <a class="sidebar-link" th:href="@{/admin/branches}">
+            <i class="bi bi-building"></i><span>Quản lý chi nhánh</span>
+        </a>
+        <a class="sidebar-link" th:href="@{/admin/products}">
+            <i class="bi bi-box-seam-fill"></i><span>Quản lý sản phẩm</span>
+        </a>
+        <a class="sidebar-link active" th:href="@{/admin/products/allocate}">
+            <i class="bi bi-boxes"></i><span>Phân bổ tồn kho</span>
+        </a>
+        <a class="sidebar-link" th:href="@{/admin/discounts}">
+            <i class="bi bi-ticket-perforated-fill"></i><span>Mã giảm giá</span>
+        </a>
+        <a class="sidebar-link" th:href="@{/admin/branch-revenues}">
+            <i class="bi bi-graph-up-arrow"></i><span>Doanh thu chi nhánh</span>
+        </a>
+
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-footer">
+            <i class="bi bi-shield-check"></i>
+            <small>HỆ THỐNG QUẢN TRỊ</small>
+            <strong>NEXUSTECH Admin</strong>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="admin-main">
+
+        <section class="admin-page-heading">
+            <div>
+                <span class="admin-eyebrow">INVENTORY ALLOCATION</span>
+                <h1>Phân bổ tồn kho</h1>
+                <p>
+                    Xin chào,
+                    <strong th:text="${admin.fullName}">Administrator</strong>.
+                    Quản lý số lượng và trạng thái tồn kho sản phẩm theo từng chi nhánh.
+                </p>
+            </div>
+        </section>
+
+        <!-- ALERTS -->
+        <div th:if="${successMessage}"
+             class="branch-list-alert branch-list-alert-success"
+             role="status">
+            <i class="bi bi-check-circle-fill"></i>
+            <span th:text="${successMessage}"></span>
+        </div>
+
+        <div th:if="${errorMessage}"
+             class="branch-list-alert branch-list-alert-error"
+             role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span th:text="${errorMessage}"></span>
+        </div>
+
+        <!-- FILTER SECTION -->
+        <section class="admin-section branch-list-section">
+            <div class="section-heading">
+                <div>
+                    <h2>Chọn chi nhánh và sản phẩm</h2>
+                    <p>Lọc sản phẩm để xem và cập nhật tồn kho tại chi nhánh.</p>
+                </div>
+
+                <span class="chart-badge">
+                <i class="bi bi-boxes"></i> Tồn kho
+            </span>
+            </div>
+
+            <div class="admin-panel table-panel branch-list-panel">
+                <div class="table-header">
+                    <div>
+                        <h3>Điều kiện tìm kiếm</h3>
+                        <p>Chi nhánh là thông tin bắt buộc để xem tồn kho.</p>
+                    </div>
+                </div>
+
+                <div class="allocation-filter-panel">
+                    <form th:action="@{/admin/products/allocate}"
+                          method="get"
+                          class="allocation-form">
+
+                        <div class="allocation-field">
+                            <label for="branchId">Chi nhánh *</label>
+                            <select name="branchId" id="branchId" required>
+                                <option value="">-- Chọn chi nhánh --</option>
+                                <option th:each="b : ${branches}"
+                                        th:value="${b.id}"
+                                        th:text="${b.name}"
+                                        th:selected="${selectedBranchId == b.id}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="allocation-field">
+                            <label for="productId">Sản phẩm</label>
+                            <select name="productId" id="productId">
+                                <option value="">-- Chọn sản phẩm --</option>
+                                <option th:each="p : ${products}"
+                                        th:value="${p.id}"
+                                        th:text="${p.name}"
+                                        th:selected="${selectedProductId == p.id}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="allocation-field">
+                            <label for="keyword">Tìm sản phẩm</label>
+                            <input type="text"
+                                   id="keyword"
+                                   name="keyword"
+                                   th:value="${keyword}"
+                                   placeholder="Nhập tên sản phẩm">
+                        </div>
+
+                        <div class="allocation-filter-actions">
+                            <button class="btn-admin-primary" type="submit">
+                                <i class="bi bi-search"></i> Xem tồn kho
+                            </button>
+                            <a class="btn-user-reset" th:href="@{/admin/products/allocate}">
+                                <i class="bi bi-arrow-counterclockwise"></i> Xóa lọc
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- INVENTORY TABLE -->
+        <section class="admin-section branch-list-section"
+                 th:if="${selectedBranch != null and selectedProduct != null}">
+
+            <div class="section-heading">
+                <div>
+                    <h2>Chi tiết tồn kho</h2>
+                    <p>Điều chỉnh số lượng và trạng thái từng biến thể sản phẩm.</p>
+                </div>
+                <span class="chart-badge">
+                <i class="bi bi-box-seam"></i> Biến thể sản phẩm
+            </span>
+            </div>
+
+            <div class="admin-panel table-panel branch-list-panel">
+
+                <div class="allocation-product-info">
+                    <h3 th:text="${selectedProduct.name}">Tên sản phẩm</h3>
+                    <p>
+                        <i class="bi bi-building me-1"></i>
+                        Chi nhánh:
+                        <strong th:text="${selectedBranch.name}">Tên chi nhánh</strong>
+                    </p>
+                </div>
+
+                <div class="table-wrap branch-list-table-wrap">
+                    <table class="admin-table branch-list-table">
+                        <thead>
+                        <tr>
+                            <th>BIẾN THỂ</th>
+                            <th>RAM</th>
+                            <th>BỘ NHỚ</th>
+                            <th>MÀU</th>
+                            <th>GIÁ</th>
+                            <th>ĐANG GIỮ</th>
+                            <th>TỒN KHO</th>
+                            <th>TRẠNG THÁI</th>
+                            <th>THAO TÁC</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr th:each="v : ${variantsWithInventory}">
+                            <td>
+                                <strong th:text="${v.variantName}">Biến thể</strong>
+                            </td>
+                            <td th:text="${v.ram}">8GB</td>
+                            <td th:text="${v.storage}">256GB</td>
+                            <td th:text="${v.color}">Đen</td>
+                            <td th:text="${#numbers.formatDecimal(v.price, 0, 'COMMA', 0, 'POINT')}">
+                                10,000,000
+                            </td>
+                            <td th:text="${v.reservedQuantity}">0</td>
+
+                            <td colspan="3">
+                                <form class="allocation-stock-form"
+                                      method="post"
+                                      th:action="@{/admin/products/allocate}">
+
+                                    <input type="hidden" name="branchId"
+                                           th:value="${selectedBranchId}">
+                                    <input type="hidden" name="productId"
+                                           th:value="${selectedProductId}">
+                                    <input type="hidden" name="variantId"
+                                           th:value="${v.variantId}">
+
+                                    <input type="number"
+                                           name="quantity"
+                                           min="0"
+                                           th:value="${v.currentBranchStock}"
+                                           aria-label="Số lượng tồn kho mới"
+                                           required>
+
+                                    <select name="status" aria-label="Trạng thái tồn kho">
+                                        <option value="ACTIVE">ACTIVE</option>
+                                        <option value="INACTIVE">INACTIVE</option>
+                                    </select>
+
+                                    <button class="btn-admin-primary" type="submit">
+                                        <i class="bi bi-check-lg"></i> Cập nhật
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+
+                        <tr th:if="${#lists.isEmpty(variantsWithInventory)}">
+                            <td colspan="9">
+                                <div class="allocation-empty">
+                                    <i class="bi bi-box"></i>
+                                    <strong>Chưa có biến thể sản phẩm</strong>
+                                    <p class="mb-0 mt-2">
+                                        Sản phẩm này hiện chưa có biến thể để phân bổ tồn kho.
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="branch-list-footer">
+                <span>
+                    <i class="bi bi-info-circle"></i>
+                    Kiểm tra số lượng và trạng thái trước khi cập nhật tồn kho.
+                </span>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER ACTIONS -->
+        <div class="allocation-footer-actions">
+            <a class="btn-user-reset" th:href="@{/admin/products}">
+                <i class="bi bi-box-seam"></i> Quản lý sản phẩm
+            </a>
+            <a class="btn-user-reset" th:href="@{/admin}">
+                <i class="bi bi-grid-1x2"></i> Dashboard
+            </a>
+        </div>
+
+        <footer class="admin-footer">
+            NEXUSTECH ADMINISTRATION
+            <span class="mx-2">•</span>
+            INVENTORY ALLOCATION
+        </footer>
+
+    </main>
+
+
+</div>
+
+</body>
+</html>
