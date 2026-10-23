@@ -279,5 +279,5 @@ VALUES
 INSERT INTO email_otps
 (id, email, otp_hash, purpose, attempt_count, resend_count, created_at, expires_at, verified_at)
 VALUES
-(1, 'user1@example.com', 'demo-hash-register', 'REGISTER', 0, 0, NOW(), DATE_ADD(NOW(), INTERVAL 5 MINUTE), NOW()),
-(2, 'user2@example.com', 'demo-hash-reset', 'RESET_PASSWORD', 0, 0, NOW(), DATE_ADD(NOW(), INTERVAL 5 MINUTE), NULL);
+(1, 'user1@gmail.com', 'demo-hash-register', 'REGISTER', 0, 0, NOW(), DATE_ADD(NOW(), INTERVAL 5 MINUTE), NOW()),
+(2, 'user2@gmail.com', 'demo-hash-reset', 'RESET_PASSWORD', 0, 0, NOW(), DATE_ADD(NOW(), INTERVAL 5 MINUTE), NULL);
