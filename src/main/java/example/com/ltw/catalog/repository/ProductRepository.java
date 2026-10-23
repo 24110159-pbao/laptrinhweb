@@ -22,4 +22,27 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> searchProducts(@Param("status") ProductStatus status, @Param("keyword") String keyword);
 
     Optional<Product> findBySlug(String slug);
+
+    boolean existsBySlug(String slug);
+
+    boolean existsBySlugAndIdNot(String slug, Long id);
+
+    List<Product> findAllByOrderByCreatedAtDesc();
+
+    @Query("""
+        SELECT p FROM Product p
+        WHERE (:keyword IS NULL OR :keyword = ''
+               OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+               OR LOWER(p.brand.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
+          AND (:categoryId IS NULL OR p.category.id = :categoryId)
+          AND (:brandId IS NULL OR p.brand.id = :brandId)
+          AND (:status IS NULL OR p.status = :status)
+        ORDER BY p.createdAt DESC
+    """)
+    List<Product> filterProductsForAdmin(
+            @Param("keyword") String keyword,
+            @Param("categoryId") Long categoryId,
+            @Param("brandId") Long brandId,
+            @Param("status") ProductStatus status
+    );
 }

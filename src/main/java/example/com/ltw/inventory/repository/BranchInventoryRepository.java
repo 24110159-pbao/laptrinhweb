@@ -17,4 +17,10 @@ public interface BranchInventoryRepository extends JpaRepository<BranchInventory
     Optional<BranchInventory> findByIdAndBranch_Id(Long id, Long branchId);
 
     long countByBranch_Id(Long branchId);
+
+    @EntityGraph(attributePaths = {"variant", "variant.product"})
+    Optional<BranchInventory> findByBranch_IdAndVariant_Id(Long branchId, Long variantId);
+
+    @EntityGraph(attributePaths = {"variant", "variant.product"})
+    List<BranchInventory> findAllByBranch_IdAndVariant_Product_Id(Long branchId, Long productId);
 }

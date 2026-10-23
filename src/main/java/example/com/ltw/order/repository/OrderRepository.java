@@ -99,4 +99,71 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             @Param("toDate") LocalDateTime toDate
     );
 
+    // ==========================================
+    // ADMIN QUERIES
+    // ==========================================
+
+    @Query("""
+        select coalesce(sum(o.finalAmount), 0)
+        from Order o
+        where o.status = example.com.ltw.order.entity.OrderStatus.DELIVERED
+    """)
+    BigDecimal sumAllDeliveredRevenue();
+
+    @Query("""
+        select o.branch.id, o.branch.name, coalesce(sum(o.finalAmount), 0), count(o.id)
+        from Order o
+        where o.status = example.com.ltw.order.entity.OrderStatus.DELIVERED
+        group by o.branch.id, o.branch.name
+        order by coalesce(sum(o.finalAmount), 0) desc
+    """)
+    List<Object[]> findRevenueByBranch();
+
+    @Query("""
+        select
+            function('year', o.createdAt),
+            function('month', o.createdAt),
+            coalesce(sum(o.finalAmount), 0)
+        from Order o
+        where o.status = example.com.ltw.order.entity.OrderStatus.DELIVERED
+          and o.createdAt >= :fromDate
+          and o.createdAt < :toDate
+        group by
+            function('year', o.createdAt),
+            function('month', o.createdAt)
+        order by
+            function('year', o.createdAt),
+            function('month', o.createdAt)
+    """)
+    List<Object[]> findAllMonthlyDeliveredRevenue(
+            @Param("fromDate") LocalDateTime fromDate,
+            @Param("toDate") LocalDateTime toDate
+    );
+
+    @Query("""
+        select
+            function('year', o.createdAt),
+            function('month', o.createdAt),
+            count(o.id)
+        from Order o
+        where o.createdAt >= :fromDate
+          and o.createdAt < :toDate
+        group by
+            function('year', o.createdAt),
+            function('month', o.createdAt)
+        order by
+            function('year', o.createdAt),
+            function('month', o.createdAt)
+    """)
+    List<Object[]> findAllMonthlyOrderCounts(
+            @Param("fromDate") LocalDateTime fromDate,
+            @Param("toDate") LocalDateTime toDate
+    );
+
+    @Query("""
+        select o.status, count(o.id)
+        from Order o
+        group by o.status
+    """)
+    List<Object[]> countAllOrdersByStatus();
 }

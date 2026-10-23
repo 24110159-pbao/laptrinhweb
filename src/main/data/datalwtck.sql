@@ -22,16 +22,16 @@ VALUES
 INSERT INTO users
 (id, full_name, email, password, phone, role, status, branch_id, email_verified, created_at, updated_at)
 VALUES
-(1, 'Admin', 'admin@gamil.com', '$2a$10$4TozRZaTiflOLwzzpV7D4.zX6jc9VbBgm1sn4ItlzSZgeHK5ZDheu', '0911000001', 'ADMIN', 'ACTIVE', 1, b'1', NOW(), NOW()),
-(2, 'Quản lý 1', 'manager1@gamil.com', '$2a$10$4TozRZaTiflOLwzzpV7D4.zX6jc9VbBgm1sn4ItlzSZgeHK5ZDheu', '0911000002', 'MANAGER', 'ACTIVE', 1, b'1', NOW(), NOW()),
-(3, 'Quản lý 2', 'manager2@gamil.com', '$2a$10$4TozRZaTiflOLwzzpV7D4.zX6jc9VbBgm1sn4ItlzSZgeHK5ZDheu', '0911000003', 'MANAGER', 'ACTIVE', 2, b'1', NOW(), NOW()),
-(4, 'Nhân viên 1', 'staff1@gamil.com', '$2a$10$4TozRZaTiflOLwzzpV7D4.zX6jc9VbBgm1sn4ItlzSZgeHK5ZDheu', '0911000004', 'STAFF', 'ACTIVE', 1, b'1', NOW(), NOW()),
-(5, 'Nhân viên 2', 'staff2@gamil.com', '$2a$10$4TozRZaTiflOLwzzpV7D4.zX6jc9VbBgm1sn4ItlzSZgeHK5ZDheu', '0911000005', 'STAFF', 'ACTIVE', 2, b'1', NOW(), NOW()),
-(6, 'Nhân viên 3', 'staff3@gamil.com', '$2a$10$4TozRZaTiflOLwzzpV7D4.zX6jc9VbBgm1sn4ItlzSZgeHK5ZDheu', '0911000006', 'STAFF', 'ACTIVE', 3, b'1', NOW(), NOW()),
-(7, 'Shipper 1', 'shipper1@gamil.com', '$2a$10$4TozRZaTiflOLwzzpV7D4.zX6jc9VbBgm1sn4ItlzSZgeHK5ZDheu', '0911000007', 'SHIPPER', 'ACTIVE', 1, b'1', NOW(), NOW()),
-(8, 'Shipper 2', 'shipper2@gamil.com', '$2a$10$4TozRZaTiflOLwzzpV7D4.zX6jc9VbBgm1sn4ItlzSZgeHK5ZDheu', '0911000008', 'SHIPPER', 'ACTIVE', 2, b'1', NOW(), NOW()),
-(9, 'Nguyễn Minh Anh', 'user1@gamil.com', '$2a$10$4TozRZaTiflOLwzzpV7D4.zX6jc9VbBgm1sn4ItlzSZgeHK5ZDheu', '0911000009', 'USER', 'ACTIVE', NULL, b'1', NOW(), NOW()),
-(10, 'Trần Hoàng Nam', 'user2@gamil.com', '$2a$10$4TozRZaTiflOLwzzpV7D4.zX6jc9VbBgm1sn4ItlzSZgeHK5ZDheu', '0911000010', 'USER', 'ACTIVE', NULL, b'1', NOW(), NOW());
+(1, 'Admin', 'admin@gmail.com', '$2a$10$4TozRZaTiflOLwzzpV7D4.zX6jc9VbBgm1sn4ItlzSZgeHK5ZDheu', '0911000001', 'ADMIN', 'ACTIVE', 1, b'1', NOW(), NOW()),
+(2, 'Quản lý 1', 'manager1@gmail.com', '$2a$10$4TozRZaTiflOLwzzpV7D4.zX6jc9VbBgm1sn4ItlzSZgeHK5ZDheu', '0911000002', 'MANAGER', 'ACTIVE', 1, b'1', NOW(), NOW()),
+(3, 'Quản lý 2', 'manager2@gmail.com', '$2a$10$4TozRZaTiflOLwzzpV7D4.zX6jc9VbBgm1sn4ItlzSZgeHK5ZDheu', '0911000003', 'MANAGER', 'ACTIVE', 2, b'1', NOW(), NOW()),
+(4, 'Nhân viên 1', 'staff1@gmail.com', '$2a$10$4TozRZaTiflOLwzzpV7D4.zX6jc9VbBgm1sn4ItlzSZgeHK5ZDheu', '0911000004', 'STAFF', 'ACTIVE', 1, b'1', NOW(), NOW()),
+(5, 'Nhân viên 2', 'staff2@gmail.com', '$2a$10$4TozRZaTiflOLwzzpV7D4.zX6jc9VbBgm1sn4ItlzSZgeHK5ZDheu', '0911000005', 'STAFF', 'ACTIVE', 2, b'1', NOW(), NOW()),
+(6, 'Nhân viên 3', 'staff3@gmail.com', '$2a$10$4TozRZaTiflOLwzzpV7D4.zX6jc9VbBgm1sn4ItlzSZgeHK5ZDheu', '0911000006', 'STAFF', 'ACTIVE', 3, b'1', NOW(), NOW()),
+(7, 'Shipper 1', 'shipper1@gmail.com', '$2a$10$4TozRZaTiflOLwzzpV7D4.zX6jc9VbBgm1sn4ItlzSZgeHK5ZDheu', '0911000007', 'SHIPPER', 'ACTIVE', 1, b'1', NOW(), NOW()),
+(8, 'Shipper 2', 'shipper2@gmail.com', '$2a$10$4TozRZaTiflOLwzzpV7D4.zX6jc9VbBgm1sn4ItlzSZgeHK5ZDheu', '0911000008', 'SHIPPER', 'ACTIVE', 2, b'1', NOW(), NOW()),
+(9, 'Nguyễn Minh Anh', 'user1@gmail.com', '$2a$10$4TozRZaTiflOLwzzpV7D4.zX6jc9VbBgm1sn4ItlzSZgeHK5ZDheu', '0911000009', 'USER', 'ACTIVE', NULL, b'1', NOW(), NOW()),
+(10, 'Trần Hoàng Nam', 'user2@gmail.com', '$2a$10$4TozRZaTiflOLwzzpV7D4.zX6jc9VbBgm1sn4ItlzSZgeHK5ZDheu', '0911000010', 'USER', 'ACTIVE', NULL, b'1', NOW(), NOW());
 
 
 -- =====================================================
