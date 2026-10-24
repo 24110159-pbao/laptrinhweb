@@ -28,4 +28,12 @@ public interface ReturnRequestRepository extends JpaRepository<ReturnRequest, Lo
 
     @EntityGraph(attributePaths = {"items", "items.orderItem", "order", "user"})
     Optional<ReturnRequest> findWithItemsById(Long id);
+
+    @EntityGraph(attributePaths = {"items", "items.orderItem", "order", "user"})
+    List<ReturnRequest> findAllByOrder_Branch_IdOrderByCreatedAtDesc(Long branchId);
+
+    @EntityGraph(attributePaths = {"items", "items.orderItem", "order", "user"})
+    List<ReturnRequest> findAllByOrder_Branch_IdAndStatusOrderByCreatedAtDesc(Long branchId, example.com.ltw.order.entity.ReturnRequestStatus status);
+
+    long countByOrder_Branch_IdAndStatus(Long branchId, example.com.ltw.order.entity.ReturnRequestStatus status);
 }

@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trung Tâm Tin Nhắn &amp; Chat Khách Hàng - NEXUSTECH Staff</title>
+    <!-- Core Brand Stylesheet from Home -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <!-- Dedicated Staff Portal Stylesheet -->
+    <link rel="stylesheet" th:href="@{/css/staff.css}">
+    <!-- SockJS and STOMP for Realtime WebSocket -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <style>
+        html, body {
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+        }
+        body.manager-page .staff-portal-body {
+            height: calc(100vh - 72px) !important;
+            min-height: 0 !important;
+            padding: 10px 0 !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
+        }
+        body.manager-page .staff-layout-container {
+            height: 100% !important;
+            min-height: 0 !important;
+            align-items: stretch !important;
+            display: grid !important;
+            grid-template-columns: 280px minmax(0, 1fr) !important;
+            gap: 20px !important;
+        }
+        .staff-sidebar {
+            height: 100% !important;
+            min-height: 0 !important;
+            overflow-y: auto !important;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .staff-sidebar::-webkit-scrollbar {
+            width: 5px;
+        }
+        .staff-sidebar::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        main.staff-white-panel {
+            height: 100% !important;
+            min-height: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            display: flex !important;
+            flex-direction: column !important;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        .chat-app-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            height: 100% !important;
+            max-height: 100% !important;
+            min-height: 0 !important;
+            background: #111e33;
+            border: 1px solid #334155;
+            border-radius: 14px;
+            overflow: hidden !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+        .chat-sidebar {
+            background: #0f172a;
+            border-right: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+            height: 100% !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+        }
+        .chat-sidebar-header {
+            flex-shrink: 0;
+            padding: 14px 16px;
+            border-bottom: 1px solid #334155;
+            background: #141f33;
+        }
+        .chat-conv-list {
+            flex: 1 1 auto;
+            min-height: 0 !important;
+            overflow-y: auto !important;
+            padding: 8px;
+        }
+        .conv-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            margin-bottom: 4px;
+            border: 1px solid transparent;
+        }
+        .conv-item:hover {
+            background: #1e293b;
+        }
+        .conv-item.active {
+            background: #1e3a5f;
+            border-color: #38bdf8;
+        }
+        .conv-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #38bdf8;
+        }
+        .conv-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .conv-name {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #f8fafc;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .conv-sub {
+            font-size: 11.5px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+        .chat-main {
+            display: flex;
+            flex-direction: column;
+            background: #131e31;
+            height: 100% !important;
+            max-height: 100% !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+            position: relative;
+        }
+        .chat-header {
+            flex-shrink: 0 !important;
+            padding: 12px 20px;
+            border-bottom: 1px solid #334155;
+            background: #18253d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Custom Scrollbar for Smooth Navigation */
+        .chat-conv-list::-webkit-scrollbar,
+        .chat-messages-area::-webkit-scrollbar {
+            width: 8px;
+        }
+        .chat-conv-list::-webkit-scrollbar-track,
+        .chat-messages-area::-webkit-scrollbar-track {
+            background: #0a1122;
+            border-radius: 4px;
+        }
+        .chat-conv-list::-webkit-scrollbar-thumb,
+        .chat-messages-area::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+            border: 2px solid #0a1122;
+            transition: background 0.2s ease;
+        }
+        .chat-conv-list::-webkit-scrollbar-thumb:hover,
+        .chat-messages-area::-webkit-scrollbar-thumb:hover {
+            background: #38bdf8;
+        }
+        .chat-conv-list,
+        .chat-messages-area {
+            scrollbar-width: thin;
+            scrollbar-color: #334155 #0a1122;
+            scroll-behavior: smooth;
+        }
+
+        .chat-messages-area {
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            overflow-y: auto !important;
+            padding: 18px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .message-bubble {
+            max-width: 72%;
+            padding: 11px 15px;
+            border-radius: 14px;
+            font-size: 13.5px;
+            line-height: 1.5;
+            position: relative;
+            word-break: break-word;
+        }
+        .msg-staff {
+            align-self: flex-end;
+            background: #0284c7;
+            color: #ffffff;
+            border-bottom-right-radius: 2px;
+        }
+        .msg-customer {
+            align-self: flex-start;
+            background: #1e293b;
+            color: #f1f5f9;
+            border: 1px solid #334155;
+            border-bottom-left-radius: 2px;
+        }
+        .msg-order-notice {
+            background: #064e3b !important;
+            border: 1px solid #10b981 !important;
+            color: #6ee7b7 !important;
+            align-self: flex-end !important;
+            width: 85%;
+            font-family: inherit;
+            border-bottom-right-radius: 2px;
+        }
+        .msg-time {
+            font-size: 11px;
+            opacity: 0.75;
+            margin-top: 4px;
+            text-align: right;
+        }
+        .quick-templates {
+            flex-shrink: 0 !important;
+            display: flex;
+            gap: 6px;
+            padding: 7px 16px;
+            background: #101a2c;
+            border-top: 1px solid #1e293b;
+            overflow-x: auto;
+        }
+        .quick-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #94a3b8;
+            border-radius: 12px;
+            padding: 4px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .quick-btn:hover {
+            color: #38bdf8;
+            border-color: #38bdf8;
+            background: #1e3a5f;
+        }
+        .chat-input-bar {
+            flex-shrink: 0 !important;
+            padding: 12px 18px;
+            border-top: 1px solid #334155;
+            background: #141f33;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .chat-input {
+            flex: 1;
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #ffffff;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .chat-input:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+        }
+        .btn-send-msg {
+            background: #0284c7;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 18px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-send-msg:hover {
+            background: #0369a1;
+        }
+        }
+    </style>
+</head>
+<body class="manager-page">
+
+    <!-- ==========================================
+         1. TOP NAVBAR (CỔNG NHÂN VIÊN CRM)
+         ========================================== -->
+    <header class="top-navbar staff-top-navbar">
+        <div class="container navbar-inner">
+            <a th:href="@{/staff/dashboard}" class="brand-logo" title="Cổng Nhân Viên Chi Nhánh">
+                <div class="brand-icon">⚡</div>
+                <div class="brand-title-wrap">
+                    <span class="brand-name">NEXUSTECH</span>
+                    <span class="brand-tagline" style="color: #10b981; font-weight: 800;">STAFF CRM • CHI NHÁNH</span>
+                </div>
+            </a>
+
+
+
+            <!-- User Auth / Profile Box -->
+            <div class="user-profile-section">
+                <div class="user-account-box">
+                    <div class="user-avatar-ring">
+                        <img th:src="${currentUser.avatarUrl != null and !currentUser.avatarUrl.isEmpty() ? currentUser.avatarUrl : 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=150&q=80'}" 
+                             alt="Staff Avatar" class="user-avatar"
+                             onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=150&q=80';">
+                        <div class="vip-badge-dot" style="background: #10b981;" title="Nhân viên đang trực tuyến"></div>
+                    </div>
+                    <div class="user-details">
+                        <span class="user-name-tag" th:text="${currentUser.fullName}">Nhân viên 1</span>
+                        <span class="user-role-badge badge-role-staff" th:text="${currentUser.role}">STAFF</span>
+                    </div>
+
+                    <div class="user-dropdown-menu">
+                        <div class="dropdown-role-box bg-role-staff">
+                            <span class="dropdown-role-title">TÀI KHOẢN NHÂN VIÊN:</span>
+                            <strong class="dropdown-role-name" th:text="${currentUser.fullName}">Nhân viên 1</strong>
+                            <div class="dropdown-role-sub" th:text="${currentUser.email}">staff1@gmail.com</div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a th:href="@{/staff/dashboard}" class="dropdown-link" style="color: #10b981; font-weight: 700;">
+                            <span>Trang Chủ</span>
+                        </a>
+                        <a th:href="@{/staff/orders}" class="dropdown-link">
+                            <span>Đơn Quản Lý</span>
+                        </a>
+                        <a th:href="@{/staff/returns}" class="dropdown-link">
+                            <span>Hoàn/Trả Hàng</span>
+                        </a>
+                        <a th:href="@{/staff/chat}" class="dropdown-link">
+                            <span>Chat Khách Hàng</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a th:href="@{/logout}" class="dropdown-link logout-link">
+                            <span>Đăng xuất</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- ==========================================
+         2. MAIN STAFF PORTAL (2 CỘT: CỘT DỌC SIDEBAR + NỘI DUNG CHÍNH)
+         ========================================== -->
+    <div class="staff-portal-body">
+        <div class="container staff-layout-container" style="max-width: 1600px;">
+
+            <!-- ==============================================
+                 CỘT DỌC BÊN TRÁI: STAFF SIDEBAR
+                 ============================================== -->
+            <aside class="staff-sidebar">
+                
+                <!-- Thẻ Thông Tin Nhân Viên & Chi Nhánh Trực Thuộc -->
+                <div class="sidebar-staff-card">
+                    <div class="sidebar-staff-avatar-wrap">
+                        <img th:src="${staff.avatarUrl != null and !staff.avatarUrl.isEmpty() ? staff.avatarUrl : 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80'}"
+                             alt="Staff Avatar" class="sidebar-staff-avatar"
+                             onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80';">
+                        <span class="sidebar-online-status" title="Đang trực tuyến"></span>
+                    </div>
+                    <div class="sidebar-staff-meta">
+                        <h3 class="sidebar-staff-name" th:text="${staff.fullName}">Nhân viên 1</h3>
+                        <div class="sidebar-staff-role-badge">NHÂN VIÊN CHI NHÁNH</div>
+                        
+                        <div class="sidebar-staff-info-line" style="font-weight: 700; color: #38bdf8;" title="Tên chi nhánh">
+                            <span>🏢</span>
+                            <span th:text="${dashboard != null ? dashboard.branchName : locationName}">Chi nhánh TP.HCM</span>
+                        </div>
+                        <div class="sidebar-staff-info-line" style="font-size: 11.5px; opacity: 0.85;" title="Địa chỉ chi nhánh" th:if="${dashboard != null}">
+                            <span>📍</span>
+                            <span th:text="${dashboard.branchAddress}">Địa chỉ chi nhánh</span>
+                        </div>
+                        <div class="sidebar-staff-info-line" title="Email chi nhánh" th:if="${dashboard != null and dashboard.branchEmail != null}">
+                            <span>✉️</span>
+                            <span th:text="${dashboard.branchEmail}">branch@nexustech.vn</span>
+                        </div>
+                        <div class="sidebar-staff-info-line" title="Số điện thoại chi nhánh" th:if="${dashboard != null and dashboard.branchPhone != null}">
+                            <span>📞</span>
+                            <span th:text="${dashboard.branchPhone}">Chưa cập nhật</span>
+                        </div>
+                        <div class="sidebar-staff-id-tag">
+                            Mã Nhân Viên: <strong th:text="'NV-' + ${staff.id}">NV-1</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==============================================
+                     DANH MỤC QUẢN LÝ (CÁC CHỨC NĂNG SẮP XẾP THEO CỘT DỌC)
+                     ============================================== -->
+                <nav class="sidebar-nav-menu">
+                    <div class="sidebar-nav-heading">DANH MỤC QUẢN LÝ</div>
+
+                    <a th:href="@{/staff/dashboard}" class="sidebar-nav-link">
+                        <span class="nav-left">
+                            <span class="nav-icon" style="font-size: 16px;">📊</span>
+                            <span class="nav-label">Trang Chủ</span>
+                        </span>
+                    </a>
+
+                    <a th:href="@{/staff/pending-orders}" class="sidebar-nav-link">
+                        <span class="nav-left">
+                            <span class="nav-icon" style="font-size: 16px;">📥</span>
+                            <span class="nav-label">Đơn Chờ Nhận</span>
+                        </span>
+                        <span class="nav-badge" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;" 
+                              th:if="${dashboard != null and dashboard.pendingOrders > 0}" 
+                              th:text="${dashboard.pendingOrders}">0</span>
+                    </a>
+
+                    <a th:href="@{/staff/orders}" class="sidebar-nav-link">
+                        <span class="nav-left">
+                            <span class="nav-icon" style="font-size: 16px;">📦</span>
+                            <span class="nav-label">Đơn Quản Lý</span>
+                        </span>
+                        <span class="nav-badge" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8;" 
+                              th:if="${dashboard != null}"
+                              th:text="${dashboard.myAssignedOrdersCount}">0</span>
+                    </a>
+
+                    <a th:href="@{/staff/returns}" class="sidebar-nav-link">
+                        <span class="nav-left">
+                            <span class="nav-icon" style="font-size: 16px;">🔄</span>
+                            <span class="nav-label">Hoàn/Trả Hàng</span>
+                        </span>
+                    </a>
+
+                    <a th:href="@{/staff/chat}" class="sidebar-nav-link active">
+                        <span class="nav-left">
+                            <span class="nav-icon" style="font-size: 16px;">💬</span>
+                            <span class="nav-label">Chat Khách Hàng</span>
+                        </span>
+                    </a>
+                </nav>
+
+            </aside>
+
+            <!-- ==============================================
+                 CỘT NỘI DUNG BÊN PHẢI: KHUNG CHAT CRM
+                 ============================================== -->
+            <main class="staff-white-panel" style="padding: 0; height: 100%; min-height: 0;">
+
+                <div class="chat-app-container">
+                    
+                    <!-- Left Sidebar: Conversations List -->
+                    <div class="chat-sidebar">
+                        <div class="chat-sidebar-header">
+                            <div style="font-weight: 800; color: #f8fafc; font-size: 15px;">Cuộc Trò Chuyện Khách Hàng</div>
+                            <div style="font-size: 12px; color: #38bdf8; margin-top: 2px;" th:text="${locationName}">Chi nhánh TP.HCM</div>
+                        </div>
+                        
+                        <div class="chat-conv-list">
+                            <div th:if="${#lists.isEmpty(conversations)}" style="padding: 24px; text-align: center; color: #94a3b8; font-size: 13px;">
+                                Chưa có cuộc trò chuyện nào từ khách hàng tại chi nhánh này.
+                            </div>
+                            <a th:each="c : ${conversations}" 
+                               th:href="@{/staff/chat(conversationId=${c.id})}" 
+                               th:class="${activeConversation != null and activeConversation.id == c.id ? 'conv-item active' : 'conv-item'}">
+                                <img class="conv-avatar" 
+                                     th:src="${c.user.avatarUrl != null ? c.user.avatarUrl : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'}" 
+                                     alt="Avatar">
+                                <div class="conv-info">
+                                    <div class="conv-name" th:text="${c.user.fullName}">Khách Hàng</div>
+                                    <div class="conv-sub" th:text="${'Mã chat: #' + c.id + ' • ' + #temporals.format(c.updatedAt, 'HH:mm dd/MM')}">12:00 24/10</div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Right Main: Active Chat Window -->
+                    <div class="chat-main" th:if="${activeConversation != null}">
+                        <div class="chat-header">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <img class="conv-avatar" 
+                                     th:src="${activeConversation.user.avatarUrl != null ? activeConversation.user.avatarUrl : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'}" 
+                                     alt="Avatar">
+                                <div>
+                                    <div style="font-weight: 800; color: #f8fafc; font-size: 15px;" th:text="${activeConversation.user.fullName}">Khách Hàng</div>
+                                    <div style="font-size: 12px; color: #38bdf8;">
+                                        SĐT: <span th:text="${activeConversation.user.phone ?: 'Chưa cập nhật'}">0911000009</span> • Email: <span th:text="${activeConversation.user.email}">user@gmail.com</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <span style="background: #10b98122; color: #34d399; border: 1px solid #10b981; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;">ĐANG TRỰC TUYẾN</span>
+                            </div>
+                        </div>
+
+                        <!-- Messages scrollable area -->
+                        <div class="chat-messages-area" id="staffChatMessages">
+                            <!-- Loaded dynamically by JavaScript -->
+                        </div>
+
+                        <!-- Quick canned templates -->
+                        <div class="quick-templates">
+                            <button type="button" class="quick-btn" onclick="insertTemplate('Dạ chào quý khách, NexusTech có thể hỗ trợ gì cho bạn ạ?')">Chào khách</button>
+                            <button type="button" class="quick-btn" onclick="insertTemplate('Đơn hàng của bạn đã được đóng gói và bàn giao cho Shipper, bạn vui lòng để ý điện thoại nhé!')">Báo đang giao</button>
+                            <button type="button" class="quick-btn" onclick="insertTemplate('Dạ sản phẩm chính hãng bảo hành VIP 24 tháng và 1 đổi 1 trong 30 ngày ạ!')">Tư vấn bảo hành</button>
+                        </div>
+
+                        <!-- Message input bar -->
+                        <form class="chat-input-bar" id="staffSendForm" onsubmit="event.preventDefault(); sendStaffMessage();">
+                            <input type="text" id="staffMessageInput" class="chat-input" placeholder="Nhập câu trả lời cho khách hàng (Enter để gửi)..." autocomplete="off" required>
+                            <button type="submit" class="btn-send-msg">
+                                <span>Gửi</span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="chat-main" th:if="${activeConversation == null}" style="display: flex; align-items: center; justify-content: center; color: #94a3b8;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 48px; margin-bottom: 12px;">💬</div>
+                            <p style="font-size: 16px;">Vui lòng chọn một cuộc trò chuyện từ danh sách bên trái để bắt đầu chat.</p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </main>
+
+        </div>
+    </div>
+
+    <!-- Chat JavaScript with SockJS and STOMP -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const conversationId = /*[[${activeConversation != null ? activeConversation.id : null}]]*/ null;
+        const currentUserId = /*[[${currentUser.id}]]*/ null;
+        let stompClient = null;
+
+        function loadMessages() {
+            if (!conversationId) return;
+            fetch('/api/chat/' + conversationId + '/messages')
+                .then(res => res.json())
+                .then(messages => {
+                    const area = document.getElementById('staffChatMessages');
+                    area.innerHTML = '';
+                    messages.forEach(msg => appendMessage(msg));
+                    scrollBottom();
+                })
+                .catch(err => console.error('Lỗi tải tin nhắn:', err));
+        }
+
+        function appendMessage(msg) {
+            const area = document.getElementById('staffChatMessages');
+            const bubble = document.createElement('div');
+            
+            const isStaffSender = (msg.senderRole === 'STAFF' || msg.senderRole === 'ADMIN' || msg.senderRole === 'MANAGER');
+            const isMe = (msg.senderId === currentUserId) || isStaffSender || msg.orderNotice;
+            let cls = isMe ? 'msg-staff' : 'msg-customer';
+            if (msg.orderNotice) {
+                cls = 'msg-order-notice';
+            }
+            bubble.className = 'message-bubble ' + cls;
+
+            let senderName = isMe ? 'Tôi (Nhân viên)' : msg.senderName;
+            if (msg.orderNotice) {
+                senderName = 'Tôi (Hệ Thống NexusTech)';
+            }
+            const contentFormatted = msg.content.replace(/\n/g, '<br>');
+
+            bubble.innerHTML = `
+                <div style="font-size: 11px; font-weight: 700; margin-bottom: 4px; opacity: 0.85;">${senderName}</div>
+                <div>${contentFormatted}</div>
+                <div class="msg-time">${msg.createdAt || ''}</div>
+            `;
+            area.appendChild(bubble);
+        }
+
+        function scrollBottom() {
+            const area = document.getElementById('staffChatMessages');
+            if (area) {
+                area.scrollTop = area.scrollHeight;
+            }
+        }
+
+        function insertTemplate(text) {
+            const input = document.getElementById('staffMessageInput');
+            input.value = text;
+            input.focus();
+        }
+
+        function sendStaffMessage() {
+            const input = document.getElementById('staffMessageInput');
+            const content = input.value.trim();
+            if (!content || !conversationId) return;
+
+            input.value = '';
+
+            fetch('/api/chat/' + conversationId + '/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ conversationId: conversationId, content: content })
+            })
+            .then(res => res.json())
+            .then(msg => {
+                // If websocket not connected, manually append
+                if (!stompClient || !stompClient.connected) {
+                    appendMessage(msg);
+                    scrollBottom();
+                }
+            })
+            .catch(err => console.error('Lỗi gửi tin nhắn:', err));
+        }
+
+        function initWebSocket() {
+            if (!conversationId) return;
+            try {
+                const socket = new SockJS('/ws-chat');
+                stompClient = Stomp.over(socket);
+                stompClient.debug = null; // Tắt debug log
+                stompClient.connect({}, function (frame) {
+                    console.log('STOMP connected');
+                    stompClient.subscribe('/topic/chat/' + conversationId, function (messageOutput) {
+                        const msg = JSON.parse(messageOutput.body);
+                        appendMessage(msg);
+                        scrollBottom();
+                    });
+                }, function (err) {
+                    console.warn('Lỗi STOMP, chuyển sang HTTP polling:', err);
+                    setInterval(loadMessages, 4000);
+                });
+            } catch (e) {
+                console.warn('SockJS không khả dụng, dùng HTTP polling:', e);
+                setInterval(loadMessages, 4000);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (conversationId) {
+                loadMessages();
+                initWebSocket();
+            }
+        });
+        /*]]>*/
+    </script>
+</body>
+</html>

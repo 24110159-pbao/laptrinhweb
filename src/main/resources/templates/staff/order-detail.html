@@ -27,15 +27,7 @@
             </a>
 
             <!-- Phím Tắt Điều Hướng Nhanh Của Staff: Giữ 2 chức năng trên heading -->
-            <div class="staff-top-nav-links">
-                <a th:href="@{/staff/dashboard}" class="staff-top-nav-item">
-                    <span>Bàn Làm Việc</span>
-                </a>
-                <a th:href="@{/staff/pending-orders}" class="staff-top-nav-item">
-                    <span>Đơn Chờ Nhận Chi Nhánh</span>
-                    <span class="top-nav-badge" th:if="${dashboard != null and dashboard.pendingOrders > 0}" th:text="${dashboard.pendingOrders}">0</span>
-                </a>
-            </div>
+
 
             <!-- User Auth / Profile Box -->
             <div class="user-profile-section">
@@ -139,21 +131,49 @@
                     </div>
                 </div>
 
-                <!-- DANH MỤC QUẢN LÝ (Dashboard, Đơn Quản Lý) -->
+                <!-- DANH MỤC QUẢN LÝ (CÁC CHỨC NĂNG SẮP XẾP THEO CỘT DỌC) -->
                 <nav class="sidebar-nav-menu">
                     <div class="sidebar-nav-heading">DANH MỤC QUẢN LÝ</div>
 
                     <a th:href="@{/staff/dashboard}" class="sidebar-nav-link">
                         <span class="nav-left">
-                            <span class="nav-label">Bàn Làm Việc CRM</span>
+                            <span class="nav-icon" style="font-size: 16px;">📊</span>
+                            <span class="nav-label">Trang Chủ</span>
                         </span>
+                    </a>
+
+                    <a th:href="@{/staff/pending-orders}" class="sidebar-nav-link">
+                        <span class="nav-left">
+                            <span class="nav-icon" style="font-size: 16px;">📥</span>
+                            <span class="nav-label">Đơn Chờ Nhận</span>
+                        </span>
+                        <span class="nav-badge" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;" 
+                              th:if="${dashboard != null and dashboard.pendingOrders > 0}" 
+                              th:text="${dashboard.pendingOrders}">0</span>
                     </a>
 
                     <a th:href="@{/staff/orders}" class="sidebar-nav-link active">
                         <span class="nav-left">
+                            <span class="nav-icon" style="font-size: 16px;">📦</span>
                             <span class="nav-label">Đơn Quản Lý</span>
                         </span>
-                        <span class="nav-badge" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8;" th:text="${dashboard != null ? dashboard.myAssignedOrdersCount : '0'}">0</span>
+                        <span class="nav-badge" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8;" 
+                              th:if="${dashboard != null}"
+                              th:text="${dashboard.myAssignedOrdersCount}">0</span>
+                    </a>
+
+                    <a th:href="@{/staff/returns}" class="sidebar-nav-link">
+                        <span class="nav-left">
+                            <span class="nav-icon" style="font-size: 16px;">🔄</span>
+                            <span class="nav-label">Hoàn/Trả Hàng</span>
+                        </span>
+                    </a>
+
+                    <a th:href="@{/staff/chat}" class="sidebar-nav-link">
+                        <span class="nav-left">
+                            <span class="nav-icon" style="font-size: 16px;">💬</span>
+                            <span class="nav-label">Chat Khách Hàng</span>
+                        </span>
                     </a>
                 </nav>
 

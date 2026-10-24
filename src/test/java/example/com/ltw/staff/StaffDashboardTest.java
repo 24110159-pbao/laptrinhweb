@@ -25,7 +25,7 @@ public class StaffDashboardTest {
     public void testStaffLoginAndDashboardAccess() throws Exception {
         MockHttpSession session = new MockHttpSession();
         LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setEmail("staff1@gamil.com");
+        loginRequest.setEmail("staff1@gmail.com");
         loginRequest.setPassword("123456");
 
         User user = authService.login(loginRequest, session);
@@ -42,7 +42,15 @@ public class StaffDashboardTest {
                 .session(session))
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk());
 
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/staff/orders/1")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/staff/pending-orders")
+                .session(session))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/staff/returns")
+                .session(session))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/staff/chat")
                 .session(session))
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk());
     }
