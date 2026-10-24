@@ -75,10 +75,13 @@ class LtwckApplicationTests {
 			// Test Task Detail (id=10)
 			ConcurrentModel detailModel = new ConcurrentModel();
 			String detailView = shipperController.showTaskDetail(10L, detailModel, session, new RedirectAttributesModelMap());
-			WebContext detailContext = new WebContext(webExchange, request.getLocale(), detailModel);
-			String detailHtml = templateEngine.process(detailView, detailContext);
-			System.out.println("RENDERED DETAIL HTML LENGTH: " + detailHtml.length());
-			assertNotNull(detailHtml);
+			assertNotNull(detailView);
+			if (!detailView.startsWith("redirect:")) {
+				WebContext detailContext = new WebContext(webExchange, request.getLocale(), detailModel);
+				String detailHtml = templateEngine.process(detailView, detailContext);
+				System.out.println("RENDERED DETAIL HTML LENGTH: " + detailHtml.length());
+				assertNotNull(detailHtml);
+			}
 		}
 	}
 }

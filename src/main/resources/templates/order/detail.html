@@ -28,6 +28,77 @@
               onsubmit="return confirm('Bạn chắc chắn muốn hủy đơn hàng này?')">
             <button class="account-button danger" type="submit">Hủy đơn hàng</button>
         </form>
+        <div th:if="${order.status.name() == 'DELIVERED'}" style="margin-top: 14px;">
+            <a href="#return-section" class="account-button" style="background: #ea580c; color: #ffffff; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 8px;">
+                <span>🔄</span> Yêu Cầu Hoàn / Trả Hàng
+            </a>
+        </div>
+    </section>
+
+    <!-- Section Yêu Cầu Hoàn Hàng Trực Quan cho User -->
+    <section id="return-section" class="account-card" th:if="${order.status.name() == 'DELIVERED'}">
+        <div class="account-section-heading">
+            <div>
+                <h2 style="color: #ea580c; display: flex; align-items: center; gap: 8px;">
+                    <span>🔄</span> Yêu Cầu Hoàn / Trả Hàng
+                </h2>
+                <p>Đơn hàng đã giao thành công. Bạn có thể gửi yêu cầu hoàn trả sản phẩm trong vòng 7 ngày để được nhân viên chi nhánh xét duyệt và hoàn tiền.</p>
+            </div>
+        </div>
+        <form th:action="@{/account/orders/{code}/return(code=${order.orderCode})}" method="post">
+            <div style="background: #fff7ed; border: 1px solid #fed7aa; padding: 20px; border-radius: 12px; display: grid; gap: 16px;">
+                <div class="account-field">
+                    <label for="selectReturnItem" style="font-weight: 700; color: #9a3412;">Chọn sản phẩm cần hoàn/trả:</label>
+                    <select name="orderItemId" id="selectReturnItem" required 
+                            onchange="updateMaxReturnQty()"
+                            style="border: 1px solid #fdba74; padding: 10px 12px; border-radius: 8px; font-weight: 600; background: #ffffff;">
+                        <option th:each="it : ${items}" th:value="${it.id}" 
+                                th:text="${it.productNameSnapshot + ' (Mua ' + it.quantity + ' sản phẩm - ' + #numbers.formatDecimal(it.unitPrice, 0, 'COMMA', 0, 'POINT') + ' ₫)'}"
+                                th:data-max="${it.quantity}">
+                        </option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
+                    <div class="account-field" style="width: 140px;">
+                        <label for="returnQtyInput" style="font-weight: 700; color: #9a3412;">Số lượng trả:</label>
+                        <input type="number" id="returnQtyInput" name="quantity" min="1" value="1" required 
+                               style="border: 1px solid #fdba74; padding: 9px; border-radius: 8px; font-weight: 700; background: #ffffff;">
+                    </div>
+                    <div class="account-field" style="flex: 1; min-width: 250px;">
+                        <label for="returnReasonInput" style="font-weight: 700; color: #9a3412;">Lý do hoàn trả:</label>
+                        <input type="text" id="returnReasonInput" name="reason" maxlength="1000" required
+                               placeholder="Nhập lý do trả hàng (ví dụ: Sản phẩm lỗi không hoạt động, sai mẫu mã...)" 
+                               style="border: 1px solid #fdba74; padding: 9px 12px; border-radius: 8px; background: #ffffff;">
+                    </div>
+                </div>
+                <!-- Gợi ý lý do nhanh tiện lợi khi test -->
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                    <span style="font-size: 12px; color: #c2410c; font-weight: 600;">Gợi ý lý do nhanh:</span>
+                    <button type="button" class="account-button small" style="background: #ffedd5; color: #9a3412; border: 1px solid #fed7aa;" onclick="document.getElementById('returnReasonInput').value='Sản phẩm bị lỗi kỹ thuật, không khởi động được.'">Hàng lỗi kỹ thuật</button>
+                    <button type="button" class="account-button small" style="background: #ffedd5; color: #9a3412; border: 1px solid #fed7aa;" onclick="document.getElementById('returnReasonInput').value='Giao sai phiên bản màu sắc hoặc dung lượng.'">Giao sai mẫu/màu</button>
+                    <button type="button" class="account-button small" style="background: #ffedd5; color: #9a3412; border: 1px solid #fed7aa;" onclick="document.getElementById('returnReasonInput').value='Khách hàng muốn đổi sang phiên bản cao cấp hơn.'">Đổi phiên bản khác</button>
+                </div>
+                <div style="display: flex; justify-content: flex-end; margin-top: 6px;">
+                    <button type="submit" class="account-button" style="background: #ea580c; color: #ffffff; font-weight: 700; padding: 11px 26px; font-size: 14px; border: none; border-radius: 8px; cursor: pointer;">
+                        🚀 Gửi Yêu Cầu Hoàn Hàng Cho Shop
+                    </button>
+                </div>
+            </div>
+        </form>
+        <script>
+            function updateMaxReturnQty() {
+                const sel = document.getElementById('selectReturnItem');
+                if (!sel) return;
+                const opt = sel.options[sel.selectedIndex];
+                const max = opt ? (opt.getAttribute('data-max') || 1) : 1;
+                const qtyInput = document.getElementById('returnQtyInput');
+                if (qtyInput) {
+                    qtyInput.max = max;
+                    if (parseInt(qtyInput.value) > parseInt(max)) qtyInput.value = max;
+                }
+            }
+            document.addEventListener('DOMContentLoaded', updateMaxReturnQty);
+        </script>
     </section>
     <section class="account-card">
         <h2>Sản phẩm đã đặt</h2>

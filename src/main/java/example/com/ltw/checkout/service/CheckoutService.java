@@ -80,6 +80,7 @@ public class CheckoutService {
     private final ShipmentRepository shipmentRepository;
     private final ShipmentEventRepository shipmentEventRepository;
     private final VnPayService vnPayService;
+    private final example.com.ltw.chat.service.ChatService chatService;
 
     @Value("${checkout.hold-duration-minutes:15}")
     private int holdDurationMinutes;
@@ -364,6 +365,11 @@ public class CheckoutService {
         }
         session.setStatus(CheckoutStatus.COMPLETED);
         cartItemRepository.deleteByCartId(session.getCart().getId());
+
+        // Tự động gửi tin nhắn báo đặt hàng thành công từ user đến nhân viên chi nhánh
+        if (chatService != null) {
+            chatService.sendOrderSuccessMessage(order);
+        }
 
         return order;
     }

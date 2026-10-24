@@ -44,6 +44,12 @@
                 </div>
                 <div class="order-list-actions">
                     <a class="account-button secondary" th:href="@{/account/orders/{code}(code=${entry.order.orderCode})}">Xem chi tiết</a>
+                    <a th:if="${entry.order.status.name() == 'DELIVERED'}"
+                       class="account-button"
+                       style="background: #ea580c; color: #ffffff; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; text-decoration: none;"
+                       th:href="@{/account/orders/{code}#return-section(code=${entry.order.orderCode})}">
+                        <span>🔄</span> Yêu Cầu Hoàn Hàng
+                    </a>
                     <form th:if="${entry.order.status.name() == 'PENDING' or entry.order.status.name() == 'CONFIRMED'}"
                           th:action="@{/account/orders/{code}/cancel(code=${entry.order.orderCode})}" method="post"
                           onsubmit="return confirm('Bạn chắc chắn muốn hủy đơn hàng này?')">

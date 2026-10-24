@@ -15,6 +15,11 @@ import example.com.ltw.shipping.service.GhnShippingService;
 import example.com.ltw.user.entity.Role;
 import example.com.ltw.user.entity.User;
 import example.com.ltw.user.repository.UserRepository;
+import example.com.ltw.inventory.entity.BranchInventory;
+import example.com.ltw.inventory.entity.InventoryTransaction;
+import example.com.ltw.inventory.entity.InventoryTransactionType;
+import example.com.ltw.inventory.repository.BranchInventoryRepository;
+import example.com.ltw.inventory.repository.InventoryTransactionRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -44,19 +49,25 @@ public class BranchOrderWorkflowService {
     private final ShipmentRepository shipmentRepository;
     private final UserRepository userRepository;
     private final GhnShippingService ghnShippingService;
+    private final BranchInventoryRepository inventoryRepository;
+    private final InventoryTransactionRepository inventoryTransactionRepository;
 
     public BranchOrderWorkflowService(
             OrderRepository orderRepository,
             OrderItemRepository orderItemRepository,
             ShipmentRepository shipmentRepository,
             UserRepository userRepository,
-            GhnShippingService ghnShippingService
+            GhnShippingService ghnShippingService,
+            BranchInventoryRepository inventoryRepository,
+            InventoryTransactionRepository inventoryTransactionRepository
     ) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.shipmentRepository = shipmentRepository;
         this.userRepository = userRepository;
         this.ghnShippingService = ghnShippingService;
+        this.inventoryRepository = inventoryRepository;
+        this.inventoryTransactionRepository = inventoryTransactionRepository;
     }
 
     // ==========================================
@@ -195,6 +206,9 @@ public class BranchOrderWorkflowService {
             s.setUpdatedAt(LocalDateTime.now());
             shipmentRepository.save(s);
         });
+
+        // Hoàn lại số lượng tồn kho cho chi nhánh
+        restoreOrderInventory(order, staff, "Nhân viên hủy đơn hàng: " + reason);
 
         Order saved = orderRepository.save(order);
         log.warn("Staff '{}' đã hủy đơn '{}'. Lý do: {}", staff.getEmail(), order.getOrderCode(), reason);
@@ -375,12 +389,14 @@ public class BranchOrderWorkflowService {
         if (isCustomerReturnOrCancel) {
             order.setStatus(OrderStatus.CANCELLED);
             failLog = "[Shipper báo giao thất bại (Khách hủy/hoàn hàng): " + trimmedReason + " -> Đã hủy đơn và hoàn kho]";
+            restoreOrderInventory(order, shipper, "Giao hàng thất bại (khách hủy/hoàn hàng): " + trimmedReason);
         } else {
             if (currentAttempts < 3) {
                 failLog = "[Shipper báo giao thất bại lần " + currentAttempts + "/3: " + trimmedReason + " - Chờ giao lại]";
             } else {
                 order.setStatus(OrderStatus.CANCELLED);
                 failLog = "[Shipper báo giao thất bại lần " + currentAttempts + "/3: " + trimmedReason + " -> Quá 3 lần giao thất bại, tự động chuyển hủy đơn và hoàn kho]";
+                restoreOrderInventory(order, shipper, "Giao hàng thất bại quá 3 lần: " + trimmedReason);
             }
         }
 
@@ -393,6 +409,54 @@ public class BranchOrderWorkflowService {
         log.warn("Shipper '{}' báo giao thất bại cho đơn '{}'. Lần: {}, Lý do: {}, Đơn hủy: {}", 
                 shipper.getEmail(), order.getOrderCode(), currentAttempts, trimmedReason, order.getStatus() == OrderStatus.CANCELLED);
         return saved;
+    }
+
+    /**
+     * Tự động cộng lại số lượng sản phẩm vào tồn kho chi nhánh khi giao hàng thất bại (hủy/hoàn đơn).
+     * Ghi nhận lịch sử giao dịch tồn kho InventoryTransaction loại ORDER_RELEASED chuẩn hóa nghiệp vụ thực tế.
+     */
+    private void restoreOrderInventory(Order order, User actor, String reason) {
+        if (order == null || order.getBranch() == null) {
+            return;
+        }
+        List<OrderItem> items = orderItemRepository.findAllByOrder_IdOrderByIdAsc(order.getId());
+        if (items == null || items.isEmpty()) {
+            return;
+        }
+
+        for (OrderItem item : items) {
+            if (item.getProductVariant() == null || item.getQuantity() <= 0) {
+                continue;
+            }
+            Long branchId = order.getBranch().getId();
+            Long variantId = item.getProductVariant().getId();
+
+            if (inventoryRepository != null) {
+                inventoryRepository.findByBranchIdAndVariantIdForUpdate(branchId, variantId)
+                        .ifPresent(inventory -> {
+                            int before = inventory.getQuantity();
+                            int after = Math.addExact(before, item.getQuantity());
+                            inventory.setQuantity(after);
+                            inventoryRepository.save(inventory);
+
+                            if (inventoryTransactionRepository != null) {
+                                inventoryTransactionRepository.save(InventoryTransaction.create(
+                                        inventory.getVariant(),
+                                        inventory.getBranch(),
+                                        InventoryTransactionType.ORDER_RELEASED,
+                                        before,
+                                        after,
+                                        order.getOrderCode(),
+                                        reason != null ? reason : "Hoàn tồn kho chi nhánh do giao thất bại / hủy đơn",
+                                        actor
+                                ));
+                            }
+
+                            log.info("Đã hoàn +{} sp (Variant #{}) vào chi nhánh '{}' (tồn kho: {} -> {}) cho đơn '{}'",
+                                    item.getQuantity(), variantId, order.getBranch().getName(), before, after, order.getOrderCode());
+                        });
+            }
+        }
     }
 
     // ==========================================
