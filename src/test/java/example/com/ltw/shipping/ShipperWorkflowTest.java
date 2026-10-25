@@ -31,6 +31,8 @@ public class ShipperWorkflowTest {
     private OrderItemRepository orderItemRepository;
     private UserRepository userRepository;
     private GhnShippingService ghnShippingService;
+    private example.com.ltw.inventory.repository.BranchInventoryRepository inventoryRepository;
+    private example.com.ltw.inventory.repository.InventoryTransactionRepository inventoryTransactionRepository;
     private BranchOrderWorkflowService workflowService;
 
     private User shipper;
@@ -44,13 +46,17 @@ public class ShipperWorkflowTest {
         orderItemRepository = mock(OrderItemRepository.class);
         userRepository = mock(UserRepository.class);
         ghnShippingService = mock(GhnShippingService.class);
+        inventoryRepository = mock(example.com.ltw.inventory.repository.BranchInventoryRepository.class);
+        inventoryTransactionRepository = mock(example.com.ltw.inventory.repository.InventoryTransactionRepository.class);
 
         workflowService = new BranchOrderWorkflowService(
                 orderRepository,
                 orderItemRepository,
                 shipmentRepository,
                 userRepository,
-                ghnShippingService
+                ghnShippingService,
+                inventoryRepository,
+                inventoryTransactionRepository
         );
 
         shipper = new User();
@@ -120,5 +126,39 @@ public class ShipperWorkflowTest {
 
         // Retry 3 fails
         assertThrows(IllegalStateException.class, () -> workflowService.retryDelivery(shipper, 200L));
+    }
+
+    @Test
+    void testFailDelivery_RestoresInventoryStock() {
+        Branch branch = new Branch();
+        branch.setId(1L);
+        order.setBranch(branch);
+
+        example.com.ltw.catalog.entity.ProductVariant variant = new example.com.ltw.catalog.entity.ProductVariant();
+        variant.setId(10L);
+
+        example.com.ltw.order.entity.OrderItem item = new example.com.ltw.order.entity.OrderItem();
+        item.setId(50L);
+        item.setProductVariant(variant);
+        item.setQuantity(2);
+        item.setProductNameSnapshot("iPhone 16");
+
+        when(orderItemRepository.findAllByOrder_IdOrderByIdAsc(order.getId())).thenReturn(java.util.List.of(item));
+
+        example.com.ltw.inventory.entity.BranchInventory inventory = new example.com.ltw.inventory.entity.BranchInventory();
+        inventory.setId(99L);
+        inventory.setBranch(branch);
+        inventory.setVariant(variant);
+        inventory.setQuantity(5);
+
+        when(inventoryRepository.findByBranchIdAndVariantIdForUpdate(1L, 10L)).thenReturn(Optional.of(inventory));
+
+        // When delivery fails and customer cancels
+        workflowService.failDelivery(shipper, 200L, "Khách từ chối nhận hàng do đổi ý, hoàn hàng");
+
+        // Verify inventory quantity increased from 5 to 7 (5 + 2)
+        assertEquals(7, inventory.getQuantity());
+        verify(inventoryRepository, times(1)).save(inventory);
+        verify(inventoryTransactionRepository, times(1)).save(any(example.com.ltw.inventory.entity.InventoryTransaction.class));
     }
 }

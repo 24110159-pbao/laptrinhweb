@@ -29,9 +29,14 @@ import java.util.List;
 public class StaffOrderController {
 
     private final StaffOrderService staffOrderService;
+    private final example.com.ltw.order.service.ReturnRequestService returnRequestService;
 
-    public StaffOrderController(StaffOrderService staffOrderService) {
+    public StaffOrderController(
+            StaffOrderService staffOrderService,
+            example.com.ltw.order.service.ReturnRequestService returnRequestService
+    ) {
         this.staffOrderService = staffOrderService;
+        this.returnRequestService = returnRequestService;
     }
 
     /**
@@ -461,5 +466,119 @@ public class StaffOrderController {
         }
 
         return "redirect:/staff/orders/" + id;
+    }
+
+    // ==========================================
+    // 8. CUSTOMER RETURN REQUESTS REVIEW
+    // ==========================================
+
+    @GetMapping("/returns")
+    public String listReturns(
+            @RequestParam(name = "status", required = false) example.com.ltw.order.entity.ReturnRequestStatus status,
+            Model model,
+            HttpSession session,
+            RedirectAttributes redirectAttributes
+    ) {
+        User staff;
+        try {
+            staff = requireStaffUser(session);
+        } catch (SecurityException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng đăng nhập!");
+            return "redirect:/login";
+        }
+        StaffDashboardDto dashboard = staffOrderService.getDashboardData(staff);
+        List<example.com.ltw.order.entity.ReturnRequest> returns = returnRequestService.getBranchReturnRequests(dashboard.getBranchId(), status);
+        model.addAttribute("staff", staff);
+        model.addAttribute("currentUser", staff);
+        model.addAttribute("dashboard", dashboard);
+        model.addAttribute("returns", returns);
+        model.addAttribute("selectedStatus", status);
+        model.addAttribute("locationName", dashboard.getBranchName());
+        model.addAttribute("cartCount", 0);
+        model.addAttribute("compareCount", 0);
+        model.addAttribute("activeNav", "returns");
+        return "staff/returns";
+    }
+
+    @GetMapping("/returns/{id}")
+    public String showReturnDetail(
+            @PathVariable("id") Long id,
+            Model model,
+            HttpSession session,
+            RedirectAttributes redirectAttributes
+    ) {
+        User staff;
+        try {
+            staff = requireStaffUser(session);
+        } catch (SecurityException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng đăng nhập!");
+            return "redirect:/login";
+        }
+        StaffDashboardDto dashboard = staffOrderService.getDashboardData(staff);
+        try {
+            example.com.ltw.order.entity.ReturnRequest returnRequest = returnRequestService.getReturnRequestDetail(id, dashboard.getBranchId());
+            model.addAttribute("staff", staff);
+            model.addAttribute("currentUser", staff);
+            model.addAttribute("dashboard", dashboard);
+            model.addAttribute("returnRequest", returnRequest);
+            model.addAttribute("locationName", dashboard.getBranchName());
+            model.addAttribute("cartCount", 0);
+            model.addAttribute("compareCount", 0);
+            model.addAttribute("activeNav", "returns");
+            return "staff/return-detail";
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            return "redirect:/staff/returns";
+        }
+    }
+
+    @PostMapping("/returns/{id}/approve")
+    public String approveReturn(
+            @PathVariable("id") Long id,
+            @RequestParam(name = "staffNote", required = false) String staffNote,
+            @RequestParam(name = "restockInventory", defaultValue = "true") boolean restockInventory,
+            HttpSession session,
+            RedirectAttributes redirectAttributes
+    ) {
+        User staff;
+        try {
+            staff = requireStaffUser(session);
+        } catch (SecurityException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng đăng nhập!");
+            return "redirect:/login";
+        }
+        try {
+            example.com.ltw.order.entity.ReturnRequest approved = returnRequestService.approveReturnRequest(id, staff, staffNote, restockInventory);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Đã duyệt yêu cầu hoàn trả #" + approved.getRequestCode() + " thành công!"
+                    + (restockInventory ? " Sản phẩm đã được cộng lại vào tồn kho chi nhánh." : ""));
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Không thể duyệt yêu cầu: " + ex.getMessage());
+        }
+        return "redirect:/staff/returns/" + id;
+    }
+
+    @PostMapping("/returns/{id}/reject")
+    public String rejectReturn(
+            @PathVariable("id") Long id,
+            @RequestParam(name = "rejectReason") String rejectReason,
+            HttpSession session,
+            RedirectAttributes redirectAttributes
+    ) {
+        User staff;
+        try {
+            staff = requireStaffUser(session);
+        } catch (SecurityException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng đăng nhập!");
+            return "redirect:/login";
+        }
+        try {
+            example.com.ltw.order.entity.ReturnRequest rejected = returnRequestService.rejectReturnRequest(id, staff, rejectReason);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Đã từ chối yêu cầu hoàn trả #" + rejected.getRequestCode() + "!");
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Không thể từ chối yêu cầu: " + ex.getMessage());
+        }
+        return "redirect:/staff/returns/" + id;
     }
 }

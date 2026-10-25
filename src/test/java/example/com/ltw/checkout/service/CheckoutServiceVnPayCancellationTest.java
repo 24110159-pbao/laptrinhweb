@@ -77,6 +77,7 @@ class CheckoutServiceVnPayCancellationTest {
     @Mock private ShipmentRepository shipmentRepository;
     @Mock private ShipmentEventRepository shipmentEventRepository;
     @Mock private VnPayService vnPayService;
+    @Mock private example.com.ltw.chat.service.ChatService chatService;
 
     @InjectMocks private CheckoutService checkoutService;
 
