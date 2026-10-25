@@ -4500,13 +4500,13 @@ a {
 /* ===== DARK MODE - NEXUSTECH INVENTORY ===== */
 
 .admin-page {
-    background: #0b1120 !important;
+    background: #172438 !important;
     color: #e2e8f0;
 }
 
 /* Nội dung chính */
 .admin-main {
-    background: #0b1120;
+    background: #172438;
     color: #e2e8f0;
 }
 
@@ -6012,5 +6012,227 @@ a {
     .admin-page .btn-manager-back,
     .admin-page .btn-manager-submit {
         transition: none;
+    }
+}
+/* =========================
+   AI chatbox
+========================= */
+
+
+.ai-chat-card {
+    margin-top: 30px;
+    padding: 24px;
+    background: #1b293e;
+    border: 1px solid #3b506b;
+    border-radius: 16px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.12);
+    color: #f8fafc;
+}
+
+.ai-chat-heading,
+.ai-chat-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.ai-chat-heading h3,
+.ai-chat-heading h4 {
+    color: #f8fafc;
+    margin-top: 0;
+}
+
+.ai-chat-heading p,
+.ai-chat-status {
+    color: #a8b8cc;
+    font-size: 13px;
+}
+
+.ai-chat-badge {
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #193e59;
+    color: #20bfff;
+    border: 1px solid #245779;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .5px;
+    white-space: nowrap;
+}
+
+.ai-chat-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 360px;
+    overflow-y: auto;
+    margin: 18px 0;
+    padding: 16px;
+    border: 1px solid #3b506b;
+    border-radius: 12px;
+    background: #172438;
+}
+
+.ai-chat-empty {
+    margin: 0;
+    color: #94a8bf;
+    font-size: 14px;
+    text-align: center;
+    padding: 20px 0;
+}
+
+.ai-chat-message {
+    align-self: flex-start;
+    max-width: min(90%, 720px);
+    padding: 12px 15px;
+    border-radius: 12px;
+    background: #263850;
+    border: 1px solid #405775;
+    overflow-wrap: anywhere;
+    color: #f1f5f9;
+}
+
+.ai-chat-message.manager {
+    align-self: flex-end;
+    background: #173e5c;
+    border-color: #167bb0;
+}
+
+.ai-chat-message strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #20bfff;
+    font-size: 12px;
+}
+
+.ai-chat-message p {
+    margin: 0;
+    color: #e2eaf4;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.ai-chat-message.error {
+    border-color: #a94350;
+    background: #3a2633;
+}
+
+.ai-chat-message.error strong {
+    color: #ff7b86;
+}
+
+.ai-chat-message.loading p {
+    color: #a8b8cc;
+}
+
+.ai-chat-form textarea {
+    box-sizing: border-box;
+    width: 100%;
+    resize: vertical;
+    min-height: 58px;
+    padding: 13px 14px;
+    border: 1px solid #405775;
+    border-radius: 10px;
+    background: #172438;
+    font: inherit;
+    color: #f8fafc;
+    transition: border-color .2s, box-shadow .2s;
+}
+
+.ai-chat-form textarea::placeholder {
+    color: #8295ad;
+}
+
+.ai-chat-form textarea:focus {
+    outline: none;
+    border-color: #20bfff;
+    box-shadow: 0 0 0 3px rgba(32, 191, 255, .14);
+}
+
+.ai-chat-actions {
+    margin-top: 12px;
+}
+
+.ai-chat-actions button {
+    padding: 10px 18px;
+    border: 1px solid #159bd8;
+    border-radius: 9px;
+    background: #0874c9;
+    color: #ffffff;
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+    transition: background .2s, transform .2s;
+}
+
+.ai-chat-actions button:hover {
+    background: #1099e8;
+    transform: translateY(-1px);
+}
+
+.ai-chat-actions button:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.ai-chat-messages {
+    max-height: 360px;
+    margin: 10px 0;
+    padding: 8px 12px;
+    gap: 8px;
+}
+
+.ai-chat-messages::-webkit-scrollbar-track {
+    background: #172438;
+    border-radius: 10px;
+}
+
+.ai-chat-messages::-webkit-scrollbar-thumb {
+    background: #405775;
+    border-radius: 10px;
+}
+
+.ai-chat-messages::-webkit-scrollbar-thumb:hover {
+    background: #20bfff;
+}
+
+.ai-chat-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+@media (max-width: 768px) {
+    .ai-chat-card {
+        padding: 16px;
+        margin-top: 20px;
+        border-radius: 12px;
+    }
+
+    .ai-chat-heading,
+    .ai-chat-actions {
+        flex-wrap: wrap;
+    }
+
+    .ai-chat-message {
+        max-width: 95%;
+    }
+
+    .ai-chat-messages {
+        max-height: 300px;
+        padding: 12px;
+    }
+
+    .ai-chat-actions button {
+        width: 100%;
     }
 }

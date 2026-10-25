@@ -133,14 +133,6 @@
                 </p>
             </div>
 
-            <div class="admin-date-chip">
-                <i class="bi bi-calendar3"></i>
-                <span th:text="${#temporals.format(
-                    #temporals.createNow(), 'dd/MM/yyyy'
-                )}">
-                    22/10/2026
-                </span>
-            </div>
         </section>
 
         <!-- ================= STATISTICS ================= -->
@@ -253,103 +245,100 @@
 
         </section>
 
+
+        <div class="section-heading">
+            <div>
+                <h2>Phân tích hoạt động</h2>
+                <p>
+                    Theo dõi doanh thu và tình hình đơn hàng
+                    của hệ thống.
+                </p>
+            </div>
+        </div>
         <!-- ================= CHARTS ================= -->
         <section class="admin-section">
 
-            <div class="section-heading">
-                <div>
-                    <h2>Phân tích hoạt động</h2>
-                    <p>
-                        Theo dõi doanh thu và tình hình đơn hàng
-                        của hệ thống.
-                    </p>
+            <!-- Revenue chart -->
+            <div class="col-12 col-xl-8">
+                <div class="admin-panel chart-panel">
+
+                    <div class="chart-card-heading">
+                        <div>
+                            <h3>Doanh thu 12 tháng gần nhất</h3>
+                            <p>Biến động doanh thu theo tháng</p>
+                        </div>
+
+                        <span class="chart-badge">
+                            <i class="bi bi-graph-up"></i>
+                            Doanh thu
+                        </span>
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+
+                    <div class="chart-note">
+                        <i class="bi bi-info-circle"></i>
+                        Thống kê doanh thu theo dữ liệu
+                        được cung cấp từ hệ thống.
+                    </div>
+
                 </div>
             </div>
 
-            <div class="row g-4">
+            <!-- Order status chart -->
+            <div class="col-12 col-xl-4">
+                <div class="admin-panel chart-panel">
 
-                <!-- Revenue chart -->
-                <div class="col-12 col-xl-8">
-                    <div class="admin-panel chart-panel">
-
-                        <div class="chart-card-heading">
-                            <div>
-                                <h3>Doanh thu 12 tháng gần nhất</h3>
-                                <p>Biến động doanh thu theo tháng</p>
-                            </div>
-
-                            <span class="chart-badge">
-                                <i class="bi bi-graph-up"></i>
-                                Doanh thu
-                            </span>
+                    <div class="chart-card-heading">
+                        <div>
+                            <h3>Trạng thái đơn hàng</h3>
+                            <p>Phân bố đơn hàng theo trạng thái</p>
                         </div>
-
-                        <div class="chart-container">
-                            <canvas id="revenueChart"></canvas>
-                        </div>
-
-                        <div class="chart-note">
-                            <i class="bi bi-info-circle"></i>
-                            Thống kê doanh thu theo dữ liệu
-                            được cung cấp từ hệ thống.
-                        </div>
-
                     </div>
-                </div>
 
-                <!-- Order status chart -->
-                <div class="col-12 col-xl-4">
-                    <div class="admin-panel chart-panel">
-
-                        <div class="chart-card-heading">
-                            <div>
-                                <h3>Trạng thái đơn hàng</h3>
-                                <p>Phân bố đơn hàng theo trạng thái</p>
-                            </div>
-                        </div>
-
-                        <div class="chart-container chart-container-doughnut">
-                            <canvas id="statusChart"></canvas>
-                        </div>
-
-                        <div class="chart-note">
-                            <i class="bi bi-info-circle"></i>
-                            Số liệu được tổng hợp theo trạng thái
-                            đơn hàng hiện có.
-                        </div>
-
+                    <div class="chart-container chart-container-doughnut">
+                        <canvas id="statusChart"></canvas>
                     </div>
+
+                    <div class="chart-note">
+                        <i class="bi bi-info-circle"></i>
+                        Số liệu được tổng hợp theo trạng thái
+                        đơn hàng hiện có.
+                    </div>
+
                 </div>
+            </div>
 
-                <!-- Orders per month -->
-                <div class="col-12">
-                    <div class="admin-panel chart-panel">
+        </section>
+        <section class="admin-section">
+            <!-- Orders per month -->
+            <div class="col-12">
+                <div class="admin-panel chart-panel">
 
-                        <div class="chart-card-heading">
-                            <div>
-                                <h3>Số đơn hàng theo tháng</h3>
-                                <p>
-                                    So sánh số lượng đơn hàng
-                                    trong 12 tháng gần nhất
-                                </p>
-                            </div>
+                    <div class="chart-card-heading">
+                        <div>
+                            <h3>Số đơn hàng theo tháng</h3>
+                            <p>
+                                So sánh số lượng đơn hàng
+                                trong 12 tháng gần nhất
+                            </p>
+                        </div>
 
-                            <span class="chart-badge">
+                        <span class="chart-badge">
                                 <i class="bi bi-bar-chart-fill"></i>
                                 Đơn hàng
                             </span>
-                        </div>
-
-                        <div class="chart-container chart-container-small">
-                            <canvas id="ordersChart"></canvas>
-                        </div>
-
                     </div>
-                </div>
 
+                    <div class="chart-container chart-container-small">
+                        <canvas id="ordersChart"></canvas>
+                    </div>
+
+                </div>
             </div>
         </section>
-
         <!-- ================= BRANCH REVENUE ================= -->
         <section class="admin-section">
 
@@ -442,6 +431,7 @@
             </div>
         </section>
 
+        <div th:replace="~{admin/ai-chatbox :: aiChatbox}"></div>
         <!-- ================= FOOTER ================= -->
         <footer class="admin-footer">
             NEXUSTECH ADMINISTRATION
@@ -661,6 +651,7 @@
         }
     });
 </script>
+<script th:src="@{/js/admin-ai-chat.js}" defer></script>
 
 </body>
 </html>
