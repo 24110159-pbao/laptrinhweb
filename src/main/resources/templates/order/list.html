@@ -17,10 +17,9 @@
         <a class="active" th:href="@{/account/orders}">Đơn hàng</a>
     </nav>
     <section class="account-card">
-        <div class="account-section-heading"><div><h1>Đơn hàng của tôi</h1><p>Theo dõi trạng thái giao hàng, thanh toán và chi tiết đơn đã đặt.</p></div></div>
+        <div class="account-section-heading"><div><h1>Đơn hàng của tôi</h1></div></div>
         <div th:if="${#lists.isEmpty(orders)}" class="order-empty">
             <h2>Bạn chưa có đơn hàng nào</h2>
-            <p>Đơn hàng sau khi đặt thành công sẽ xuất hiện tại đây.</p>
             <a class="account-button" th:href="@{/}">Khám phá sản phẩm</a>
         </div>
         <div th:each="entry : ${orders}" class="order-list-card">

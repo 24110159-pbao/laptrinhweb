@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <body>
-<header th:fragment="header" class="site-page-header">
+<header class="site-page-header" style="justify-content: space-between;">
     <a th:href="@{/}" class="brand-logo">
         <span class="brand-icon">⚡</span>
         <span class="brand-title-wrap">
@@ -9,17 +9,7 @@
             <span class="brand-tagline">FLAGSHIP STORE</span>
         </span>
     </a>
-    <nav class="site-page-nav" aria-label="Điều hướng chính">
-        <a th:href="@{/}">Trang chủ</a>
-        <a th:href="@{/products}">Sản phẩm</a>
-        <a th:href="@{/favorites}">Yêu thích</a>
-        <a th:href="@{/cart}">Giỏ hàng</a>
-        <a th:href="@{/account/profile}">Tài khoản</a>
-    </nav>
-    <form th:action="@{/products}" method="get" class="site-page-search">
-        <input type="search" name="keyword" placeholder="Tìm sản phẩm">
-        <button type="submit">Tìm</button>
-    </form>
+    <a th:href="@{/}" style="color: #38bdf8; text-decoration: none; font-weight: 600;">← Quay về trang chủ</a>
 </header>
 
 <footer th:fragment="footer" class="main-footer">

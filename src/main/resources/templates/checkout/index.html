@@ -9,30 +9,58 @@
     <link rel="stylesheet" th:href="@{/css/cart.css}">
 </head>
 <body class="account-page">
-<header th:replace="~{fragments/site :: header}"></header>
+<header class="site-page-header" style="justify-content: space-between;">
+    <a th:href="@{/}" class="brand-logo">
+        <span class="brand-icon">⚡</span>
+        <span class="brand-title-wrap">
+            <span class="brand-name">NEXUSTECH</span>
+            <span class="brand-tagline">FLAGSHIP STORE</span>
+        </span>
+    </a>
+</header>
+
 <main class="account-container cart-container checkout-container">
+    <!-- Thông báo -->
     <div th:if="${successMessage}" class="account-alert success" th:text="${successMessage}"></div>
     <div th:if="${infoMessage}" class="account-alert info" th:text="${infoMessage}"></div>
     <div th:if="${errorMessage}" class="account-alert error" th:text="${errorMessage}"></div>
 
     <div class="checkout-title">
-        <div><span class="cart-eyebrow">Thanh toán an toàn</span><h1>Hoàn tất đơn hàng</h1></div>
+        <div>
+            <span class="cart-eyebrow">Thanh toán an toàn</span>
+            <h1>Hoàn tất đơn hàng</h1>
+        </div>
         <div class="checkout-expiry">
             <span>Thời gian giữ hàng đến</span>
             <strong th:text="${#temporals.format(checkout.expiresAt, 'HH:mm dd/MM/yyyy')}"></strong>
         </div>
     </div>
 
-    <form th:action="@{/checkout/{id}/quote(id=${checkout.id})}" th:object="${addressRequest}"
-          method="post" class="checkout-form" id="addressForm">
+    <!-- ============================================================
+         FORM 1: QUOTE (Chứa địa chỉ + sản phẩm + mã giảm giá)
+         JS sẽ tự động submit form này ngầm khi bấm Xác nhận
+         ============================================================ -->
+    <form th:action="@{/checkout/{id}/quote(id=${checkout.id})}"
+          th:object="${addressRequest}"
+          method="post"
+          class="checkout-form"
+          id="quoteForm">
+
+        <!-- SECTION 1: ĐỊA CHỈ -->
         <section class="account-card">
             <div class="account-section-heading">
-                <div><h2>1. Địa chỉ nhận hàng</h2><p>Miễn phí vận chuyển cho mọi đơn hàng.</p></div>
+                <div>
+                    <h2>1. Địa chỉ nhận hàng</h2>
+                    <p>Miễn phí vận chuyển cho mọi đơn hàng.</p>
+                </div>
             </div>
+
             <div th:if="${!#lists.isEmpty(addresses)}" class="checkout-address-list">
-                <label th:each="address : ${addresses}" class="checkout-address-option">
+                <label th:each="address, iterStat : ${addresses}" class="checkout-address-option">
                     <input type="radio" name="addressId" th:value="${address.id}"
-                           th:checked="${checkout.shippingAddressId == address.id}">
+                           th:checked="${address.isDefault
+                                or (checkout.shippingAddressId != null and checkout.shippingAddressId == address.id)
+                                or (checkout.shippingAddressId == null and iterStat.first and #lists.isEmpty(addresses.?[isDefault]))}">
                     <span>
                         <strong th:text="${address.receiverName + ' · ' + address.phone}"></strong>
                         <small th:text="${address.streetAddress + ', ' + address.ward + ', ' + address.district + ', ' + address.province}"></small>
@@ -40,12 +68,15 @@
                     </span>
                 </label>
             </div>
+
             <label class="checkout-new-address-choice">
-                <input type="radio" name="addressId" value="" th:checked="${checkout.receiverName == null}">
+                <input type="radio" name="addressId" value=""
+                       th:checked="${#lists.isEmpty(addresses)}">
                 <strong>Nhập địa chỉ mới</strong>
                 <small>Địa chỉ mới sẽ được lưu vào sổ địa chỉ và không đặt làm mặc định.</small>
             </label>
 
+            <!-- Form nhập địa chỉ mới -->
             <div class="checkout-new-address">
                 <div class="account-form-grid">
                     <div class="account-field">
@@ -54,7 +85,8 @@
                     </div>
                     <div class="account-field">
                         <label for="addressPhone">Số điện thoại</label>
-                        <input id="addressPhone" type="tel" th:field="*{phone}" pattern="(?:\+?84|0)[1-9][0-9]{8}" maxlength="13">
+                        <input id="addressPhone" type="tel" th:field="*{phone}"
+                               pattern="(?:\+?84|0)[1-9][0-9]{8}" maxlength="13">
                     </div>
                     <div class="account-field">
                         <label for="provinceSelect">Tỉnh/thành phố</label>
@@ -90,70 +122,242 @@
             </div>
         </section>
 
+        <!-- SECTION 2: SẢN PHẨM & MÃ GIẢM GIÁ -->
         <section class="account-card">
             <div class="account-section-heading">
-                <div><h2>2. Sản phẩm</h2><p th:text="'Chi nhánh gửi: ' + ${cart.branchName}">Chi nhánh</p></div>
+                <div>
+                    <h2>2. Sản phẩm</h2>
+                    <p th:text="'Chi nhánh gửi: ' + ${cart.branchName}">Chi nhánh</p>
+                </div>
             </div>
+
             <div th:each="line : ${cart.lines}" class="checkout-product-row">
-                <div><strong th:text="${line.productName}"></strong><small th:text="${line.variantDescription}"></small></div>
+                <div>
+                    <strong th:text="${line.productName}"></strong>
+                    <small th:text="${line.variantDescription}"></small>
+                </div>
                 <span th:text="${line.quantity} + ' × ' + ${#numbers.formatDecimal(line.unitPrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></span>
                 <strong th:text="${#numbers.formatDecimal(line.lineTotal, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></strong>
             </div>
+
+            <!-- KHU VỰC NHẬP MÃ GIẢM GIÁ (Đã sửa) -->
             <div class="checkout-discount">
                 <label for="discountCode">Mã giảm giá</label>
                 <input id="discountCode" name="discountCode" maxlength="50"
-                       th:value="${checkout.discountCodeValue}" placeholder="Nhập mã (không bắt buộc)">
+                       th:value="${checkout.discountCodeValue}"
+                       placeholder="Nhập mã và nhấn Enter (không bắt buộc)">
+                <span id="discountMessage" style="font-size: 13px; margin-top: 4px; display: block;"></span>
             </div>
+
+            <!-- KHU VỰC HIỂN THỊ TIỀN (Đã thêm ID) -->
             <div class="checkout-totals">
-                <div><span>Tổng tiền hàng</span><strong th:text="${#numbers.formatDecimal(checkout.subtotal, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></strong></div>
-                <div><span>Giảm giá</span><strong th:text="'− ' + ${#numbers.formatDecimal(checkout.discountAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></strong></div>
-                <div><span>Phí vận chuyển</span>
+                <div>
+                    <span>Tổng tiền hàng</span>
+                    <strong id="ui-subtotal"
+                            th:text="${#numbers.formatDecimal(checkout.subtotal, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></strong>
+                </div>
+                <div>
+                    <span>Giảm giá</span>
+                    <strong id="ui-discount" style="color: #ea580c;"
+                            th:text="'− ' + ${#numbers.formatDecimal(checkout.discountAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></strong>
+                </div>
+                <div>
+                    <span>Phí vận chuyển</span>
                     <strong>Miễn phí</strong>
                 </div>
-                <div class="checkout-grand-total"><span>Tổng thanh toán</span>
-                    <strong th:text="${#numbers.formatDecimal(checkout.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></strong>
+                <div class="checkout-grand-total">
+                    <span>Tổng thanh toán</span>
+                    <strong id="ui-final"
+                            th:text="${#numbers.formatDecimal(checkout.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></strong>
                 </div>
             </div>
+
             <div class="checkout-quote-actions">
-                <button class="account-button secondary" type="submit">Xác nhận địa chỉ và áp dụng mã giảm giá</button>
-                <button class="account-button small secondary" type="submit" form="cancelCheckoutForm">Hủy</button>
+                <button class="account-button small secondary" type="submit" form="cancelCheckoutForm">
+                    Hủy
+                </button>
             </div>
         </section>
-        </form>
-        <form id="cancelCheckoutForm" th:action="@{/checkout/{id}/cancel(id=${checkout.id})}" method="post"></form>
+    </form>
 
-    <section class="account-card">
-        <div class="account-section-heading">
-            <div><h2>3. Phương thức thanh toán</h2><p>Backend sẽ xác minh giao dịch VNPay; trang chuyển hướng không được xem là bằng chứng thanh toán.</p></div>
-        </div>
-        <form th:action="@{/checkout/{id}/confirm(id=${checkout.id})}" method="post" class="checkout-confirm-form">
+    <!-- Form ẩn dùng để Hủy đơn -->
+    <form id="cancelCheckoutForm" th:action="@{/checkout/{id}/cancel(id=${checkout.id})}" method="post"></form>
+
+
+    <!-- ============================================================
+         FORM 2: CONFIRM (Phương thức thanh toán)
+         Nút submit ở đây sẽ kích hoạt JS chạy ngầm Quote -> Confirm
+         ============================================================ -->
+    <form th:action="@{/checkout/{id}/confirm(id=${checkout.id})}"
+          method="post"
+          id="confirmForm"
+          class="checkout-confirm-form">
+        <section class="account-card">
+            <div class="account-section-heading">
+                <div>
+                    <h2>3. Phương thức thanh toán</h2>
+                    <p>Backend sẽ xác minh giao dịch VNPay.</p>
+                </div>
+            </div>
+
             <label class="checkout-payment-option">
                 <input type="radio" name="paymentMethod" value="COD" checked>
-                <span><strong>Thanh toán khi nhận hàng (COD)</strong><small>Thanh toán cho nhân viên giao hàng.</small></span>
+                <span>
+                    <strong>Thanh toán khi nhận hàng (COD)</strong>
+                    <small>Thanh toán cho nhân viên giao hàng.</small>
+                </span>
             </label>
             <label class="checkout-payment-option">
                 <input type="radio" name="paymentMethod" value="VNPAY">
-                <span><strong>VNPay Sandbox</strong><small>Thanh toán trực tuyến qua cổng thử nghiệm VNPay.</small></span>
+                <span>
+                    <strong>VNPay Sandbox</strong>
+                    <small>Thanh toán trực tuyến qua cổng thử nghiệm VNPay.</small>
+                </span>
             </label>
-            <p class="checkout-confirm-note" th:if="${checkout.receiverName == null}">
-                Hãy xác nhận địa chỉ nhận hàng trước khi đặt đơn.
-            </p>
-            <button class="account-button" type="submit" th:disabled="${checkout.receiverName == null}">
+
+            <!-- Nút Xác nhận (được gắn ID để JS bắt sự kiện) -->
+            <button class="account-button" type="submit" id="btnConfirmOrder">
                 Xác nhận đặt hàng
             </button>
-        </form>
-    </section>
+        </section>
+    </form>
 </main>
+
 <script th:src="@{/js/account.js}"></script>
 <script>
-    document.querySelectorAll('input[name="addressId"]').forEach(function (radio) {
-        radio.addEventListener('change', function () {
-            document.querySelector('.checkout-new-address').hidden = radio.value !== '';
+    (function () {
+        // --- 1. LOGIC ẨN/HIỆN FORM ĐỊA CHỈ MỚI ---
+        var newAddressBox = document.querySelector('.checkout-new-address');
+        var addressRadios = document.querySelectorAll('input[name="addressId"]');
+
+        function toggleNewAddressForm() {
+            var selected = document.querySelector('input[name="addressId"]:checked');
+            var isNew = !selected || selected.value === '';
+
+            newAddressBox.hidden = !isNew;
+
+            // Disable các input khi ẩn form để không gửi dữ liệu rỗng lên server
+            newAddressBox.querySelectorAll('input, select').forEach(function (el) {
+                if (el.type !== 'hidden') {
+                    el.disabled = !isNew;
+                }
+            });
+        }
+
+        addressRadios.forEach(function (radio) {
+            radio.addEventListener('change', toggleNewAddressForm);
         });
-    });
-    var selectedAddress = document.querySelector('input[name="addressId"]:checked');
-    if (selectedAddress) document.querySelector('.checkout-new-address').hidden = selectedAddress.value !== '';
+        toggleNewAddressForm(); // Khởi chạy khi load trang
+
+
+        // --- 2. LOGIC XÁC NHẬN ĐƠN HÀNG TỰ ĐỘNG (QUOTE -> CONFIRM) ---
+        var confirmBtn = document.getElementById('btnConfirmOrder');
+
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', function (e) {
+                e.preventDefault(); // Chặn hành vi submit mặc định của Form Confirm
+
+                var originalText = confirmBtn.innerText;
+                confirmBtn.innerText = 'Đang xử lý...';
+                confirmBtn.disabled = true;
+
+                var quoteForm = document.getElementById('quoteForm');
+                var confirmForm = document.getElementById('confirmForm');
+
+                var formData = new FormData(quoteForm);
+
+                // Gửi ngầm API Quote (endpoint cũ trả về HTML redirect)
+                fetch(quoteForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'
+                    }
+                })
+                    .then(function (response) {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        confirmForm.submit();
+                    })
+                    .catch(function (error) {
+                        console.error('Lỗi khi lưu địa chỉ (Quote):', error);
+                        alert('Có lỗi xảy ra khi kiểm tra địa chỉ. Vui lòng kiểm tra lại thông tin.');
+                        confirmBtn.innerText = originalText;
+                        confirmBtn.disabled = false;
+                    });
+            });
+        }
+
+
+        // --- 3. LOGIC TỰ ĐỘNG ÁP DỤNG MÃ GIẢM GIÁ KHI NHẤN ENTER ---
+        var discountInput = document.getElementById('discountCode');
+        var discountMessage = document.getElementById('discountMessage');
+
+        if (discountInput) {
+            discountInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault(); // Chặn form tự động submit
+                    var code = discountInput.value.trim();
+
+                    discountMessage.innerText = 'Đang kiểm tra...';
+                    discountMessage.style.color = '#ea580c';
+
+                    var quoteForm = document.getElementById('quoteForm');
+                    var formData = new FormData(quoteForm);
+                    formData.set('discountCode', code);
+
+                    // Đổi endpoint từ /quote thành /quote-api
+                    var apiUrl = quoteForm.action.replace('/quote', '/quote-api');
+
+                    fetch(apiUrl, {
+                        method: 'POST',
+                        body: formData
+                    })
+                        .then(async function (response) {
+                            var data = await response.json();
+                            if (!response.ok) {
+                                throw new Error(data.message || "Mã giảm giá không hợp lệ.");
+                            }
+                            return data;
+                        })
+                        .then(function (data) {
+                            var formatMoney = function (val) {
+                                return new Intl.NumberFormat('vi-VN').format(val) + ' ₫';
+                            };
+
+                            document.getElementById('ui-subtotal').innerText = formatMoney(data.subtotal);
+                            document.getElementById('ui-final').innerText = formatMoney(data.finalAmount);
+
+                            if (data.discountAmount > 0) {
+                                document.getElementById('ui-discount').innerText = '− ' + formatMoney(data.discountAmount);
+                                document.getElementById('ui-discount').style.color = '#16a34a';
+                                discountMessage.innerText = "Áp dụng mã thành công!";
+                                discountMessage.style.color = "#16a34a";
+                            } else {
+                                document.getElementById('ui-discount').innerText = '− 0 ₫';
+                                discountMessage.innerText = code === '' ? "" : "Mã hợp lệ nhưng không có mức giảm.";
+                                discountMessage.style.color = "#ea580c";
+                            }
+                        })
+                        .catch(function (error) {
+                            discountMessage.innerText = error.message;
+                            discountMessage.style.color = "red";
+
+                            // Reset UI nếu lỗi
+                            var formatMoney = function (val) {
+                                return new Intl.NumberFormat('vi-VN').format(val) + ' ₫';
+                            };
+                            document.getElementById('ui-discount').innerText = '− 0 ₫';
+                            // Tính lại tổng tiền = subtotal (vì backend đã rollback không có giảm giá)
+                            var subtotalText = document.getElementById('ui-subtotal').innerText
+                                .replace(' ₫', '').replace(/\./g, '');
+                            document.getElementById('ui-final').innerText = formatMoney(parseInt(subtotalText));
+                        });
+                }
+            });
+        }
+    })();
 </script>
+
 <footer th:replace="~{fragments/site :: footer}"></footer>
 </body>
 </html>

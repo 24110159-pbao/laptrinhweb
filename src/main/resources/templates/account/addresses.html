@@ -7,7 +7,16 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body class="account-page">
-<header th:replace="~{fragments/site :: header}"></header>
+<header class="site-page-header" style="justify-content: space-between;">
+    <a th:href="@{/}" class="brand-logo">
+        <span class="brand-icon">⚡</span>
+        <span class="brand-title-wrap">
+            <span class="brand-name">NEXUSTECH</span>
+            <span class="brand-tagline">FLAGSHIP STORE</span>
+        </span>
+    </a>
+    <a th:href="@{/}" style="color: #38bdf8; text-decoration: none; font-weight: 600;">← Quay về trang chủ</a>
+</header>
 <main class="account-container">
     <nav class="account-nav" aria-label="Quản lý tài khoản">
         <a th:href="@{/account/profile}">Hồ sơ cá nhân</a>
@@ -20,7 +29,7 @@
 
     <section class="account-card">
         <div class="account-section-heading">
-            <div><h1>Sổ địa chỉ nhận hàng</h1><p>Địa chỉ đầu tiên tự động là mặc định. Địa chỉ mặc định không thể bị xóa.</p></div>
+            <div><h1>Sổ địa chỉ nhận hàng</h1></div>
         </div>
         <div th:if="${#lists.isEmpty(addresses)}" class="empty-addresses">Bạn chưa lưu địa chỉ nhận hàng nào.</div>
         <article th:each="address : ${addresses}" class="address-card">
@@ -49,7 +58,6 @@
         <div class="account-section-heading">
             <div>
                 <h2 th:text="${addressRequest.id == null ? 'Thêm địa chỉ mới' : 'Cập nhật địa chỉ'}">Thêm địa chỉ mới</h2>
-                <p>Chọn lần lượt tỉnh/thành phố, quận/huyện, phường/xã từ dữ liệu địa giới hành chính.</p>
             </div>
             <a th:if="${addressRequest.id != null}" class="account-button small secondary" th:href="@{/account/addresses}">Thêm địa chỉ khác</a>
         </div>
