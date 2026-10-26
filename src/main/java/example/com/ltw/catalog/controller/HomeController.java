@@ -4,6 +4,10 @@ import example.com.ltw.auth.service.AuthService;
 import example.com.ltw.cart.dto.CartView;
 import example.com.ltw.cart.service.CartService;
 import example.com.ltw.catalog.dto.ProductCardDto;
+import example.com.ltw.catalog.dto.CategoryCompareDto;
+import example.com.ltw.catalog.dto.ComparisonResultDto;
+import example.com.ltw.catalog.dto.ProductCompareDto;
+import example.com.ltw.catalog.service.CompareService;
 import example.com.ltw.catalog.service.ProductService;
 import example.com.ltw.user.entity.User;
 import jakarta.servlet.http.HttpSession;
@@ -23,6 +27,7 @@ public class HomeController {
 
     private final ProductService productService;
     private final CartService cartService;
+    private final CompareService compareService;
 
     @GetMapping({"/", "/home"})
     public String index(
@@ -41,7 +46,11 @@ public class HomeController {
 
         // Header metrics matching the design
         model.addAttribute("locationName", "TP. Hồ Chí Minh");
-        model.addAttribute("compareCount", 2);
+
+        // Comparison count for header badge
+        List<CategoryCompareDto> compareCategories = compareService.getCompareCategories();
+        model.addAttribute("compareCount", compareCategories.isEmpty() ? 0 : 2);
+
         List<CartView> carts = currentUser == null
                 ? List.of()
                 : cartService.getCarts(currentUser.getId());

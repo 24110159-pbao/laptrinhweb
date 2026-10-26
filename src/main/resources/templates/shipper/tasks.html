@@ -219,7 +219,8 @@
                                     <span>📅</span> Thời gian:
                                 </label>
                                 <select name="timePreset" id="shipperTimePresetSelect" class="crm-time-select" onchange="this.form.submit()">
-                                    <option value="today" th:selected="${selectedTimePreset == null or selectedTimePreset == 'today'}">Hôm nay</option>
+                                    <option value="all" th:selected="${selectedTimePreset == null or selectedTimePreset == 'all'}">Toàn thời gian</option>
+                                    <option value="today" th:selected="${selectedTimePreset == 'today'}">Hôm nay</option>
                                     <option value="yesterday" th:selected="${selectedTimePreset == 'yesterday'}">Hôm qua</option>
                                     <option value="thisWeek" th:selected="${selectedTimePreset == 'thisWeek'}">Tuần này</option>
                                     <option value="thisMonth" th:selected="${selectedTimePreset == 'thisMonth'}">Tháng này</option>

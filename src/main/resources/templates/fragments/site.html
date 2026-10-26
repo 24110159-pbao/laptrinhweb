@@ -247,39 +247,120 @@
         .nexus-chat-body::-webkit-scrollbar-thumb:hover {
             background: #38bdf8;
         }
+        .chat-bubble-wrap {
+            display: flex;
+            width: 100%;
+            margin-bottom: 4px;
+        }
+        .chat-bubble-wrap.wrap-me {
+            justify-content: flex-end;
+        }
+        .chat-bubble-wrap.wrap-them {
+            justify-content: flex-start;
+        }
+        .chat-bubble-wrap.wrap-order {
+            justify-content: center;
+        }
+        .them-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            max-width: 85%;
+        }
+        .staff-mini-avatar {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #0284c7, #38bdf8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            color: #ffffff;
+            flex-shrink: 0;
+            margin-bottom: 2px;
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
+        }
         .user-chat-bubble {
-            max-width: 80%;
             padding: 10px 14px;
-            border-radius: 12px;
             font-size: 13px;
             line-height: 1.5;
             word-break: break-word;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+            transition: transform 0.15s ease;
         }
         .bubble-me {
-            align-self: flex-end;
-            background: #0284c7;
+            max-width: 80%;
+            background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
             color: #ffffff;
-            border-bottom-right-radius: 2px;
+            border-radius: 16px 16px 4px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
         }
         .bubble-them {
-            align-self: flex-start;
             background: #1e293b;
             color: #f1f5f9;
             border: 1px solid #334155;
-            border-bottom-left-radius: 2px;
+            border-radius: 16px 16px 16px 4px;
         }
         .bubble-order {
-            align-self: flex-start;
-            background: #064e3b;
+            width: 100%;
+            max-width: 96%;
+            background: linear-gradient(180deg, rgba(6, 78, 59, 0.95) 0%, rgba(6, 95, 70, 0.85) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            border-radius: 12px;
+            color: #d1fae5;
+            font-size: 12.5px;
+        }
+        .order-notice-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .order-notice-badge {
+            background: #10b981;
+            color: #064e3b;
+            font-weight: 800;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+        }
+        .order-notice-title {
+            font-weight: 700;
+            font-size: 11px;
             color: #6ee7b7;
-            border: 1px solid #10b981;
-            border-bottom-left-radius: 2px;
-            font-size: 12px;
+        }
+        .order-notice-content {
+            line-height: 1.6;
+        }
+        .bubble-sender {
+            font-size: 10.5px;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+        .me-sender {
+            color: rgba(255, 255, 255, 0.85);
+            text-align: right;
+        }
+        .them-sender {
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
         .bubble-time {
-            font-size: 10px;
-            opacity: 0.7;
-            margin-top: 3px;
+            font-size: 9.5px;
+            margin-top: 4px;
+        }
+        .me-time {
+            color: rgba(255, 255, 255, 0.7);
+            text-align: right;
+        }
+        .them-time {
+            color: #94a3b8;
             text-align: right;
         }
         .nexus-chat-footer {
@@ -343,6 +424,8 @@
 
     <script>
         let clientChatConvId = null;
+        let clientChatCurrentUserId = null;
+        let clientChatCurrentUserRole = null;
         let clientStomp = null;
         let clientChatOpen = false;
 
@@ -376,6 +459,9 @@
                     }
 
                     clientChatConvId = data.conversationId;
+                    clientChatCurrentUserId = data.currentUserId;
+                    clientChatCurrentUserRole = data.currentUserRole;
+
                     if (data.branchName) {
                         document.getElementById('nexusChatBranchName').innerText = data.branchName;
                     }
@@ -404,23 +490,78 @@
 
         function appendCustomerBubble(msg) {
             const area = document.getElementById('nexusChatMessages');
-            const bubble = document.createElement('div');
-            let cls = msg.isMe ? 'bubble-me' : 'bubble-them';
-            if (msg.isOrderNotice) {
-                cls = 'bubble-order';
+            if (!area) return;
+
+            // Tránh hiển thị trùng lặp tin nhắn nếu cả REST và WebSocket cùng trả về
+            if (msg.id) {
+                const existing = document.getElementById('nexus-msg-' + msg.id);
+                if (existing) return;
             }
-            bubble.className = 'user-chat-bubble ' + cls;
-            let senderLabel = msg.isMe ? 'Bạn' : (msg.senderName + ' (' + (msg.senderRole || 'Nhân viên') + ')');
-            if (msg.isOrderNotice) {
-                senderLabel = 'NexusTech Store (Nhân viên Chi Nhánh)';
+
+            const isOrderNotice = Boolean(
+                msg.isOrderNotice || 
+                msg.orderNotice || 
+                (msg.content && (msg.content.includes('[XÁC NHẬN TIẾP NHẬN ĐƠN HÀNG]') || msg.content.includes('[THÔNG BÁO ĐẶT HÀNG THÀNH CÔNG]')))
+            );
+
+            // Xác định xem tin nhắn là của USER hiện tại (bên phải) hay của NHÂN VIÊN (bên trái)
+            let isMe = false;
+            if (!isOrderNotice) {
+                if (clientChatCurrentUserId && msg.senderId) {
+                    isMe = (String(msg.senderId) === String(clientChatCurrentUserId));
+                } else if (msg.isMe !== undefined && msg.isMe !== null) {
+                    isMe = Boolean(msg.isMe);
+                } else if (msg.me !== undefined && msg.me !== null) {
+                    isMe = Boolean(msg.me);
+                } else if (msg.senderRole === 'USER') {
+                    isMe = true;
+                }
             }
-            const formatted = msg.content.replace(/\n/g, '<br>');
-            bubble.innerHTML = `
-                <div style="font-size: 10px; font-weight: 700; margin-bottom: 3px; opacity: 0.85;">${senderLabel}</div>
-                <div>${formatted}</div>
-                <div class="bubble-time">${msg.createdAt || ''}</div>
-            `;
-            area.appendChild(bubble);
+
+            const bubbleWrap = document.createElement('div');
+            bubbleWrap.className = 'chat-bubble-wrap ' + (isOrderNotice ? 'wrap-order' : (isMe ? 'wrap-me' : 'wrap-them'));
+            if (msg.id) {
+                bubbleWrap.id = 'nexus-msg-' + msg.id;
+            }
+
+            const formatted = (msg.content || '').replace(/\n/g, '<br>');
+
+            if (isOrderNotice) {
+                bubbleWrap.innerHTML = `
+                    <div class="user-chat-bubble bubble-order">
+                        <div class="order-notice-header">
+                            <span class="order-notice-badge">📦 ĐƠN HÀNG</span>
+                            <span class="order-notice-title">NexusTech • Thông Báo Tiếp Nhận</span>
+                        </div>
+                        <div class="order-notice-content">${formatted}</div>
+                        <div class="bubble-time them-time">${msg.createdAt || ''}</div>
+                    </div>
+                `;
+            } else if (isMe) {
+                bubbleWrap.innerHTML = `
+                    <div class="user-chat-bubble bubble-me">
+                        <div class="bubble-sender me-sender">Bạn</div>
+                        <div>${formatted}</div>
+                        <div class="bubble-time me-time">${msg.createdAt || ''}</div>
+                    </div>
+                `;
+            } else {
+                const senderTitle = (msg.senderName || 'Nhân viên') + ' (Tư vấn viên)';
+                bubbleWrap.innerHTML = `
+                    <div class="them-container">
+                        <div class="staff-mini-avatar" title="Nhân viên hỗ trợ">⚡</div>
+                        <div class="user-chat-bubble bubble-them">
+                            <div class="bubble-sender them-sender">
+                                <span>${senderTitle}</span>
+                            </div>
+                            <div>${formatted}</div>
+                            <div class="bubble-time them-time">${msg.createdAt || ''}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            area.appendChild(bubbleWrap);
         }
 
         function scrollCustomerBottom() {
@@ -442,10 +583,10 @@
             })
             .then(res => res.json())
             .then(msg => {
-                if (!clientStomp || !clientStomp.connected) {
-                    appendCustomerBubble(msg);
-                    scrollCustomerBottom();
-                }
+                msg.isMe = true;
+                msg.me = true;
+                appendCustomerBubble(msg);
+                scrollCustomerBottom();
             })
             .catch(err => console.error('Lỗi gửi tin:', err));
         }
@@ -457,9 +598,13 @@
                 clientStomp.debug = null;
                 clientStomp.connect({}, function () {
                     clientStomp.subscribe('/topic/chat/' + convId, function (output) {
-                        const msg = JSON.parse(output.body);
-                        appendCustomerBubble(msg);
-                        scrollCustomerBottom();
+                        try {
+                            const msg = JSON.parse(output.body);
+                            appendCustomerBubble(msg);
+                            scrollCustomerBottom();
+                        } catch (err) {
+                            console.error('Lỗi parse websocket message:', err);
+                        }
                     });
                 }, function (err) {
                     console.warn('STOMP client fallback to polling:', err);

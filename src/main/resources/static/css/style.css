@@ -11,6 +11,7 @@
 
 /* 3. Home Page: Hero Banner & Commitments / Value props */
 @import url('home.css');
+@import url('compare.css');
 
 /* 4. Product Catalog: Filters & Product Cards Grid */
 @import url('product.css');

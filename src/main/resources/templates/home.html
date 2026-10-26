@@ -74,7 +74,7 @@
         <div class="header-actions">
 
             <!-- Compare -->
-            <a href="#compare" class="header-icon-btn">
+            <a th:href="@{/compare}" class="header-icon-btn" title="So sánh điện thoại">
                 <div class="icon-badge-wrap">
                     <svg width="20" height="20" viewBox="0 0 24 24"
                          fill="none" stroke="currentColor" stroke-width="2"
@@ -86,11 +86,6 @@
                         <line x1="15" y1="15" x2="21" y2="21"></line>
                         <line x1="4" y1="4" x2="9" y2="9"></line>
                     </svg>
-
-                    <span class="badge-count"
-                          th:text="${compareCount != null ? compareCount : 0}">
-                        0
-                    </span>
                 </div>
                 <span>So sánh</span>
             </a>
@@ -375,7 +370,7 @@
                         </svg>
                     </a>
 
-                    <a href="#compare" class="btn-hero-secondary">
+                    <a th:href="@{/compare}" class="btn-hero-secondary">
                         <span>So Sánh Cấu Hình</span>
                     </a>
                 </div>
@@ -478,6 +473,8 @@
 </section>
 
 
+
+
 <!-- ==================================================
      6. BEST-SELLING PRODUCTS
      ================================================== -->
@@ -554,6 +551,8 @@
                             ♡ Thêm vào yêu thích
                         </button>
                     </form>
+
+
                 </div>
             </div>
 
@@ -643,6 +642,8 @@
                             ♡ Thêm vào yêu thích
                         </button>
                     </form>
+
+
                 </div>
             </div>
 

@@ -220,6 +220,7 @@ public class ProductService {
                 .name(product.getName())
                 .brand(product.getBrand() == null ? "Khác" : product.getBrand().getName())
                 .category(product.getCategory() == null ? "Khác" : product.getCategory().getName())
+                .categoryId(product.getCategory() == null ? null : product.getCategory().getId())
                 .specsLine(specsLine)
                 .price(price)
                 .originalPrice(originalPrice)

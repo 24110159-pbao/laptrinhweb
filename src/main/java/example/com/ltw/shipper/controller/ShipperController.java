@@ -71,7 +71,7 @@ public class ShipperController {
 
     @GetMapping({"", "/dashboard"})
     public String showDashboard(
-            @RequestParam(name = "timePreset", defaultValue = "today") String timePreset,
+            @RequestParam(name = "timePreset", defaultValue = "all") String timePreset,
             @RequestParam(name = "fromDateTime", required = false) String fromDateTimeStr,
             @RequestParam(name = "toDateTime", required = false) String toDateTimeStr,
             Model model,
@@ -105,13 +105,13 @@ public class ShipperController {
         } else if ("thisMonth".equalsIgnoreCase(timePreset)) {
             fromDate = java.time.LocalDate.now().withDayOfMonth(1).atStartOfDay();
             toDate = java.time.LocalDate.now().atTime(java.time.LocalTime.MAX);
-        } else if ("all".equalsIgnoreCase(timePreset)) {
-            fromDate = null;
-            toDate = null;
-        } else {
-            timePreset = "today";
+        } else if ("today".equalsIgnoreCase(timePreset)) {
             fromDate = java.time.LocalDate.now().atStartOfDay();
             toDate = java.time.LocalDate.now().atTime(java.time.LocalTime.MAX);
+        } else {
+            timePreset = "all";
+            fromDate = null;
+            toDate = null;
         }
 
         ShipperDashboardDto dashboard = shipperOrderService.getDashboardData(shipper, timePreset, fromDate, toDate);
@@ -134,7 +134,7 @@ public class ShipperController {
     public String listTasks(
             @RequestParam(name = "status", required = false) ShipmentStatus status,
             @RequestParam(name = "keyword", required = false) String keyword,
-            @RequestParam(name = "timePreset", defaultValue = "today") String timePreset,
+            @RequestParam(name = "timePreset", defaultValue = "all") String timePreset,
             @RequestParam(name = "fromDateTime", required = false) String fromDateTimeStr,
             @RequestParam(name = "toDateTime", required = false) String toDateTimeStr,
             @RequestParam(name = "page", defaultValue = "0") int page,
@@ -166,13 +166,13 @@ public class ShipperController {
         } else if ("thisMonth".equalsIgnoreCase(timePreset)) {
             fromDate = java.time.LocalDate.now().withDayOfMonth(1).atStartOfDay();
             toDate = java.time.LocalDate.now().atTime(java.time.LocalTime.MAX);
-        } else if ("all".equalsIgnoreCase(timePreset)) {
-            fromDate = null;
-            toDate = null;
-        } else {
-            timePreset = "today";
+        } else if ("today".equalsIgnoreCase(timePreset)) {
             fromDate = java.time.LocalDate.now().atStartOfDay();
             toDate = java.time.LocalDate.now().atTime(java.time.LocalTime.MAX);
+        } else {
+            timePreset = "all";
+            fromDate = null;
+            toDate = null;
         }
 
         Page<Shipment> taskPage = shipperOrderService.getShipperTasks(shipper, status, keyword, fromDate, toDate, page, size);

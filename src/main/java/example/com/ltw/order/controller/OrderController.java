@@ -34,7 +34,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -55,8 +57,21 @@ public class OrderController {
     public String orders(HttpSession session, Model model) {
         User user = currentUser(session);
         if (user == null) return "redirect:/login";
+
+        List<ReturnRequest> userReturns = returnRequestRepository.findAllByUserIdOrderByCreatedAtDesc(user.getId());
+        Map<Long, ReturnRequest> returnRequestMap = new HashMap<>();
+        for (ReturnRequest r : userReturns) {
+            if (r.getOrder() != null && !returnRequestMap.containsKey(r.getOrder().getId())) {
+                returnRequestMap.put(r.getOrder().getId(), r);
+            }
+        }
+
         List<OrderView> views = orderService.customerOrders(user.getId()).stream()
-                .map(order -> new OrderView(order, orderItemRepository.findByOrderIdOrderById(order.getId())))
+                .map(order -> new OrderView(
+                        order,
+                        orderItemRepository.findByOrderIdOrderById(order.getId()),
+                        returnRequestMap.get(order.getId())
+                ))
                 .toList();
         model.addAttribute("currentUser", user);
         model.addAttribute("orders", views);
@@ -156,6 +171,13 @@ public class OrderController {
         return value instanceof User user ? user : null;
     }
 
-    public record OrderView(Order order, List<OrderItem> items) {
+    public record OrderView(Order order, List<OrderItem> items, ReturnRequest returnRequest) {
+        public OrderView(Order order, List<OrderItem> items) {
+            this(order, items, null);
+        }
+
+        public boolean hasReturnRequest() {
+            return returnRequest != null;
+        }
     }
 }
