@@ -40,17 +40,11 @@
                 <line x1="3" y1="18" x2="21" y2="18"></line>
             </svg>
             <span>Danh mục</span>
-            <svg width="14" height="14" viewBox="0 0 24 24"
-                 fill="none" stroke="currentColor" stroke-width="2.5"
-                 stroke-linecap="round" stroke-linejoin="round"
-                 aria-hidden="true">
-                <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
         </a>
 
         <!-- Product Search -->
         <div class="search-bar-wrap">
-            <form th:action="@{/}" method="get" class="search-form">
+            <form th:action="@{/products}" method="get" class="search-form">
                 <input type="search"
                        name="keyword"
                        th:value="${keyword}"
@@ -80,7 +74,7 @@
         <div class="header-actions">
 
             <!-- Compare -->
-            <a href="#compare" class="header-icon-btn">
+            <a th:href="@{/compare}" class="header-icon-btn" title="So sánh điện thoại">
                 <div class="icon-badge-wrap">
                     <svg width="20" height="20" viewBox="0 0 24 24"
                          fill="none" stroke="currentColor" stroke-width="2"
@@ -92,11 +86,6 @@
                         <line x1="15" y1="15" x2="21" y2="21"></line>
                         <line x1="4" y1="4" x2="9" y2="9"></line>
                     </svg>
-
-                    <span class="badge-count"
-                          th:text="${compareCount != null ? compareCount : 0}">
-                        0
-                    </span>
                 </div>
                 <span>So sánh</span>
             </a>
@@ -260,9 +249,7 @@
                     </a>
 
                     <!-- Staff Order Management -->
-                    <a th:if="${currentUser.role.name() == 'STAFF'
-                               or currentUser.role.name() == 'MANAGER'
-                               or currentUser.role.name() == 'ADMIN'}"
+                    <a th:if="${currentUser.role.name() == 'STAFF'}"
                        th:href="@{/staff/orders}"
                        class="dropdown-link">
                         <span>Quản lý đơn hàng</span>
@@ -383,7 +370,7 @@
                         </svg>
                     </a>
 
-                    <a href="#compare" class="btn-hero-secondary">
+                    <a th:href="@{/compare}" class="btn-hero-secondary">
                         <span>So Sánh Cấu Hình</span>
                     </a>
                 </div>
@@ -486,108 +473,6 @@
 </section>
 
 
-<!-- ==================================================
-     5. FEATURED PRODUCTS
-     ================================================== -->
-<section class="catalog-section" id="featured">
-    <div class="container">
-
-        <div class="section-header-row">
-
-            <!-- Brand Filters -->
-            <div class="filter-tabs">
-
-                <a th:href="@{/(brand='all')} + '#featured'"
-                   class="filter-pill"
-                   th:classappend="${selectedBrand == 'all' ? ' active' : ''}">
-                    Tất cả
-                </a>
-
-                <a th:href="@{/(brand='apple')} + '#featured'"
-                   class="filter-pill"
-                   th:classappend="${selectedBrand == 'apple' ? ' active' : ''}">
-                    Apple
-                </a>
-
-                <a th:href="@{/(brand='samsung')} + '#featured'"
-                   class="filter-pill"
-                   th:classappend="${selectedBrand == 'samsung' ? ' active' : ''}">
-                    Samsung
-                </a>
-
-                <a th:href="@{/(brand='xiaomi')} + '#featured'"
-                   class="filter-pill"
-                   th:classappend="${selectedBrand == 'xiaomi' ? ' active' : ''}">
-                    Xiaomi
-                </a>
-
-                <a th:href="@{/(brand='phu-kien')} + '#featured'"
-                   class="filter-pill"
-                   th:classappend="${selectedBrand == 'phu-kien' ? ' active' : ''}">
-                    Phụ kiện
-                </a>
-
-            </div>
-        </div>
-
-        <!-- Featured Product Grid -->
-        <div class="products-grid">
-
-            <div th:each="product : ${products}"
-                 class="product-card"
-                 th:attr="data-brand=${product.brand},
-                          data-category=${product.category}">
-
-                <div class="product-thumb-wrap">
-                    <img th:src="${product.imageUrl}"
-                         th:alt="${product.name}"
-                         class="product-img"
-                         loading="lazy">
-                </div>
-
-                <div class="product-body">
-                    <h3 class="product-title"
-                        th:text="${product.name}">
-                        Tên sản phẩm
-                    </h3>
-
-                    <div class="product-specs"
-                         th:text="${product.specsLine}">
-                        Thông số sản phẩm
-                    </div>
-
-                    <div class="product-price-row">
-                        <span class="current-price"
-                              th:text="${product.formattedPrice}">
-                            Giá bán
-                        </span>
-
-                        <span th:if="${product.formattedOriginalPrice != null}"
-                              class="original-price"
-                              th:text="${product.formattedOriginalPrice}">
-                            Giá gốc
-                        </span>
-                    </div>
-
-                    <a th:href="@{'/product/' + ${product.slug}}"
-                       class="btn-view-details">
-                        Xem chi tiết
-                    </a>
-                </div>
-            </div>
-
-            <!-- Empty Product State -->
-            <div th:if="${products == null or #lists.isEmpty(products)}"
-                 class="empty-products">
-                <p>Hiện chưa có sản phẩm nổi bật phù hợp.</p>
-                <a th:href="@{/products}" class="filter-pill">
-                    Xem tất cả sản phẩm
-                </a>
-            </div>
-
-        </div>
-    </div>
-</section>
 
 
 <!-- ==================================================
@@ -599,9 +484,6 @@
         <div class="section-header-row">
             <div class="section-title-wrap">
                 <h2 class="section-main-title">Sản Phẩm Bán Chạy</h2>
-                <span class="section-subtitle">
-                    Theo số lượng đã giao thành công
-                </span>
             </div>
 
             <a th:href="@{/products(sort='best_selling')}"
@@ -669,6 +551,8 @@
                             ♡ Thêm vào yêu thích
                         </button>
                     </form>
+
+
                 </div>
             </div>
 
@@ -691,9 +575,6 @@
         <div class="section-header-row">
             <div class="section-title-wrap">
                 <h2 class="section-main-title">Sản Phẩm Mới Nhất</h2>
-                <span class="section-subtitle">
-                    Cập nhật theo thời điểm tạo sản phẩm
-                </span>
             </div>
 
             <a th:href="@{/products(sort='newest')}"
@@ -761,6 +642,8 @@
                             ♡ Thêm vào yêu thích
                         </button>
                     </form>
+
+
                 </div>
             </div>
 

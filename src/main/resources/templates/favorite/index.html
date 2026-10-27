@@ -20,14 +20,12 @@
         <div class="account-section-heading">
             <div>
                 <h1>Sản phẩm yêu thích</h1>
-                <p>Danh sách được lưu riêng cho tài khoản của bạn.</p>
             </div>
         </div>
 
         <div th:if="${#lists.isEmpty(favorites)}" class="favorite-empty">
             <div class="favorite-empty-icon" aria-hidden="true">♡</div>
             <h2>Danh sách yêu thích đang trống</h2>
-            <p>Các sản phẩm bạn lưu sẽ xuất hiện tại đây.</p>
             <a class="account-button" th:href="@{/}">Khám phá sản phẩm</a>
         </div>
 

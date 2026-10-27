@@ -25,18 +25,31 @@
         </div>
         <form th:if="${order.status.name() == 'PENDING' or order.status.name() == 'CONFIRMED'}"
               th:action="@{/account/orders/{code}/cancel(code=${order.orderCode})}" method="post"
-              onsubmit="return confirm('Bạn chắc chắn muốn hủy đơn hàng này?')">
             <button class="account-button danger" type="submit">Hủy đơn hàng</button>
         </form>
-        <div th:if="${order.status.name() == 'DELIVERED'}" style="margin-top: 14px;">
-            <a href="#return-section" class="account-button" style="background: #ea580c; color: #ffffff; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 8px;">
+        <div th:if="${order.status.name() == 'DELIVERED' or order.status.name() == 'RETURN_REFUNDED' or !#lists.isEmpty(returns)}" style="margin-top: 14px;">
+            <a th:if="${#lists.isEmpty(returns) and order.status.name() == 'DELIVERED'}" href="#return-section" class="account-button" style="background: #ea580c; color: #ffffff; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 8px;">
                 <span>🔄</span> Yêu Cầu Hoàn / Trả Hàng
             </a>
+            <span th:if="${!#lists.isEmpty(returns) or order.status.name() == 'RETURN_REFUNDED'}" class="account-button" style="background: #94a3b8; color: #ffffff; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 8px; cursor: not-allowed; opacity: 0.9; user-select: none;">
+                <!-- 1. Staff chưa duyệt: Hiện như ảnh -->
+                <span th:if="${order.status.name() != 'RETURN_REFUNDED' and !#lists.isEmpty(returns) and (returns[0].status.name() == 'PENDING_REVIEW' or returns[0].status.name() == 'AWAITING_RETURN')}">
+                    <span>🔄</span> Đang Xử Lý Hoàn Hàng
+                </span>
+                <!-- 2. Staff đã duyệt: Từ chối hoàn hàng -->
+                <span th:if="${!#lists.isEmpty(returns) and returns[0].status.name() == 'REJECTED'}">
+                    Từ chối hoàn hàng
+                </span>
+                <!-- 3. Staff đã duyệt: Đồng ý hoàn hàng -->
+                <span th:if="${(order.status.name() == 'RETURN_REFUNDED' and (#lists.isEmpty(returns) or returns[0].status.name() != 'REJECTED')) or (!#lists.isEmpty(returns) and returns[0].status.name() != 'PENDING_REVIEW' and returns[0].status.name() != 'AWAITING_RETURN' and returns[0].status.name() != 'REJECTED')}">
+                    Đồng ý hoàn hàng
+                </span>
+            </span>
         </div>
     </section>
 
     <!-- Section Yêu Cầu Hoàn Hàng Trực Quan cho User -->
-    <section id="return-section" class="account-card" th:if="${order.status.name() == 'DELIVERED'}">
+    <section id="return-section" class="account-card" th:if="${order.status.name() == 'DELIVERED' or order.status.name() == 'RETURN_REFUNDED' or !#lists.isEmpty(returns)}">
         <div class="account-section-heading">
             <div>
                 <h2 style="color: #ea580c; display: flex; align-items: center; gap: 8px;">
@@ -45,7 +58,9 @@
                 <p>Đơn hàng đã giao thành công. Bạn có thể gửi yêu cầu hoàn trả sản phẩm trong vòng 7 ngày để được nhân viên chi nhánh xét duyệt và hoàn tiền.</p>
             </div>
         </div>
-        <form th:action="@{/account/orders/{code}/return(code=${order.orderCode})}" method="post">
+
+        <!-- Form gửi yêu cầu chỉ hiển thị nếu đơn chưa từng gửi yêu cầu hoàn hàng và đang DELIVERED -->
+        <form th:if="${#lists.isEmpty(returns) and order.status.name() == 'DELIVERED'}" th:action="@{/account/orders/{code}/return(code=${order.orderCode})}" method="post">
             <div style="background: #fff7ed; border: 1px solid #fed7aa; padding: 20px; border-radius: 12px; display: grid; gap: 16px;">
                 <div class="account-field">
                     <label for="selectReturnItem" style="font-weight: 700; color: #9a3412;">Chọn sản phẩm cần hoàn/trả:</label>
@@ -62,7 +77,7 @@
                     <div class="account-field" style="width: 140px;">
                         <label for="returnQtyInput" style="font-weight: 700; color: #9a3412;">Số lượng trả:</label>
                         <input type="number" id="returnQtyInput" name="quantity" min="1" value="1" required 
-                               style="border: 1px solid #fdba74; padding: 9px; border-radius: 8px; font-weight: 700; background: #ffffff;">
+                                style="border: 1px solid #fdba74; padding: 9px; border-radius: 8px; font-weight: 700; background: #ffffff;">
                     </div>
                     <div class="account-field" style="flex: 1; min-width: 250px;">
                         <label for="returnReasonInput" style="font-weight: 700; color: #9a3412;">Lý do hoàn trả:</label>
@@ -85,6 +100,66 @@
                 </div>
             </div>
         </form>
+
+        <!-- Nếu đã gửi yêu cầu hoặc đã xử lý hoàn trả: hiển thị thông báo xám và nút xám disabled, không cho tạo thêm (tránh spam) -->
+        <div th:if="${!#lists.isEmpty(returns) or order.status.name() == 'RETURN_REFUNDED'}" style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 22px; border-radius: 12px; display: grid; gap: 14px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 20px;">
+                        <span th:if="${order.status.name() != 'RETURN_REFUNDED' and !#lists.isEmpty(returns) and (returns[0].status.name() == 'PENDING_REVIEW' or returns[0].status.name() == 'AWAITING_RETURN')}">🔄</span>
+                        <span th:if="${!#lists.isEmpty(returns) and returns[0].status.name() == 'REJECTED'}">❌</span>
+                        <span th:if="${order.status.name() == 'RETURN_REFUNDED' or (!#lists.isEmpty(returns) and returns[0].status.name() != 'PENDING_REVIEW' and returns[0].status.name() != 'AWAITING_RETURN' and returns[0].status.name() != 'REJECTED')}">✅</span>
+                    </span>
+                    <div>
+                        <strong style="color: #1e293b; font-size: 15px;">
+                            <span th:if="${order.status.name() != 'RETURN_REFUNDED' and !#lists.isEmpty(returns) and (returns[0].status.name() == 'PENDING_REVIEW' or returns[0].status.name() == 'AWAITING_RETURN')}">Yêu cầu hoàn trả đang chờ nhân viên xét duyệt</span>
+                            <span th:if="${!#lists.isEmpty(returns) and returns[0].status.name() == 'REJECTED'}">Yêu cầu hoàn trả: Từ chối hoàn hàng</span>
+                            <span th:if="${order.status.name() == 'RETURN_REFUNDED' or (!#lists.isEmpty(returns) and returns[0].status.name() != 'PENDING_REVIEW' and returns[0].status.name() != 'AWAITING_RETURN' and returns[0].status.name() != 'REJECTED')}">Yêu cầu hoàn trả: Đồng ý hoàn hàng</span>
+                        </strong>
+                        <p th:if="${!#lists.isEmpty(returns)}" style="margin: 2px 0 0; font-size: 13px; color: #64748b;">Mã yêu cầu: <span th:text="${returns[0].requestCode}" style="font-weight: 700; color: #0284c7;">RET-XXX</span></p>
+                    </div>
+                </div>
+                <span class="order-pill" style="background: #e2e8f0; color: #475569; font-weight: 700; border: 1px solid #cbd5e1;" th:text="${!#lists.isEmpty(returns) ? returns[0].status : order.status}">STATUS</span>
+            </div>
+            <div style="color: #475569; font-size: 13.5px; line-height: 1.5; margin: 0; background: #ffffff; padding: 12px 16px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <!-- 1. Staff chưa duyệt -->
+                <div th:if="${order.status.name() != 'RETURN_REFUNDED' and !#lists.isEmpty(returns) and (returns[0].status.name() == 'PENDING_REVIEW' or returns[0].status.name() == 'AWAITING_RETURN')}">
+                    ℹ️ Bạn đã tạo yêu cầu hoàn trả cho đơn hàng này vào ngày <strong th:text="${#temporals.format(returns[0].createdAt, 'dd/MM/yyyy HH:mm')}"></strong>. 
+                    Hệ thống chỉ cho phép tạo đơn 1 lần để nhân viên chi nhánh thẩm định và xử lý. Vui lòng đợi kết quả xét duyệt từ cửa hàng.
+                </div>
+                <!-- 2. Staff đã duyệt: Từ chối -->
+                <div th:if="${!#lists.isEmpty(returns) and returns[0].status.name() == 'REJECTED'}">
+                    ❌ Nhân viên đã xem xét và <strong>từ chối hoàn hàng</strong> cho yêu cầu này.
+                    <div th:if="${returns[0].staffNote != null and !returns[0].staffNote.isBlank()}" style="margin-top: 6px; color: #b91c1c;">
+                        <strong>Lý do từ chối:</strong> <span th:text="${returns[0].staffNote}"></span>
+                    </div>
+                </div>
+                <!-- 3. Staff đã duyệt: Đồng ý -->
+                <div th:if="${order.status.name() == 'RETURN_REFUNDED' or (!#lists.isEmpty(returns) and returns[0].status.name() != 'PENDING_REVIEW' and returns[0].status.name() != 'AWAITING_RETURN' and returns[0].status.name() != 'REJECTED')}">
+                    ✅ Nhân viên đã <strong>đồng ý hoàn hàng</strong> và hoàn tiền cho bạn.
+                    <div th:if="${!#lists.isEmpty(returns) and returns[0].refundAmount != null}" style="margin-top: 6px; color: #15803d;">
+                        <strong>Số tiền hoàn:</strong> <span th:text="${#numbers.formatDecimal(returns[0].refundAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></span>
+                    </div>
+                    <div th:if="${!#lists.isEmpty(returns) and returns[0].staffNote != null and !returns[0].staffNote.isBlank()}" style="margin-top: 4px; color: #475569;">
+                        <strong>Ghi chú từ nhân viên:</strong> <span th:text="${returns[0].staffNote}"></span>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end;">
+                <button type="button" class="account-button" disabled style="background: #94a3b8; color: #ffffff; font-weight: 600; padding: 10px 22px; border: none; border-radius: 8px; cursor: not-allowed; opacity: 0.9; user-select: none;">
+                    <span th:if="${order.status.name() != 'RETURN_REFUNDED' and !#lists.isEmpty(returns) and (returns[0].status.name() == 'PENDING_REVIEW' or returns[0].status.name() == 'AWAITING_RETURN')}">
+                        <span>🔄</span> Đang Xử Lý Hoàn Hàng
+                    </span>
+                    <span th:if="${!#lists.isEmpty(returns) and returns[0].status.name() == 'REJECTED'}">
+                        Từ chối hoàn hàng
+                    </span>
+                    <span th:if="${(order.status.name() == 'RETURN_REFUNDED' and (#lists.isEmpty(returns) or returns[0].status.name() != 'REJECTED')) or (!#lists.isEmpty(returns) and returns[0].status.name() != 'PENDING_REVIEW' and returns[0].status.name() != 'AWAITING_RETURN' and returns[0].status.name() != 'REJECTED')}">
+                        Đồng ý hoàn hàng
+                    </span>
+                </button>
+            </div>
+        </div>
+
         <script>
             function updateMaxReturnQty() {
                 const sel = document.getElementById('selectReturnItem');
@@ -107,7 +182,7 @@
             <div class="order-item-info"><strong th:text="${item.productNameSnapshot}">Sản phẩm</strong><span th:text="${item.variantSnapshot}">Phiên bản</span>
                 <span th:text="${item.quantity + ' × ' + #numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT') + ' ₫'}">Số lượng × giá</span></div>
             <strong th:text="${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 0, 'POINT')} + ' ₫'">Thành tiền</strong>
-            <form th:if="${order.status.name() == 'DELIVERED'}" class="return-inline"
+            <form th:if="${order.status.name() == 'DELIVERED' and #lists.isEmpty(returns)}" class="return-inline"
                   th:action="@{/account/orders/{code}/return(code=${order.orderCode})}" method="post">
                 <input type="hidden" name="orderItemId" th:value="${item.id}">
                 <label th:for="${'return-qty-' + item.id}">Trả tối đa <span th:text="${item.quantity}">1</span></label>
@@ -131,15 +206,20 @@
                       method="post" enctype="multipart/form-data" class="review-form">
                     <input th:if="${review != null}" type="hidden" name="reviewId" th:value="${review.id}">
                     <h3 th:text="${review == null ? 'Viết đánh giá' : 'Chỉnh sửa đánh giá'}">Viết đánh giá</h3>
-                    <label th:for="${'rating-' + item.id}">Số sao</label>
-                    <select th:id="${'rating-' + item.id}" name="rating" required>
-                        <option value="">Chọn số sao</option>
-                        <option value="1" th:selected="${review != null and review.rating == 1}">1 sao</option>
-                        <option value="2" th:selected="${review != null and review.rating == 2}">2 sao</option>
-                        <option value="3" th:selected="${review != null and review.rating == 3}">3 sao</option>
-                        <option value="4" th:selected="${review != null and review.rating == 4}">4 sao</option>
-                        <option value="5" th:selected="${review != null and review.rating == 5}">5 sao</option>
-                    </select>
+                    <label th:for="${'rating-' + item.id}">Đánh giá</label>
+                    <div class="star-rating" th:data-target="${'rating-' + item.id}">
+                        <input type="radio" th:id="${'rating-' + item.id + '-5'}" name="rating" value="5" required th:checked="${review != null and review.rating == 5}">
+                        <label th:for="${'rating-' + item.id + '-5'}" title="5 sao">★</label>
+                        <input type="radio" th:id="${'rating-' + item.id + '-4'}" name="rating" value="4" th:checked="${review != null and review.rating == 4}">
+                        <label th:for="${'rating-' + item.id + '-4'}" title="4 sao">★</label>
+                        <input type="radio" th:id="${'rating-' + item.id + '-3'}" name="rating" value="3" th:checked="${review != null and review.rating == 3}">
+                        <label th:for="${'rating-' + item.id + '-3'}" title="3 sao">★</label>
+                        <input type="radio" th:id="${'rating-' + item.id + '-2'}" name="rating" value="2" th:checked="${review != null and review.rating == 2}">
+                        <label th:for="${'rating-' + item.id + '-2'}" title="2 sao">★</label>
+                        <input type="radio" th:id="${'rating-' + item.id + '-1'}" name="rating" value="1" th:checked="${review != null and review.rating == 1}">
+                        <label th:for="${'rating-' + item.id + '-1'}" title="1 sao">★</label>
+                    </div>
+                    <input type="hidden" th:id="${'rating-' + item.id}" name="rating" th:value="${review != null ? review.rating : ''}">
                     <label th:for="${'review-comment-' + item.id}">Bình luận (không bắt buộc)</label>
                     <textarea th:id="${'review-comment-' + item.id}" name="comment" maxlength="500"
                               placeholder="Tối đa 500 ký tự" th:text="${review != null ? review.comment : ''}"></textarea>
@@ -154,10 +234,6 @@
                     <label th:for="${'review-media-' + item.id}">Ảnh/video (tối đa 5 tệp, mỗi tệp theo giới hạn hệ thống)</label>
                     <input th:id="${'review-media-' + item.id}" type="file" name="media" multiple
                            accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime">
-                    <label class="review-policy">
-                        <input type="checkbox" name="policyAccepted" value="true">
-                        Tôi xác nhận nội dung tệp đính kèm phù hợp với chính sách sử dụng.
-                    </label>
                     <button class="account-button secondary" type="submit"
                             th:text="${review == null ? 'Gửi đánh giá' : 'Lưu chỉnh sửa'}">Gửi đánh giá</button>
                 </form>
@@ -189,14 +265,12 @@
             <div><span>Tổng tiền hàng</span><strong th:text="${#numbers.formatDecimal(order.subtotal, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></strong></div>
             <div><span>Giảm giá</span><strong th:text="${'− ' + #numbers.formatDecimal(order.discountAmount, 0, 'COMMA', 0, 'POINT') + ' ₫'}"></strong></div>
             <div><span>Phí vận chuyển</span>
-                <strong th:if="${order.shippingFee == null or order.shippingFee.signum() == 0}">Miễn phí</strong>
-                <strong th:unless="${order.shippingFee == null or order.shippingFee.signum() == 0}"
-                        th:text="${#numbers.formatDecimal(order.shippingFee, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></strong>
+                <strong>Miễn phí</strong>
             </div>
             <div class="grand"><span>Tổng thanh toán</span><strong th:text="${#numbers.formatDecimal(order.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></strong></div>
         </div>
     </section>
-    <section class="account-card">
+    <section class="account-card" style="display: none;">
         <h2>Lịch sử đơn hàng</h2>
         <ol class="order-history">
             <li th:each="event : ${history}"><strong th:text="${event.newStatus}">PENDING</strong><time th:text="${#temporals.format(event.createdAt, 'dd/MM/yyyy HH:mm')}">Thời điểm</time><span th:text="${event.note}">Diễn biến</span></li>

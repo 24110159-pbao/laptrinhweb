@@ -8,9 +8,17 @@
     <link rel="stylesheet" th:href="@{/css/product-detail.css}">
 </head>
 <body>
-<header th:replace="~{fragments/site :: header}"></header>
+<header class="site-page-header" style="justify-content: space-between;">
+    <a th:href="@{/}" class="brand-logo">
+        <span class="brand-icon">⚡</span>
+        <span class="brand-title-wrap">
+            <span class="brand-name">NEXUSTECH</span>
+            <span class="brand-tagline">FLAGSHIP STORE</span>
+        </span>
+    </a>
+    <a th:href="${returnTo}" class="product-catalog-back" style="color: #38bdf8; text-decoration: none; font-weight: 600;">← Quay lại danh mục sản phẩm</a>
+</header>
 <main class="product-page">
-    <a th:href="${returnTo}" class="product-catalog-back">← Quay lại danh mục sản phẩm</a>
     <section class="product-detail-card">
         <div class="product-gallery" th:attr="data-general-image=${product.imageUrl}">
             <img class="product-detail-image" id="product-image" th:src="${product.imageUrl}" th:alt="${product.name}">

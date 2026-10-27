@@ -12,6 +12,7 @@ import example.com.ltw.user.repository.AddressRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +20,11 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -77,6 +82,43 @@ public class CheckoutController {
         }
     }
 
+    // === [MỚI] ENDPOINT API TRẢ VỀ JSON CHO TÍNH NĂNG TỰ ĐỘNG ÁP MÃ ===
+    @PostMapping("/checkout/{checkoutId}/quote-api")
+    @ResponseBody
+    public ResponseEntity<?> calculateQuoteApi(
+            @PathVariable Long checkoutId,
+            @RequestParam(required = false) Long addressId,
+            @ModelAttribute AddressRequest addressRequest,
+            @RequestParam(required = false) String discountCode,
+            HttpSession session
+    ) {
+        Long userId = currentUserId(session);
+        if (userId == null) {
+            return ResponseEntity.status(401)
+                    .body(Map.of("success", false, "message", "Phiên đăng nhập đã hết hạn."));
+        }
+        try {
+            CheckoutSession checkout = checkoutService.quote(
+                    checkoutId, userId, addressId, addressRequest, discountCode
+            );
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("subtotal", checkout.getSubtotal());
+            response.put("discountAmount", checkout.getDiscountAmount());
+            response.put("finalAmount", checkout.getFinalAmount());
+            response.put("discountCodeValue", checkout.getDiscountCodeValue());
+            return ResponseEntity.ok(response);
+
+        } catch (CheckoutService.CheckoutPriceChangedException ex) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", ex.getMessage()));
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", ex.getMessage()));
+        }
+    }
+
     @PostMapping("/checkout/{checkoutId}/confirm")
     public String confirm(
             @PathVariable Long checkoutId,
@@ -118,7 +160,7 @@ public class CheckoutController {
         try {
             checkoutService.cancel(checkoutId, userId);
             redirectAttributes.addFlashAttribute("successMessage",
-                    "Đã hủy thanh toán thành công. Không có đơn hàng nào được ghi nhận.");
+                    "Đã hủy thanh toán thành công.");
         } catch (IllegalArgumentException | IllegalStateException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }

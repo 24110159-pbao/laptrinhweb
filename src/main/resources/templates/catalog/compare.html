@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>So sánh sản phẩm - NEXUSTECH</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/account.css}">
+    <link rel="stylesheet" th:href="@{/css/compare.css}">
+</head>
+<body class="account-page">
+<header class="site-page-header" style="justify-content: space-between;">
+    <a th:href="@{/}" class="brand-logo" style="text-decoration: none;">
+        <span class="brand-title-wrap">
+            <span class="brand-name">NEXUSTECH</span>
+            <span class="brand-tagline">FLAGSHIP STORE</span>
+        </span>
+    </a>
+    <a th:href="@{/}" style="color: #0284c7; text-decoration: none; font-weight: 600;">Quay về trang chủ</a>
+</header>
+
+<main class="account-container compare-container">
+    <section class="account-card compare-main-card">
+        <div class="account-section-heading">
+            <div>
+                <h1>So sánh điện thoại</h1>
+                <p>Chọn 2 dòng điện thoại bạn muốn đối chiếu để so sánh cấu hình, màn hình, vi xử lý, pin và giá bán.</p>
+            </div>
+        </div>
+
+        <!-- Alert Notice -->
+        <div id="compareAlert" class="account-alert info" style="display: none; margin-top: 14px;"></div>
+
+        <!-- Selection Bar -->
+        <div class="compare-select-bar">
+            <div class="compare-select-col">
+                <label for="compareSelect1" class="compare-select-label">Điện thoại 1</label>
+                <select id="compareSelect1" class="compare-dropdown" onchange="onCompareProductChange(1, this.value)">
+                    <option th:each="p : ${categoryProducts}"
+                            th:value="${p.id}"
+                            th:selected="${product1Id != null and product1Id == p.id}"
+                            th:text="${p.name + ' — ' + p.formattedPrice}">
+                        Samsung Galaxy S25 — 21.000.000₫
+                    </option>
+                </select>
+            </div>
+
+            <div class="compare-vs-col">
+                <span class="vs-text">VS</span>
+                <button type="button" class="btn-swap-products" onclick="swapCompareProducts()" title="Hoán đổi vị trí 2 sản phẩm">
+                    Đổi chỗ
+                </button>
+            </div>
+
+            <div class="compare-select-col">
+                <label for="compareSelect2" class="compare-select-label">Điện thoại 2</label>
+                <select id="compareSelect2" class="compare-dropdown" onchange="onCompareProductChange(2, this.value)">
+                    <option th:each="p : ${categoryProducts}"
+                            th:value="${p.id}"
+                            th:selected="${product2Id != null and product2Id == p.id}"
+                            th:text="${p.name + ' — ' + p.formattedPrice}">
+                        Xiaomi 14T — 12.000.000₫
+                    </option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 2 Product Overview Cards -->
+        <div id="compareOverviewGrid" class="compare-overview-row">
+            <th:block th:if="${comparison != null and comparison.product1 != null and comparison.product2 != null}">
+                <!-- Card 1 -->
+                <div class="compare-prod-box">
+                    <div class="compare-img-wrap">
+                        <img th:src="${comparison.product1.imageUrl}" th:alt="${comparison.product1.name}" class="compare-prod-img">
+                    </div>
+                    <div class="compare-prod-info">
+                        <span class="compare-brand-tag" th:text="${comparison.product1.brandName}">SAMSUNG</span>
+                        <h2 class="compare-prod-name">
+                            <a th:href="@{'/product/' + ${comparison.product1.slug}}" th:text="${comparison.product1.name}">Samsung Galaxy S25</a>
+                        </h2>
+                        <div class="compare-price-box">
+                            <span class="price-current" th:text="${comparison.product1.formattedPrice}">21.000.000₫</span>
+                            <span th:if="${comparison.product1.formattedOriginalPrice != null}" class="price-old" th:text="${comparison.product1.formattedOriginalPrice}">23.000.000₫</span>
+                        </div>
+                        <p class="compare-stock-text" th:classappend="${comparison.product1.inStock ? 'in-stock' : 'out-stock'}"
+                           th:text="${comparison.product1.inStock ? 'Còn hàng' : 'Tạm hết hàng'}">Còn hàng</p>
+                        <a th:href="@{'/product/' + ${comparison.product1.slug}}" class="btn-view-prod">Xem chi tiết</a>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="compare-prod-box">
+                    <div class="compare-img-wrap">
+                        <img th:src="${comparison.product2.imageUrl}" th:alt="${comparison.product2.name}" class="compare-prod-img">
+                    </div>
+                    <div class="compare-prod-info">
+                        <span class="compare-brand-tag" th:text="${comparison.product2.brandName}">XIAOMI</span>
+                        <h2 class="compare-prod-name">
+                            <a th:href="@{'/product/' + ${comparison.product2.slug}}" th:text="${comparison.product2.name}">Xiaomi 14T</a>
+                        </h2>
+                        <div class="compare-price-box">
+                            <span class="price-current" th:text="${comparison.product2.formattedPrice}">12.000.000₫</span>
+                            <span th:if="${comparison.product2.formattedOriginalPrice != null}" class="price-old" th:text="${comparison.product2.formattedOriginalPrice}">13.000.000₫</span>
+                        </div>
+                        <p class="compare-stock-text" th:classappend="${comparison.product2.inStock ? 'in-stock' : 'out-stock'}"
+                           th:text="${comparison.product2.inStock ? 'Còn hàng' : 'Tạm hết hàng'}">Còn hàng</p>
+                        <a th:href="@{'/product/' + ${comparison.product2.slug}}" class="btn-view-prod">Xem chi tiết</a>
+                    </div>
+                </div>
+            </th:block>
+        </div>
+
+        <!-- Specifications Comparison Table -->
+        <div class="compare-table-wrap">
+            <h3 class="compare-table-title">Thông số kỹ thuật đối chiếu</h3>
+            <table class="compare-clean-table">
+                <tbody id="compareTableBody">
+                    <th:block th:if="${comparison != null and comparison.product1 != null and comparison.product2 != null}">
+                        <tr>
+                            <td class="col-spec-label">Kích thước màn hình</td>
+                            <td class="col-spec-val border-right">
+                                <strong th:text="${comparison.product1.formattedScreenSize}">6.20 inch</strong>
+                                <span th:if="${comparison.screenSizeWinner == 1}" class="winner-pill">Lớn hơn</span>
+                            </td>
+                            <td class="col-spec-val">
+                                <strong th:text="${comparison.product2.formattedScreenSize}">6.67 inch</strong>
+                                <span th:if="${comparison.screenSizeWinner == 2}" class="winner-pill">Lớn hơn</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-spec-label">Vi xử lý / Chipset</td>
+                            <td class="col-spec-val border-right" th:text="${comparison.product1.chipset != null ? comparison.product1.chipset : 'Đang cập nhật'}">Snapdragon 8 Elite</td>
+                            <td class="col-spec-val" th:text="${comparison.product2.chipset != null ? comparison.product2.chipset : 'Đang cập nhật'}">Dimensity 8300-Ultra</td>
+                        </tr>
+                        <tr>
+                            <td class="col-spec-label">Dung lượng Pin</td>
+                            <td class="col-spec-val border-right">
+                                <strong th:text="${comparison.product1.formattedBattery}">4.000 mAh</strong>
+                                <span th:if="${comparison.batteryWinner == 1}" class="winner-pill">Pin lớn hơn</span>
+                            </td>
+                            <td class="col-spec-val">
+                                <strong th:text="${comparison.product2.formattedBattery}">5.000 mAh</strong>
+                                <span th:if="${comparison.batteryWinner == 2}" class="winner-pill">Pin lớn hơn</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-spec-label">Hệ điều hành</td>
+                            <td class="col-spec-val border-right" th:text="${comparison.product1.operatingSystem != null ? comparison.product1.operatingSystem : 'Tiêu chuẩn'}">Android</td>
+                            <td class="col-spec-val" th:text="${comparison.product2.operatingSystem != null ? comparison.product2.operatingSystem : 'Tiêu chuẩn'}">Android</td>
+                        </tr>
+                        <tr>
+                            <td class="col-spec-label">Tùy chọn RAM</td>
+                            <td class="col-spec-val border-right">
+                                <div class="clean-pill-group" th:if="${comparison.product1.ramOptions != null and !comparison.product1.ramOptions.isEmpty()}">
+                                    <span th:each="r : ${comparison.product1.ramOptions}" class="clean-pill" th:text="${r}">12GB</span>
+                                </div>
+                                <span th:if="${comparison.product1.ramOptions == null or comparison.product1.ramOptions.isEmpty()}" style="color: #94a3b8; font-size: 13px;">Chưa cập nhật</span>
+                            </td>
+                            <td class="col-spec-val">
+                                <div class="clean-pill-group" th:if="${comparison.product2.ramOptions != null and !comparison.product2.ramOptions.isEmpty()}">
+                                    <span th:each="r : ${comparison.product2.ramOptions}" class="clean-pill" th:text="${r}">12GB</span>
+                                </div>
+                                <span th:if="${comparison.product2.ramOptions == null or comparison.product2.ramOptions.isEmpty()}" style="color: #94a3b8; font-size: 13px;">Chưa cập nhật</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-spec-label">Bộ nhớ trong (ROM)</td>
+                            <td class="col-spec-val border-right">
+                                <div class="clean-pill-group" th:if="${comparison.product1.storageOptions != null and !comparison.product1.storageOptions.isEmpty()}">
+                                    <span th:each="s : ${comparison.product1.storageOptions}" class="clean-pill" th:text="${s}">256GB</span>
+                                </div>
+                                <span th:if="${comparison.product1.storageOptions == null or comparison.product1.storageOptions.isEmpty()}" style="color: #94a3b8; font-size: 13px;">Chưa cập nhật</span>
+                            </td>
+                            <td class="col-spec-val">
+                                <div class="clean-pill-group" th:if="${comparison.product2.storageOptions != null and !comparison.product2.storageOptions.isEmpty()}">
+                                    <span th:each="s : ${comparison.product2.storageOptions}" class="clean-pill" th:text="${s}">256GB</span>
+                                </div>
+                                <span th:if="${comparison.product2.storageOptions == null or comparison.product2.storageOptions.isEmpty()}" style="color: #94a3b8; font-size: 13px;">Chưa cập nhật</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-spec-label">Tùy chọn màu sắc</td>
+                            <td class="col-spec-val border-right">
+                                <div class="clean-pill-group" th:if="${comparison.product1.colorOptions != null and !comparison.product1.colorOptions.isEmpty()}">
+                                    <span th:each="c : ${comparison.product1.colorOptions}" class="clean-pill" th:text="${c}">Xanh</span>
+                                </div>
+                                <span th:if="${comparison.product1.colorOptions == null or comparison.product1.colorOptions.isEmpty()}" style="color: #94a3b8; font-size: 13px;">Đa dạng màu</span>
+                            </td>
+                            <td class="col-spec-val">
+                                <div class="clean-pill-group" th:if="${comparison.product2.colorOptions != null and !comparison.product2.colorOptions.isEmpty()}">
+                                    <span th:each="c : ${comparison.product2.colorOptions}" class="clean-pill" th:text="${c}">Xám</span>
+                                </div>
+                                <span th:if="${comparison.product2.colorOptions == null or comparison.product2.colorOptions.isEmpty()}" style="color: #94a3b8; font-size: 13px;">Đa dạng màu</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-spec-label">Giá bán</td>
+                            <td class="col-spec-val border-right">
+                                <span class="price-val" th:text="${comparison.product1.formattedPrice}">21.000.000₫</span>
+                                <span th:if="${comparison.priceWinner == 1}" class="winner-pill">Giá tốt hơn</span>
+                            </td>
+                            <td class="col-spec-val">
+                                <span class="price-val" th:text="${comparison.product2.formattedPrice}">12.000.000₫</span>
+                                <span th:if="${comparison.priceWinner == 2}" class="winner-pill">Giá tốt hơn</span>
+                            </td>
+                        </tr>
+                    </th:block>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/site :: footer}"></footer>
+<script th:src="@{/js/compare.js}" defer></script>
+</body>
+</html>

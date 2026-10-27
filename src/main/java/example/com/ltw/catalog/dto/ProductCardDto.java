@@ -22,6 +22,7 @@ public class ProductCardDto {
     private String name;
     private String brand;
     private String category;
+    private Long categoryId;
     private String specsLine;
     private BigDecimal price;
     private BigDecimal originalPrice;

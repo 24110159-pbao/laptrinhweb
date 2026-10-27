@@ -7,7 +7,16 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body class="account-page">
-<header th:replace="~{fragments/site :: header}"></header>
+<header class="site-page-header" style="justify-content: space-between;">
+    <a th:href="@{/}" class="brand-logo">
+        <span class="brand-icon">⚡</span>
+        <span class="brand-title-wrap">
+            <span class="brand-name">NEXUSTECH</span>
+            <span class="brand-tagline">FLAGSHIP STORE</span>
+        </span>
+    </a>
+    <a th:href="@{/}" style="color: #38bdf8; text-decoration: none; font-weight: 600;">← Quay về trang chủ</a>
+</header>
 <main class="account-container">
     <nav class="account-nav" aria-label="Quản lý tài khoản">
         <a class="active" th:href="@{/account/profile}">Hồ sơ cá nhân</a>
@@ -21,7 +30,7 @@
 
     <section class="account-card">
         <div class="account-section-heading">
-            <div><h1>Hồ sơ cá nhân</h1><p>Cập nhật thông tin liên hệ và thông tin cá nhân của bạn.</p></div>
+            <div><h1>Hồ sơ cá nhân</h1></div>
         </div>
         <div class="avatar-editor">
             <img class="account-avatar" th:src="${currentUser.avatarUrl}" alt="Ảnh đại diện"
@@ -29,7 +38,7 @@
             <form th:action="@{/account/profile/avatar}" method="post" enctype="multipart/form-data" class="avatar-form">
                 <label for="avatarFile">Ảnh đại diện</label>
                 <input id="avatarFile" name="avatar" type="file" accept="image/jpeg,image/png,image/webp" required>
-                <small>JPG, PNG hoặc WEBP; tối đa 5 MB. Ảnh được lưu trên Cloudinary.</small>
+                <small>JPG, PNG hoặc WEBP; tối đa 5 MB.</small>
                 <button class="account-button secondary" type="submit">Tải ảnh lên</button>
             </form>
         </div>
@@ -48,7 +57,6 @@
             <div class="account-field">
                 <label for="email">Email hiện tại</label>
                 <input id="email" th:value="${currentUser.email}" type="email" disabled>
-                <small>Email chỉ được đổi sau khi xác minh OTP gửi đến email mới.</small>
             </div>
             <div class="account-field">
                 <label for="dateOfBirth">Ngày sinh</label>
@@ -72,7 +80,7 @@
     </section>
 
     <section class="account-card">
-        <div class="account-section-heading"><div><h2>Thay đổi email</h2><p>Email mới chỉ được lưu sau khi nhập đúng mã OTP.</p></div></div>
+        <div class="account-section-heading"><div><h2>Thay đổi email</h2></div></div>
         <form th:action="@{/account/profile/email}" th:object="${emailChangeRequest}" method="post" class="account-inline-form">
             <div class="account-field">
                 <label for="newEmail">Email mới</label>
@@ -84,7 +92,7 @@
     </section>
 
     <section class="account-card">
-        <div class="account-section-heading"><div><h2>Đổi mật khẩu</h2><p>Nhập mật khẩu hiện tại để xác thực trước khi thay đổi.</p></div></div>
+        <div class="account-section-heading"><div><h2>Đổi mật khẩu</h2></div></div>
         <form th:action="@{/account/profile/password}" th:object="${passwordRequest}" method="post" class="account-form">
             <div class="account-field">
                 <label for="currentPassword">Mật khẩu hiện tại</label>

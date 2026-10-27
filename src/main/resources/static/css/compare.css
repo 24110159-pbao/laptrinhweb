@@ -1,0 +1,411 @@
+/* ==========================================================================
+   NEXUSTECH FLAGSHIP STORE - BASIC CLEAN PRODUCT COMPARISON (PAGE /compare)
+   Light background, clean & synchronized with account/cart/favorite pages
+   ========================================================================== */
+
+.compare-container {
+    width: min(100% - 32px, 1060px);
+    margin: 28px auto 60px;
+}
+
+.compare-main-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 30px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+}
+
+/* Category Filter Tabs */
+.compare-cat-tabs {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 22px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.cat-tab-label {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #475569;
+}
+
+.cat-pills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.cat-pill-btn {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+}
+
+.cat-pill-btn:hover {
+    border-color: #0284c7;
+    color: #0284c7;
+}
+
+.cat-pill-btn.active {
+    background: #0284c7;
+    border-color: #0284c7;
+    color: #ffffff;
+}
+
+.cat-pill-badge {
+    background: rgba(0, 0, 0, 0.08);
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 10px;
+}
+
+.cat-pill-btn.active .cat-pill-badge {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
+/* Dropdown Selector Bar */
+.compare-select-bar {
+    display: grid;
+    grid-template-columns: 1fr 100px 1fr;
+    gap: 16px;
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+}
+
+.compare-select-col {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.compare-select-label {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #334155;
+}
+
+.compare-dropdown {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-size: 13.5px;
+    color: #0f172a;
+    outline: none;
+    cursor: pointer;
+    width: 100%;
+}
+
+.compare-dropdown:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.compare-vs-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.vs-text {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.btn-swap-products {
+    background: transparent;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.btn-swap-products:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+/* 2 Product Overview Cards */
+.compare-overview-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+.compare-prod-box {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 18px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.compare-img-wrap {
+    width: 110px;
+    height: 110px;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 6px;
+    flex-shrink: 0;
+}
+
+.compare-prod-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.compare-prod-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.compare-brand-tag {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.compare-prod-name {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 6px 0;
+    line-height: 1.3;
+}
+
+.compare-prod-name a {
+    color: #0f172a;
+    text-decoration: none;
+}
+
+.compare-prod-name a:hover {
+    color: #0284c7;
+}
+
+.compare-price-box {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.price-current {
+    font-size: 17px;
+    font-weight: 800;
+    color: #0284c7;
+}
+
+.price-old {
+    font-size: 12.5px;
+    color: #94a3b8;
+    text-decoration: line-through;
+}
+
+.compare-stock-text {
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0 0 10px 0;
+}
+
+.compare-stock-text.in-stock {
+    color: #16a34a;
+}
+
+.compare-stock-text.out-stock {
+    color: #dc2626;
+}
+
+.btn-view-prod {
+    display: inline-block;
+    background: #0284c7;
+    color: #ffffff;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: background 0.15s ease;
+}
+
+.btn-view-prod:hover {
+    background: #0369a1;
+    color: #ffffff;
+}
+
+/* Specifications Table */
+.compare-table-wrap {
+    margin-top: 10px;
+}
+
+.compare-table-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 12px;
+}
+
+.compare-clean-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.compare-clean-table tr {
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.compare-clean-table tr:last-child {
+    border-bottom: none;
+}
+
+.compare-clean-table tr:nth-child(even) {
+    background: #fbfcfd;
+}
+
+.col-spec-label {
+    width: 26%;
+    padding: 12px 16px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #475569;
+    background: #f8fafc;
+    border-right: 1px solid #e2e8f0;
+    vertical-align: middle;
+}
+
+.col-spec-val {
+    width: 37%;
+    padding: 12px 16px;
+    font-size: 13.5px;
+    color: #0f172a;
+    vertical-align: middle;
+}
+
+.col-spec-val.border-right {
+    border-right: 1px solid #e2e8f0;
+}
+
+.price-val {
+    font-size: 15px;
+    font-weight: 800;
+    color: #0284c7;
+}
+
+/* Simple Winner Badge */
+.winner-pill {
+    display: inline-block;
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+}
+
+/* Clean Tags for RAM/ROM/Color */
+.clean-pill-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.clean-pill {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Card Compare Button on Home Page Product Cards */
+.card-compare-btn {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+    padding: 7px 10px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #0284c7;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.card-compare-btn:hover {
+    background: #f0f9ff;
+    border-color: #0284c7;
+    color: #0369a1;
+}
+
+@media (max-width: 768px) {
+    .compare-select-bar {
+        grid-template-columns: 1fr;
+    }
+    .compare-overview-row {
+        grid-template-columns: 1fr;
+    }
+    .col-spec-label {
+        width: 32%;
+        font-size: 12.5px;
+    }
+    .col-spec-val {
+        width: 34%;
+        font-size: 12.5px;
+    }
+}

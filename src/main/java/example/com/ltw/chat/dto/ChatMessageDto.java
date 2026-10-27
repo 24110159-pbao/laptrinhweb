@@ -1,5 +1,7 @@
 package example.com.ltw.chat.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,6 +20,21 @@ public class ChatMessageDto {
     private String senderAvatar;
     private String content;
     private String createdAt;
+
+    @JsonProperty("isMe")
     private boolean isMe;
+
+    @JsonProperty("isOrderNotice")
     private boolean isOrderNotice;
+
+    @JsonProperty("me")
+    public boolean getMe() {
+        return isMe;
+    }
+
+    @JsonProperty("orderNotice")
+    public boolean getOrderNotice() {
+        return isOrderNotice;
+    }
 }
+

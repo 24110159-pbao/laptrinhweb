@@ -56,17 +56,13 @@ public class ReturnRequestService {
             throw new IllegalArgumentException("Cần chọn ít nhất một sản phẩm và nhập lý do trả hàng.");
         }
 
+        List<ReturnRequest> existingRequests = returnRequestRepository.findAllByOrderIdOrderByCreatedAtDesc(order.getId());
+        if (!existingRequests.isEmpty()) {
+            throw new IllegalStateException("Đơn hàng này đã có yêu cầu hoàn hàng. Mỗi đơn hàng chỉ được gửi yêu cầu 1 lần để đợi nhân viên xét duyệt.");
+        }
+
         Set<Long> seen = new HashSet<>();
         Map<Long, Integer> previouslyRequested = new HashMap<>();
-        for (ReturnRequest old : returnRequestRepository.findAllByOrderIdOrderByCreatedAtDesc(order.getId())) {
-            if (old.getStatus() != ReturnRequestStatus.REJECTED) {
-                for (ReturnRequestItem line : old.getItems()) {
-                    int reserved = old.getStatus() == ReturnRequestStatus.COMPLETED || old.getStatus() == ReturnRequestStatus.APPROVED
-                            ? line.getAcceptedQuantity() : line.getRequestedQuantity();
-                    previouslyRequested.merge(line.getOrderItem().getId(), reserved, Integer::sum);
-                }
-            }
-        }
         ReturnRequest entity = new ReturnRequest();
         entity.setRequestCode("RET-" + UUID.randomUUID().toString().replace("-", "").substring(0, 18).toUpperCase(Locale.ROOT));
         entity.setOrder(order);
