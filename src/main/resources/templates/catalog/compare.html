@@ -9,15 +9,7 @@
     <link rel="stylesheet" th:href="@{/css/compare.css}">
 </head>
 <body class="account-page">
-<header class="site-page-header" style="justify-content: space-between;">
-    <a th:href="@{/}" class="brand-logo" style="text-decoration: none;">
-        <span class="brand-title-wrap">
-            <span class="brand-name">NEXUSTECH</span>
-            <span class="brand-tagline">FLAGSHIP STORE</span>
-        </span>
-    </a>
-    <a th:href="@{/}" style="color: #0284c7; text-decoration: none; font-weight: 600;">Quay về trang chủ</a>
-</header>
+<header th:replace="~{fragments/site :: header}"></header>
 
 <main class="account-container compare-container">
     <section class="account-card compare-main-card">

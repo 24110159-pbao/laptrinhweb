@@ -77,7 +77,7 @@ class ReviewServiceTest {
         when(reviewRepository.saveAndFlush(any(Review.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Review saved = reviewService.submit(5L, "ORD-1", 13L, null, 5, "  Hài lòng  ", null,
-                null, false, false);
+                null, false);
 
         assertEquals(5, saved.getRating());
         assertEquals("Hài lòng", saved.getComment());
@@ -94,7 +94,7 @@ class ReviewServiceTest {
                 .thenReturn(false);
 
         assertThrows(IllegalArgumentException.class, () -> reviewService.submit(
-                5L, "ORD-1", 13L, null, 4, null, null, null, false, false
+                5L, "ORD-1", 13L, null, 4, null, null, null, false
         ));
 
         verify(reviewRepository, never()).saveAndFlush(any(Review.class));
@@ -105,17 +105,17 @@ class ReviewServiceTest {
         when(orderItemRepository.findForReview(13L)).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class, () -> reviewService.submit(
-                5L, "ORD-1", 13L, null, 4, null, null, null, false, false
+                5L, "ORD-1", 13L, null, 4, null, null, null, false
         ));
     }
 
     @Test
     void rejectsInvalidRatingAndCommentLength() {
         assertThrows(IllegalArgumentException.class, () -> reviewService.submit(
-                5L, "ORD-1", 13L, null, 0, null, null, null, false, false
+                5L, "ORD-1", 13L, null, 0, null, null, null, false
         ));
         assertThrows(IllegalArgumentException.class, () -> reviewService.submit(
-                5L, "ORD-1", 13L, null, 5, "x".repeat(501), null, null, false, false
+                5L, "ORD-1", 13L, null, 5, "x".repeat(501), null, null, false
         ));
         verify(orderItemRepository, never()).findForReview(any());
     }
@@ -133,7 +133,7 @@ class ReviewServiceTest {
         when(reviewRepository.saveAndFlush(existing)).thenReturn(existing);
 
         Review result = reviewService.submit(5L, "ORD-1", 13L, 42L, 3, "Updated", null,
-                null, false, false);
+                null, false);
 
         assertEquals(42L, result.getId());
         assertEquals(item, result.getOrderItem());
@@ -155,7 +155,7 @@ class ReviewServiceTest {
         when(reviewRepository.findByOrderItemId(13L)).thenReturn(Optional.of(existing));
 
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> reviewService.submit(
-                5L, "ORD-1", 13L, null, 4, null, null, null, false, false
+                5L, "ORD-1", 13L, null, 4, null, null, null, false
         ));
 
         assertEquals("Dòng sản phẩm này đã được đánh giá.", error.getMessage());
@@ -169,7 +169,7 @@ class ReviewServiceTest {
         );
 
         assertThrows(IllegalArgumentException.class, () -> reviewService.submit(
-                5L, "ORD-1", 13L, null, 5, null, List.of(file), null, false, false
+                5L, "ORD-1", 13L, null, 5, null, List.of(file), null, false
         ));
         verify(mediaStorage, never()).upload(any());
     }
@@ -182,7 +182,7 @@ class ReviewServiceTest {
                 .toList();
 
         assertThrows(IllegalArgumentException.class, () -> reviewService.submit(
-                5L, "ORD-1", 13L, null, 5, null, files, null, false, true
+                5L, "ORD-1", 13L, null, 5, null, files, null, false
         ));
         verify(mediaStorage, never()).upload(any());
     }
