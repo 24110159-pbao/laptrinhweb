@@ -109,6 +109,7 @@
             <i class="bi bi-exclamation-triangle-fill"></i>
             <span th:text="${errorMessage}"></span>
         </div>
+        <div th:if="${warningMessage}" class="alert alert-warning" role="alert" th:text="${warningMessage}"></div>
 
         <!-- PRODUCT INFORMATION -->
         <section class="admin-section branch-list-section">
@@ -126,7 +127,7 @@
                 <div class="product-form-panel">
                     <form th:object="${form}"
                           th:action="${isEdit} ? @{/admin/products/{id}/edit(id=${form.id})} : @{/admin/products/new}"
-                          method="post">
+                          method="post" enctype="multipart/form-data">
 
                         <input type="hidden" th:field="*{id}">
 
@@ -204,6 +205,59 @@
                                 <textarea id="description"
                                           th:field="*{description}"></textarea>
                             </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <h3 class="h5">Ảnh sản phẩm</h3>
+                            <p class="text-secondary small">
+                                JPEG, PNG hoặc WebP; tối đa 5 MB mỗi ảnh, tối đa 8 ảnh/sản phẩm.
+                                Không tải ảnh mới lên thì ảnh hiện tại được giữ nguyên.
+                            </p>
+                            <div th:if="${isEdit and !#lists.isEmpty(productImages)}" class="row g-3 mb-3">
+                                <div class="col-6 col-md-4 col-xl-3" th:each="image : ${productImages}">
+                                    <div class="card h-100">
+                                        <img class="card-img-top" th:src="${image.imageUrl}"
+                                             th:alt="${'Ảnh sản phẩm ' + image.id}"
+                                             style="height:150px;object-fit:contain;background:#f8f9fa">
+                                        <div class="card-body p-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox"
+                                                       name="deleteImageIds" th:value="${image.id}"
+                                                       th:id="${'delete-image-' + image.id}">
+
+                                                <label class="form-check-label small text-danger"
+                                                       th:for="${'delete-image-' + image.id}">
+                                                    Xóa ảnh này
+                                                </label>
+                                            </div>
+
+                                            <div class="form-check mt-1">
+                                                <input class="form-check-input" type="radio"
+                                                       name="thumbnailSelection"
+                                                       th:value="${'existing-' + image.id}"
+                                                       th:id="${'thumbnail-image-' + image.id}"
+                                                       th:checked="${form.thumbnailSelection == 'existing-' + image.id
+                                                            or (form.thumbnailSelection == null and image.thumbnail)}">
+
+                                                <label class="form-check-label small text-primary"
+                                                       th:for="${'thumbnail-image-' + image.id}">
+                                                    Ảnh đại diện
+                                                    <span th:if="${image.thumbnail}"
+                                                          class="badge text-bg-success">
+                                                        Hiện tại
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="product-field full mb-3">
+                                <label for="images">Thêm ảnh mới</label>
+                                <input id="images" class="form-control" type="file" name="images"
+                                       accept="image/jpeg,image/png,image/webp" multiple>
+                            </div>
+
                         </div>
 
                         <div class="product-form-actions">

@@ -5,10 +5,12 @@ import example.com.ltw.admin.dto.AdminVariantForm;
 import example.com.ltw.admin.dto.BranchInventoryForm;
 import example.com.ltw.admin.dto.VariantInventoryDto;
 import example.com.ltw.admin.service.AdminBranchService;
+import example.com.ltw.admin.service.CloudinaryImageService;
 import example.com.ltw.admin.service.AdminProductService;
 import example.com.ltw.admin.service.AdminUserService;
 import example.com.ltw.branch.entity.Branch;
 import example.com.ltw.catalog.entity.Product;
+import example.com.ltw.catalog.entity.ProductImage;
 import example.com.ltw.catalog.entity.ProductStatus;
 import example.com.ltw.catalog.entity.ProductVariant;
 import example.com.ltw.catalog.entity.ProductVariantStatus;
@@ -16,6 +18,7 @@ import example.com.ltw.user.entity.User;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -41,6 +44,7 @@ public class AdminProductController {
     private final AdminProductService adminProductService;
     private final AdminBranchService adminBranchService;
     private final AdminUserService adminUserService;
+    private final CloudinaryImageService cloudinaryImageService;
 
     // ==========================================
     // PRODUCT LIST & SEARCH
@@ -110,14 +114,19 @@ public class AdminProductController {
             return "admin/product-form";
         }
 
+        List<CloudinaryImageService.UploadedImage> uploadedImages = List.of();
         try {
-            Product saved = adminProductService.createProduct(form);
+            uploadedImages = cloudinaryImageService.upload(form.getImages());
+            Product saved = adminProductService.createProduct(form, uploadedImages);
             redirectAttributes.addFlashAttribute("successMessage",
                     "Thêm sản phẩm '" + saved.getName() + "' thành công! Bạn có thể thêm các biến thể cấu hình bên dưới.");
             return "redirect:/admin/products/" + saved.getId() + "/edit";
-        } catch (ResponseStatusException ex) {
+        } catch (ResponseStatusException | IllegalArgumentException | IllegalStateException
+                 | DataIntegrityViolationException ex) {
+            cloudinaryImageService.delete(uploadedImages.stream()
+                    .map(CloudinaryImageService.UploadedImage::getPublicId).toList());
             model.addAttribute("admin", admin);
-            model.addAttribute("errorMessage", ex.getReason());
+            model.addAttribute("errorMessage", errorMessage(ex));
             model.addAttribute("brands", adminProductService.getAllBrands());
             model.addAttribute("categories", adminProductService.getAllCategories());
             model.addAttribute("statuses", ProductStatus.values());
@@ -161,6 +170,7 @@ public class AdminProductController {
         model.addAttribute("admin", admin);
         model.addAttribute("form", form);
         model.addAttribute("product", product);
+        model.addAttribute("productImages", adminProductService.getProductImages(id));
         model.addAttribute("variants", variants);
         model.addAttribute("variantForm", variantForm);
         model.addAttribute("brands", adminProductService.getAllBrands());
@@ -186,6 +196,7 @@ public class AdminProductController {
         if (bindingResult.hasErrors()) {
             model.addAttribute("admin", admin);
             model.addAttribute("product", adminProductService.getProductById(id));
+            model.addAttribute("productImages", adminProductService.getProductImages(id));
             model.addAttribute("variants", adminProductService.getVariantsByProductId(id));
             model.addAttribute("brands", adminProductService.getAllBrands());
             model.addAttribute("categories", adminProductService.getAllCategories());
@@ -195,15 +206,32 @@ public class AdminProductController {
             return "admin/product-form";
         }
 
+        List<CloudinaryImageService.UploadedImage> uploadedImages = List.of();
         try {
-            adminProductService.updateProduct(id, form);
+            List<org.springframework.web.multipart.MultipartFile> selectedFiles =
+                    form.getImages() == null ? List.of() : form.getImages().stream()
+                            .filter(file -> file != null && !file.isEmpty())
+                            .toList();
+            adminProductService.validateImageCount(id, selectedFiles.size(), form.getDeleteImageIds());
+            uploadedImages = cloudinaryImageService.upload(selectedFiles);
+            List<String> oldPublicIds = adminProductService.updateProduct(id, form, uploadedImages);
+            List<String> deletionFailures = cloudinaryImageService.delete(oldPublicIds);
             redirectAttributes.addFlashAttribute("successMessage",
                     "Cập nhật thông tin sản phẩm thành công!");
+            if (!deletionFailures.isEmpty()) {
+                redirectAttributes.addFlashAttribute("warningMessage",
+                        "Dữ liệu ảnh đã được cập nhật, nhưng chưa xóa được " + deletionFailures.size()
+                                + " ảnh cũ trên Cloudinary. Vui lòng kiểm tra nhật ký ứng dụng.");
+            }
             return "redirect:/admin/products/" + id + "/edit";
-        } catch (ResponseStatusException ex) {
+        } catch (ResponseStatusException | IllegalArgumentException | IllegalStateException
+                 | DataIntegrityViolationException ex) {
+            cloudinaryImageService.delete(uploadedImages.stream()
+                    .map(CloudinaryImageService.UploadedImage::getPublicId).toList());
             model.addAttribute("admin", admin);
-            model.addAttribute("errorMessage", ex.getReason());
+            model.addAttribute("errorMessage", errorMessage(ex));
             model.addAttribute("product", adminProductService.getProductById(id));
+            model.addAttribute("productImages", adminProductService.getProductImages(id));
             model.addAttribute("variants", adminProductService.getVariantsByProductId(id));
             model.addAttribute("brands", adminProductService.getAllBrands());
             model.addAttribute("categories", adminProductService.getAllCategories());
@@ -212,6 +240,16 @@ public class AdminProductController {
             model.addAttribute("isEdit", true);
             return "admin/product-form";
         }
+    }
+
+    private String errorMessage(RuntimeException ex) {
+        if (ex instanceof ResponseStatusException statusException && statusException.getReason() != null) {
+            return statusException.getReason();
+        }
+        if (ex instanceof IllegalArgumentException || ex instanceof IllegalStateException) {
+            return ex.getMessage() == null ? "Dữ liệu ảnh không hợp lệ." : ex.getMessage();
+        }
+        return "Không thể lưu sản phẩm. Vui lòng kiểm tra dữ liệu và thử lại.";
     }
 
     @PostMapping("/{id}/toggle-status")

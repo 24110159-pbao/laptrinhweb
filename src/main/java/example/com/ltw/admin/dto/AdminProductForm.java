@@ -9,6 +9,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter
@@ -43,4 +46,10 @@ public class AdminProductForm {
     private Long categoryId;
 
     private ProductStatus status = ProductStatus.ACTIVE;
+
+    private List<MultipartFile> images = new ArrayList<>();
+
+    private List<Long> deleteImageIds = new ArrayList<>();
+
+    private String thumbnailSelection;
 }

@@ -33,8 +33,7 @@ public class AdminAiController {
     @ExceptionHandler(
             MethodArgumentNotValidException.class
     )
-    public ResponseEntity<AiChatResponse>
-    handleInvalidRequest(
+    public ResponseEntity<AiChatResponse> handleInvalidRequest(
             MethodArgumentNotValidException exception
     ) {
 
