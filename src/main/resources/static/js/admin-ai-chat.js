@@ -11,7 +11,7 @@
 		const item = document.createElement("article");
 		item.className = `ai-chat-message ${kind}`;
 		const label = document.createElement("strong");
-		label.textContent = kind === "manager" ? "Bạn" : "AI";
+		label.textContent = kind === "admin" ? "Bạn" : "AI";
 		const body = document.createElement("p");
 		body.textContent = text;
 		item.append(label, body);
@@ -27,7 +27,7 @@
 
 		const emptyHint = messages.querySelector(".ai-chat-empty");
 		if (emptyHint) emptyHint.remove();
-		appendMessage("manager", question);
+		appendMessage("admin", question);
 		input.value = "";
 		submit.disabled = true;
 		status.textContent = "AI đang phân tích câu hỏi…";
