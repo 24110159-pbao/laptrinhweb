@@ -4,6 +4,7 @@ import example.com.ltw.auth.dto.LoginRequest;
 import example.com.ltw.auth.dto.RegisterRequest;
 import example.com.ltw.auth.dto.ResetPasswordRequest;
 import example.com.ltw.auth.service.AuthService;
+import example.com.ltw.user.entity.Role;
 import example.com.ltw.user.entity.User;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -56,11 +57,17 @@ public class AuthController {
             User user = authService.login(request, session);
             redirectAttributes.addFlashAttribute("successMessage",
                     "Đăng nhập thành công với quyền " + user.getRole().name() + "! Xin chào mừng " + user.getFullName() + ".");
-            if (user.getRole() == example.com.ltw.user.entity.Role.STAFF) {
+            if (user.getRole() == Role.STAFF) {
                 return "redirect:/staff/dashboard";
             }
-            if (user.getRole() == example.com.ltw.user.entity.Role.SHIPPER) {
+            if (user.getRole() == Role.SHIPPER) {
                 return "redirect:/shipper/dashboard";
+            }
+            if (user.getRole() == Role.MANAGER) {
+                return "redirect:/manager/dashboard";
+            }
+            if (user.getRole() == Role.ADMIN) {
+                return "redirect:/admin/dashboard";
             }
             return "redirect:/";
         } catch (IllegalArgumentException ex) {

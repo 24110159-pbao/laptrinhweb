@@ -6303,3 +6303,91 @@ a {
     gap: 5px;
     white-space: nowrap;
 }
+
+/* Product management shortcut buttons */
+.product-section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.product-heading-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.product-management-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-height: 42px;
+    padding: 10px 15px;
+
+    color: #dcecff;
+    background: #1b2b43;
+    border: 1px solid #3b506c;
+    border-radius: 10px;
+
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.product-management-btn i {
+    color: #42bdf5;
+    font-size: 16px;
+}
+
+.product-management-btn:hover {
+    color: #ffffff;
+    background: #203e60;
+    border-color: #42bdf5;
+    box-shadow: 0 0 14px rgba(66, 189, 245, 0.12);
+    transform: translateY(-1px);
+}
+
+.product-management-btn:hover i {
+    color: #75d5ff;
+}
+
+.product-management-btn:focus-visible {
+    outline: 2px solid #42bdf5;
+    outline-offset: 3px;
+}
+
+/* Responsive layout */
+@media (max-width: 768px) {
+    .product-heading-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .product-management-btn {
+        flex: 1 1 auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .product-heading-actions {
+        align-items: stretch;
+    }
+
+    .product-management-btn {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}

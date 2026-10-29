@@ -118,9 +118,24 @@
                     <h2>Thông tin sản phẩm</h2>
                     <p>Nhập thông tin cơ bản, thương hiệu và thông số kỹ thuật.</p>
                 </div>
-                <span class="chart-badge">
-                <i class="bi bi-box-seam"></i> Sản phẩm
-            </span>
+
+                <div class="product-heading-actions">
+                    <a class="product-management-btn"
+                       th:href="@{/admin/brands}">
+                        <i class="bi bi-tags-fill"></i>
+                        <span>Quản lý thương hiệu</span>
+                    </a>
+
+                    <a class="product-management-btn"
+                       th:href="@{/admin/categories}">
+                        <i class="bi bi-grid-fill"></i>
+                        <span>Quản lý danh mục</span>
+                    </a>
+
+                    <span class="chart-badge">
+                        <i class="bi bi-box-seam"></i> Sản phẩm
+                    </span>
+                </div>
             </div>
 
             <div class="admin-panel table-panel branch-list-panel">
