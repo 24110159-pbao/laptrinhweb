@@ -154,7 +154,7 @@ public class CartService {
         BigDecimal subtotal = lines.stream()
                 .map(CartLineView::lineTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        return new CartView(cart.getId(), cart.getBranch().getName(), lines, subtotal);
+        return new CartView(cart.getId(), cart.getBranch() != null ? cart.getBranch().getId() : null, cart.getBranch().getName(), lines, subtotal);
     }
 
     private BigDecimal currentPrice(BranchInventory inventory) {

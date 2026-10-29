@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 public class ChatMessageDto {
     private Long id;
     private Long conversationId;
+    private Long branchId;
     private Long senderId;
     private String senderName;
     private String senderRole;
@@ -37,4 +38,3 @@ public class ChatMessageDto {
         return isOrderNotice;
     }
 }
-

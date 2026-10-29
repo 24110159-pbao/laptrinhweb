@@ -148,51 +148,195 @@ VALUES
 -- =====================================================
 -- 13. DISCOUNT CODES
 -- =====================================================
-INSERT INTO discount_codes
-(id, code, discount_value, quantity, start_at, end_at, status)
+INSERT INTO discount_codes (
+    applies_to_shipping,
+    code,
+    discount_value,
+    end_at,
+    maximum_discount,
+    minimum_order_amount,
+    per_customer_limit,
+    quantity,
+    start_at,
+    status,
+    type
+)
 VALUES
-(1, 'SALE10', 10.00, 100, NOW(), DATE_ADD(NOW(), INTERVAL 30 DAY), 'ACTIVE'),
-(2, 'SALE20', 20.00, 50, NOW(), DATE_ADD(NOW(), INTERVAL 30 DAY), 'ACTIVE');
+(
+    b'0',
+    'SALE10',
+    10.00,
+    DATE_ADD(NOW(), INTERVAL 30 DAY),
+    100.00,
+    0.00,
+    1,
+    100,
+    NOW(),
+    'ACTIVE',
+    'PERCENTAGE'
+),
+(
+    b'0',
+    'SALE20',
+    20.00,
+    DATE_ADD(NOW(), INTERVAL 30 DAY),
+    200.00,
+    0.00,
+    1,
+    50,
+    NOW(),
+    'ACTIVE',
+    'PERCENTAGE'
+);
 
 
 -- =====================================================
 -- 14. ORDERS
 -- =====================================================
-INSERT INTO orders
-(id, order_code, user_id, branch_id, receiver_name, receiver_phone,
- shipping_province, shipping_province_id, shipping_district, shipping_district_id,
- shipping_ward, shipping_ward_code, shipping_street_address,
- subtotal, discount_amount, shipping_fee, final_amount, note,
- status, payment_method, payment_status, discount_code_id, created_at, updated_at)
+INSERT INTO orders (
+    id,
+    order_code,
+    user_id,
+    branch_id,
+    receiver_name,
+    receiver_phone,
+    shipping_province,
+    shipping_province_id,
+    shipping_district,
+    shipping_district_id,
+    shipping_ward,
+    shipping_ward_code,
+    shipping_street_address,
+    subtotal,
+    discount_amount,
+    discount_applied_to_shipping,
+    shipping_fee,
+    final_amount,
+    note,
+    status,
+    payment_method,
+    payment_status,
+    discount_code_id,
+    created_at,
+    updated_at
+)
 VALUES
-(1, 'ORD001', 9, 1, 'Nguyễn Minh Anh', '0911000009', 'Hồ Chí Minh', 79, 'Quận 1', 760, 'Bến Nghé', '26734', '12 Nguyễn Huệ', 21000000, 0, 30000, 21030000, '', 'PENDING', 'COD', 'UNPAID', NULL, NOW(), NOW()),
-(2, 'ORD002', 10, 2, 'Trần Hoàng Nam', '0911000010', 'Hà Nội', 1, 'Cầu Giấy', 5, 'Dịch Vọng', '00136', '100 Cầu Giấy', 21000000, 0, 30000, 21030000, '', 'CONFIRMED', 'COD', 'UNPAID', NULL, NOW(), NOW()),
-(3, 'ORD003', 9, 1, 'Nguyễn Minh Anh', '0911000009', 'Hồ Chí Minh', 79, 'Quận 1', 760, 'Bến Nghé', '26734', '12 Nguyễn Huệ', 28000000, 0, 30000, 28030000, '', 'SHIPPING', 'VNPAY', 'PAID', NULL, NOW(), NOW()),
-(4, 'ORD004', 10, 2, 'Trần Hoàng Nam', '0911000010', 'Hà Nội', 1, 'Cầu Giấy', 5, 'Dịch Vọng', '00136', '100 Cầu Giấy', 12000000, 0, 30000, 12030000, '', 'DELIVERED', 'VNPAY', 'PAID', NULL, NOW(), NOW()),
-(5, 'ORD005', 9, 1, 'Nguyễn Minh Anh', '0911000009', 'Hồ Chí Minh', 79, 'Quận 1', 760, 'Bến Nghé', '26734', '12 Nguyễn Huệ', 24000000, 0, 30000, 24030000, '', 'CANCELLED', 'COD', 'UNPAID', NULL, NOW(), NOW()),
-(6, 'ORD006', 10, 2, 'Trần Hoàng Nam', '0911000010', 'Hà Nội', 1, 'Cầu Giấy', 5, 'Dịch Vọng', '00136', '100 Cầu Giấy', 12000000, 0, 30000, 12030000, '', 'RETURN_REFUNDED', 'VNPAY', 'FAILED', NULL, NOW(), NOW()),
-(7, 'ORD007', 9, 1, 'Nguyễn Minh Anh', '0911000009', 'Hồ Chí Minh', 79, 'Quận 1', 760, 'Bến Nghé', '26734', '12 Nguyễn Huệ', 200000, 0, 30000, 230000, '', 'PENDING', 'VNPAY', 'FAILED', NULL, NOW(), NOW()),
-(8, 'ORD008', 10, 2, 'Trần Hoàng Nam', '0911000010', 'Hà Nội', 1, 'Cầu Giấy', 5, 'Dịch Vọng', '00136', '100 Cầu Giấy', 200000, 0, 30000, 230000, '', 'CONFIRMED', 'VNPAY', 'UNPAID', NULL, NOW(), NOW()),
-(9, 'ORD009', 9, 1, 'Nguyễn Minh Anh', '0911000009', 'Hồ Chí Minh', 79, 'Quận 1', 760, 'Bến Nghé', '26734', '12 Nguyễn Huệ', 21000000, 0, 30000, 21030000, '', 'SHIPPING', 'COD', 'UNPAID', NULL, NOW(), NOW()),
-(10, 'ORD010', 10, 3, 'Trần Hoàng Nam', '0911000010', 'Hà Nội', 1, 'Cầu Giấy', 5, 'Dịch Vọng', '00136', '100 Cầu Giấy', 21000000, 0, 30000, 21030000, '', 'DELIVERED', 'VNPAY', 'PAID', NULL, NOW(), NOW());
-
-
+(
+    1, 'ORD001', 9, 1,
+    'Nguyễn Minh Anh', '0911000009',
+    'Hồ Chí Minh', 79, 'Quận 1', 760,
+    'Bến Nghé', '26734', '12 Nguyễn Huệ',
+    21000000, 0, b'0', 30000, 21030000,
+    '', 'PENDING', 'COD', 'UNPAID',
+    NULL, NOW(), NOW()
+),
+(
+    2, 'ORD002', 10, 2,
+    'Trần Hoàng Nam', '0911000010',
+    'Hà Nội', 1, 'Cầu Giấy', 5,
+    'Dịch Vọng', '00136', '100 Cầu Giấy',
+    21000000, 0, b'0', 30000, 21030000,
+    '', 'CONFIRMED', 'COD', 'UNPAID',
+    NULL, NOW(), NOW()
+),
+(
+    3, 'ORD003', 9, 1,
+    'Nguyễn Minh Anh', '0911000009',
+    'Hồ Chí Minh', 79, 'Quận 1', 760,
+    'Bến Nghé', '26734', '12 Nguyễn Huệ',
+    28000000, 0, b'0', 30000, 28030000,
+    '', 'SHIPPING', 'VNPAY', 'PAID',
+    NULL, NOW(), NOW()
+),
+(
+    4, 'ORD004', 10, 2,
+    'Trần Hoàng Nam', '0911000010',
+    'Hà Nội', 1, 'Cầu Giấy', 5,
+    'Dịch Vọng', '00136', '100 Cầu Giấy',
+    12000000, 0, b'0', 30000, 12030000,
+    '', 'DELIVERED', 'VNPAY', 'PAID',
+    NULL, NOW(), NOW()
+),
+(
+    5, 'ORD005', 9, 1,
+    'Nguyễn Minh Anh', '0911000009',
+    'Hồ Chí Minh', 79, 'Quận 1', 760,
+    'Bến Nghé', '26734', '12 Nguyễn Huệ',
+    24000000, 0, b'0', 30000, 24030000,
+    '', 'CANCELLED', 'COD', 'UNPAID',
+    NULL, NOW(), NOW()
+),
+(
+    6, 'ORD006', 10, 2,
+    'Trần Hoàng Nam', '0911000010',
+    'Hà Nội', 1, 'Cầu Giấy', 5,
+    'Dịch Vọng', '00136', '100 Cầu Giấy',
+    12000000, 0, b'0', 30000, 12030000,
+    '', 'RETURN_REFUNDED', 'VNPAY', 'FAILED',
+    NULL, NOW(), NOW()
+),
+(
+    7, 'ORD007', 9, 1,
+    'Nguyễn Minh Anh', '0911000009',
+    'Hồ Chí Minh', 79, 'Quận 1', 760,
+    'Bến Nghé', '26734', '12 Nguyễn Huệ',
+    200000, 0, b'0', 30000, 230000,
+    '', 'PENDING', 'VNPAY', 'FAILED',
+    NULL, NOW(), NOW()
+),
+(
+    8, 'ORD008', 10, 2,
+    'Trần Hoàng Nam', '0911000010',
+    'Hà Nội', 1, 'Cầu Giấy', 5,
+    'Dịch Vọng', '00136', '100 Cầu Giấy',
+    200000, 0, b'0', 30000, 230000,
+    '', 'CONFIRMED', 'VNPAY', 'UNPAID',
+    NULL, NOW(), NOW()
+),
+(
+    9, 'ORD009', 9, 1,
+    'Nguyễn Minh Anh', '0911000009',
+    'Hồ Chí Minh', 79, 'Quận 1', 760,
+    'Bến Nghé', '26734', '12 Nguyễn Huệ',
+    21000000, 0, b'0', 30000, 21030000,
+    '', 'SHIPPING', 'COD', 'UNPAID',
+    NULL, NOW(), NOW()
+),
+(
+    10, 'ORD010', 10, 3,
+    'Trần Hoàng Nam', '0911000010',
+    'Hà Nội', 1, 'Cầu Giấy', 5,
+    'Dịch Vọng', '00136', '100 Cầu Giấy',
+    21000000, 0, b'0', 30000, 21030000,
+    '', 'DELIVERED', 'VNPAY', 'PAID',
+    NULL, NOW(), NOW()
+);
 -- =====================================================
 -- 15. ORDER ITEMS
 -- =====================================================
-INSERT INTO order_items
-(id, order_id, product_variant_id, product_name_snapshot, variant_snapshot, quantity, unit_price, subtotal, created_at)
+INSERT INTO order_items (
+    id,
+    order_id,
+    product_variant_id,
+    product_name_snapshot,
+    variant_snapshot,
+    quantity,
+    unit_price,
+    subtotal,
+    discount_amount,
+    created_at
+)
 VALUES
-(1, 1, 1, 'iPhone 16', 'Đen / 128GB', 1, 21000000, 21000000, NOW()),
-(2, 2, 4, 'Samsung Galaxy S25', 'Xanh / 256GB', 1, 21000000, 21000000, NOW()),
-(3, 3, 3, 'iPhone 16 Pro', 'Titan / 256GB', 1, 28000000, 28000000, NOW()),
-(4, 4, 5, 'Xiaomi 14T', 'Xám / 256GB', 1, 12000000, 12000000, NOW()),
-(5, 5, 2, 'iPhone 16', 'Trắng / 256GB', 1, 24000000, 24000000, NOW()),
-(6, 6, 5, 'Xiaomi 14T', 'Xám / 256GB', 1, 12000000, 12000000, NOW()),
-(7, 7, 6, 'Cáp sạc USB-C', 'Trắng', 1, 200000, 200000, NOW()),
-(8, 8, 6, 'Cáp sạc USB-C', 'Trắng', 1, 200000, 200000, NOW()),
-(9, 9, 1, 'iPhone 16', 'Đen / 128GB', 1, 21000000, 21000000, NOW()),
-(10, 10, 4, 'Samsung Galaxy S25', 'Xanh / 256GB', 1, 21000000, 21000000, NOW());
+(1, 1, 1, 'iPhone 16', 'Đen / 128GB', 1, 21000000, 21000000, 0, NOW()),
+(2, 2, 4, 'Samsung Galaxy S25', 'Xanh / 256GB', 1, 21000000, 21000000, 0, NOW()),
+(3, 3, 3, 'iPhone 16 Pro', 'Titan / 256GB', 1, 28000000, 28000000, 0, NOW()),
+(4, 4, 5, 'Xiaomi 14T', 'Xám / 256GB', 1, 12000000, 12000000, 0, NOW()),
+(5, 5, 2, 'iPhone 16', 'Trắng / 256GB', 1, 24000000, 24000000, 0, NOW()),
+(6, 6, 5, 'Xiaomi 14T', 'Xám / 256GB', 1, 12000000, 12000000, 0, NOW()),
+(7, 7, 6, 'Cáp sạc USB-C', 'Trắng', 1, 200000, 200000, 0, NOW()),
+(8, 8, 6, 'Cáp sạc USB-C', 'Trắng', 1, 200000, 200000, 0, NOW()),
+(9, 9, 1, 'iPhone 16', 'Đen / 128GB', 1, 21000000, 21000000, 0, NOW()),
+(10, 10, 4, 'Samsung Galaxy S25', 'Xanh / 256GB', 1, 21000000, 21000000, 0, NOW());
 
 
 -- =====================================================

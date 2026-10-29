@@ -1,6 +1,7 @@
 package example.com.ltw.chat.service;
 
 import example.com.ltw.branch.entity.Branch;
+import example.com.ltw.branch.entity.BranchStatus;
 import example.com.ltw.branch.repository.BranchRepository;
 import example.com.ltw.chat.dto.ChatMessageDto;
 import example.com.ltw.chat.entity.ChatConversation;
@@ -21,7 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -65,6 +68,13 @@ public class ChatService {
                     conv.setUser(user);
                     conv.setBranch(targetBranch);
                     conv.setStatus(ChatConversationStatus.OPEN);
+
+                    // Tự động phân bổ nhân viên chi nhánh vào cuộc trò chuyện nếu có
+                    List<User> branchStaffs = userRepository.findAllByBranch_IdAndRoleOrderByCreatedAtDesc(targetBranch.getId(), Role.STAFF);
+                    if (!branchStaffs.isEmpty()) {
+                        conv.setStaff(branchStaffs.get(0));
+                    }
+
                     return conversationRepository.save(conv);
                 });
     }
@@ -107,11 +117,14 @@ public class ChatService {
 
         ChatMessageDto dto = toDto(saved, sender.getId());
 
-        // Bắn WebSocket đến topic của cuộc trò chuyện và topic của chi nhánh
+        // Bắn WebSocket đến topic của cuộc trò chuyện, topic của chi nhánh và topic người dùng
         try {
             messagingTemplate.convertAndSend("/topic/chat/" + conversationId, dto);
             if (conv.getBranch() != null) {
                 messagingTemplate.convertAndSend("/topic/branch/" + conv.getBranch().getId() + "/chat", dto);
+            }
+            if (conv.getUser() != null) {
+                messagingTemplate.convertAndSend("/topic/user/" + conv.getUser().getId() + "/chat", dto);
             }
         } catch (Exception ex) {
             log.warn("Không thể gửi thông báo WebSocket (sẽ dùng HTTP polling dự phòng): {}", ex.getMessage());
@@ -215,6 +228,26 @@ public class ChatService {
         return conversationRepository.findAllByBranchIdOrderByUpdatedAtDesc(branchId);
     }
 
+    /**
+     * Lấy danh sách các chi nhánh có sẵn để khách hàng chọn chat đa chi nhánh.
+     */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getAvailableBranchesForUser(User user) {
+        List<Branch> branches = branchRepository.findByStatus(BranchStatus.ACTIVE);
+        if (branches.isEmpty()) {
+            branches = branchRepository.findAll();
+        }
+        return branches.stream()
+                .map(b -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", b.getId());
+                    map.put("name", b.getName());
+                    map.put("address", b.getAddress());
+                    return map;
+                })
+                .toList();
+    }
+
     private ChatMessageDto toDto(ChatMessage message, Long currentUserId) {
         User sender = message.getSender();
         boolean isMe = (currentUserId != null && sender != null && currentUserId.equals(sender.getId()));
@@ -231,6 +264,7 @@ public class ChatService {
         return ChatMessageDto.builder()
                 .id(message.getId())
                 .conversationId(message.getConversation().getId())
+                .branchId(message.getConversation().getBranch() != null ? message.getConversation().getBranch().getId() : null)
                 .senderId(sender != null ? sender.getId() : null)
                 .senderName(sender != null ? sender.getFullName() : "Người dùng")
                 .senderRole(sender != null ? sender.getRole().name() : "USER")
