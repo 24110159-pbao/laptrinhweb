@@ -48,17 +48,13 @@ public class ReviewService {
             String comment,
             List<MultipartFile> uploads,
             List<Long> retainedMediaIds,
-            boolean mediaSelectionSubmitted,
-            boolean policyAccepted
+            boolean mediaSelectionSubmitted
     ) {
         validateText(rating, comment);
         List<MultipartFile> files = uploads == null ? List.of()
                 : uploads.stream().filter(file -> file != null && !file.isEmpty()).toList();
         if (files.size() > MAX_MEDIA_COUNT) {
             throw new IllegalArgumentException("Mỗi đánh giá chỉ được đính kèm tối đa 5 tệp.");
-        }
-        if (!files.isEmpty() && !policyAccepted) {
-            throw new IllegalArgumentException("Hãy xác nhận tệp đính kèm tuân thủ chính sách sử dụng.");
         }
 
         OrderItem item = orderItemRepository.findForReview(orderItemId)

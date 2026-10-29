@@ -150,7 +150,6 @@ public class OrderController {
             @RequestParam(required = false) List<MultipartFile> media,
             @RequestParam(required = false) List<Long> retainedMediaIds,
             @RequestParam(required = false, defaultValue = "false") boolean mediaSelectionSubmitted,
-            @RequestParam(required = false, defaultValue = "false") boolean policyAccepted,
             HttpSession session,
             RedirectAttributes flash
     ) {
@@ -158,7 +157,7 @@ public class OrderController {
         if (user == null) return "redirect:/login";
         try {
             reviewService.submit(user.getId(), orderCode, orderItemId, reviewId, rating, comment, media,
-                    retainedMediaIds, mediaSelectionSubmitted, policyAccepted);
+                    retainedMediaIds, mediaSelectionSubmitted);
             flash.addFlashAttribute("successMessage", "Đánh giá của bạn đã được lưu và hiển thị.");
         } catch (IllegalArgumentException | IllegalStateException ex) {
             flash.addFlashAttribute("errorMessage", ex.getMessage());

@@ -27,7 +27,6 @@ public class ReviewMediaStorageService {
     private final Set<String> allowedTypes;
     private final long maxFileSizeBytes;
     private final long maxVideoDurationSeconds;
-    private final String moderation;
 
     public ReviewMediaStorageService(
             @Value("${cloudinary.cloud-name}") String cloudName,
@@ -36,8 +35,7 @@ public class ReviewMediaStorageService {
             @Value("${reviews.media.allowed-types:image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime}")
             String allowedTypes,
             @Value("${reviews.media.max-file-size-bytes:20971520}") long maxFileSizeBytes,
-            @Value("${reviews.media.max-video-duration-seconds:60}") long maxVideoDurationSeconds,
-            @Value("${reviews.media.moderation:none}") String moderation
+            @Value("${reviews.media.max-video-duration-seconds:60}") long maxVideoDurationSeconds
     ) {
         this.cloudinary = new Cloudinary(ObjectUtils.asMap(
                 "cloud_name", cloudName,
@@ -58,15 +56,9 @@ public class ReviewMediaStorageService {
         }
         this.maxFileSizeBytes = maxFileSizeBytes;
         this.maxVideoDurationSeconds = maxVideoDurationSeconds;
-        this.moderation = moderation == null ? "none" : moderation.trim();
     }
 
     public ReviewMedia upload(MultipartFile file) {
-        if (moderation.isBlank() || moderation.equalsIgnoreCase("none")) {
-            throw new IllegalStateException(
-                    "Tải tệp đánh giá cần được bật kiểm duyệt tự động Cloudinary (REVIEWS_MEDIA_MODERATION)."
-            );
-        }
         DetectedMedia detected = detect(file);
         if (!allowedTypes.contains(detected.contentType())) {
             throw new IllegalArgumentException("Định dạng tệp đánh giá không được hỗ trợ.");
@@ -76,9 +68,6 @@ public class ReviewMediaStorageService {
             Map<String, Object> options = new java.util.HashMap<>();
             options.put("folder", "nexustech/reviews");
             options.put("resource_type", detected.resourceType());
-            if (!moderation.isBlank() && !moderation.equalsIgnoreCase("none")) {
-                options.put("moderation", moderation);
-            }
 
             Map<?, ?> result = cloudinary.uploader().upload(file.getBytes(), options);
             String url = result.get("secure_url") instanceof String value ? value : null;
@@ -102,7 +91,6 @@ public class ReviewMediaStorageService {
                     );
                 }
             }
-            verifyModeration(result, publicId, detected.resourceType());
             return media;
         } catch (IllegalArgumentException | IllegalStateException ex) {
             throw ex;
@@ -161,17 +149,6 @@ public class ReviewMediaStorageService {
         } catch (IOException ex) {
             log.error("Unable to inspect review media upload", ex);
             throw new IllegalStateException("Không thể đọc tệp đánh giá.", ex);
-        }
-    }
-
-    private void verifyModeration(Map<?, ?> result, String publicId, String resourceType) {
-        Object entries = result.get("moderation");
-        boolean approved = entries instanceof List<?> list && list.stream().anyMatch(entry ->
-                entry instanceof Map<?, ?> data && "approved".equalsIgnoreCase(String.valueOf(data.get("status")))
-        );
-        if (!approved) {
-            delete(publicId, resourceType);
-            throw new IllegalArgumentException("Tệp không được dịch vụ kiểm duyệt tự động chấp thuận.");
         }
     }
 
