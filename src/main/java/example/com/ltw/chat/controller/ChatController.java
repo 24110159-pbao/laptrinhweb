@@ -15,7 +15,6 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -61,11 +60,22 @@ public class ChatController {
             resp.put("currentUserName", user.getFullName());
             resp.put("currentUserRole", user.getRole().name());
             resp.put("messages", messages);
+            resp.put("branches", chatService.getAvailableBranchesForUser(user));
             return ResponseEntity.ok(resp);
         } catch (Exception ex) {
             log.error("Lỗi khi mở cuộc trò chuyện: {}", ex.getMessage());
             return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
         }
+    }
+
+    /**
+     * REST endpoint: Lấy danh sách các chi nhánh hỗ trợ chat.
+     */
+    @GetMapping("/api/chat/branches")
+    @ResponseBody
+    public ResponseEntity<?> getBranches(HttpSession session) {
+        User user = currentUser(session);
+        return ResponseEntity.ok(chatService.getAvailableBranchesForUser(user));
     }
 
     /**
@@ -115,7 +125,6 @@ public class ChatController {
      */
     @MessageMapping("/chat.sendMessage")
     public void handleWebSocketMessage(@Payload SendMessageRequest payload) {
-        // Log received websocket message (REST endpoint or direct auth can also be used)
         log.info("Nhận tin nhắn qua WebSocket STOMP cho conversation #{}: {}", payload.getConversationId(), payload.getContent());
     }
 }

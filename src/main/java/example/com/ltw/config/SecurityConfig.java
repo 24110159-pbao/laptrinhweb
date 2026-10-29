@@ -38,7 +38,10 @@ public class SecurityConfig {
                     "/js/**",
                     "/images/**",
                     "/webjars/**",
-                    "/favicon.ico"
+                    "/favicon.ico",
+                    "/ws-chat/**",
+                    "/ws-chat-raw/**",
+                    "/api/chat/**"
                 ).permitAll()
                 .anyRequest().permitAll() // Allow public browse & standard session-based user checks
             )

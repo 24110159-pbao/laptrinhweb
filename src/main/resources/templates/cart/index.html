@@ -40,10 +40,17 @@
         </div>
 
         <article th:each="cart : ${carts}" class="cart-branch">
-            <div class="cart-branch-heading">
+            <div class="cart-branch-heading" style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <h2 th:text="${cart.branchName}">Chi nhánh</h2>
                 </div>
+                <button type="button" class="btn-branch-chat-trigger" 
+                        th:if="${cart.branchId != null}"
+                        th:data-branch-id="${cart.branchId}"
+                        onclick="if (window.openChatWithBranch) { window.openChatWithBranch(this.getAttribute('data-branch-id')); } else { toggleNexusChat(); }"
+                        style="background: rgba(2, 132, 199, 0.12); border: 1px solid #38bdf8; color: #38bdf8; border-radius: 20px; padding: 5px 14px; font-size: 12.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                    <span>💬</span> Chat với chi nhánh này
+                </button>
             </div>
 
 

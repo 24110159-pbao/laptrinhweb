@@ -12,12 +12,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // Register /ws-chat with SockJS fallback and raw WebSocket support
+        // Register /ws-chat with SockJS fallback for web browsers
         registry.addEndpoint("/ws-chat")
                 .setAllowedOriginPatterns("*")
                 .withSockJS();
 
-        registry.addEndpoint("/ws-chat")
+        // Register /ws-chat-raw for native WebSocket clients (e.g. tools/Postman)
+        registry.addEndpoint("/ws-chat-raw")
                 .setAllowedOriginPatterns("*");
     }
 
