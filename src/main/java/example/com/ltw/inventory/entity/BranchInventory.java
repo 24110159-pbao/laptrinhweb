@@ -1,20 +1,10 @@
 package example.com.ltw.inventory.entity;
 
 import example.com.ltw.branch.entity.Branch;
+import example.com.ltw.catalog.entity.ProductVariantStatus;
 import example.com.ltw.catalog.entity.ProductVariant;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.*;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -71,6 +61,11 @@ public class BranchInventory {
     @Column(nullable = false)
     private int reservedQuantity = 0;
 
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private ProductVariantStatus status = ProductVariantStatus.ACTIVE;
+
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
@@ -88,6 +83,10 @@ public class BranchInventory {
             );
         }
 
+        if (status == null) {
+            status = ProductVariantStatus.ACTIVE;
+        }
+
         updatedAt = LocalDateTime.now();
     }
 
@@ -103,6 +102,10 @@ public class BranchInventory {
             throw new IllegalStateException(
                     "Reserved quantity cannot exceed total quantity."
             );
+        }
+
+        if (status == null) {
+            status = ProductVariantStatus.ACTIVE;
         }
 
         updatedAt = LocalDateTime.now();

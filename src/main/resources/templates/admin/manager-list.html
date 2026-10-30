@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Quản lý Manager | NEXUSTECH</title>
+
+    <!-- Bootstrap -->
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+            rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+            rel="stylesheet">
+
+    <!-- CSS Admin dùng chung -->
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+
+<body class="admin-page">
+
+<!-- ================= NAVBAR ================= -->
+<nav class="admin-navbar navbar navbar-dark">
+    <div class="container-fluid px-3 px-lg-4">
+
+        <a class="admin-brand" th:href="@{/admin}">
+            <span class="admin-brand-icon">
+                <i class="bi bi-cpu-fill"></i>
+            </span>
+
+            <span>
+                <strong>NEXUSTECH</strong>
+                <small>ADMINISTRATION</small>
+            </span>
+        </a>
+
+        <div class="d-flex align-items-center gap-2">
+            <span class="text-secondary d-none d-md-inline small">
+                <i class="bi bi-person-circle me-1"></i>
+                <span th:text="${admin.fullName}">Administrator</span>
+            </span>
+
+            <a class="btn btn-outline-light btn-sm" th:href="@{/}">
+                <i class="bi bi-house-door me-1"></i>
+                Trang chủ
+            </a>
+        </div>
+
+    </div>
+</nav>
+
+<!-- ================= LAYOUT ================= -->
+<div class="admin-layout">
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="admin-sidebar">
+
+        <div class="sidebar-heading">MENU QUẢN TRỊ</div>
+
+        <a class="sidebar-link" th:href="@{/admin}">
+            <i class="bi bi-grid-1x2-fill"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/users}">
+            <i class="bi bi-people-fill"></i>
+            <span>Quản lý người dùng</span>
+        </a>
+
+        <a class="sidebar-link active" th:href="@{/admin/managers}">
+            <i class="bi bi-person-badge-fill"></i>
+            <span>Quản lý Manager</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/branches}">
+            <i class="bi bi-building"></i>
+            <span>Quản lý chi nhánh</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/products}">
+            <i class="bi bi-box-seam-fill"></i>
+            <span>Quản lý sản phẩm</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/products/allocate}">
+            <i class="bi bi-boxes"></i>
+            <span>Phân bổ tồn kho</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/discounts}">
+            <i class="bi bi-ticket-perforated-fill"></i>
+            <span>Mã giảm giá</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/branch-revenues}">
+            <i class="bi bi-graph-up-arrow"></i>
+            <span>Doanh thu chi nhánh</span>
+        </a>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-footer">
+            <i class="bi bi-shield-check"></i>
+            <small>HỆ THỐNG QUẢN TRỊ</small>
+            <strong>NEXUSTECH Admin</strong>
+        </div>
+
+    </aside>
+
+    <!-- ================= MAIN CONTENT ================= -->
+    <main class="admin-main">
+
+        <!-- PAGE HEADING -->
+        <section class="admin-page-heading">
+            <div>
+                <span class="admin-eyebrow">MANAGER MANAGEMENT</span>
+
+                <h1>Quản lý Manager</h1>
+
+                <p>
+                    Xin chào,
+                    <strong th:text="${admin.fullName}">Administrator</strong>.
+                    Quản lý thông tin cá nhân, chi nhánh phụ trách
+                    và trạng thái hoạt động của các Manager.
+                </p>
+            </div>
+
+        </section>
+
+        <!-- ================= ALERTS ================= -->
+        <div th:if="${successMessage}"
+             class="branch-list-alert branch-list-alert-success"
+             role="status">
+
+            <i class="bi bi-check-circle-fill"></i>
+
+            <span th:text="${successMessage}">
+                Thao tác thành công.
+            </span>
+        </div>
+
+        <div th:if="${errorMessage}"
+             class="branch-list-alert branch-list-alert-error"
+             role="alert">
+
+            <i class="bi bi-exclamation-triangle-fill"></i>
+
+            <span th:text="${errorMessage}">
+                Đã xảy ra lỗi.
+            </span>
+        </div>
+
+        <!-- ================= MANAGER TABLE ================= -->
+        <section class="admin-section branch-list-section">
+
+
+            <div class="admin-panel table-panel branch-list-panel">
+
+                <div class="table-header">
+                    <div>
+                        <h3>Thông tin quản lý</h3>
+                        <p>
+                            Danh sách các tài khoản Manager trong hệ thống.
+                        </p>
+                    </div>
+
+                    <a class="btn-branch-add"
+                       th:href="@{/admin/managers/new}">
+                        <i class="bi bi-plus-lg"></i>
+                        Thêm mới
+                    </a>
+                </div>
+
+                <div class="table-wrap branch-list-table-wrap">
+
+                    <table class="admin-table branch-list-table">
+
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>HỌ VÀ TÊN</th>
+                            <th>EMAIL</th>
+                            <th>ĐIỆN THOẠI</th>
+                            <th>CHI NHÁNH</th>
+                            <th>TRẠNG THÁI</th>
+                            <th>THAO TÁC</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+
+                        <tr th:each="m : ${managers}">
+
+                            <!-- ID -->
+                            <td>
+                                <span class="branch-id"
+                                      th:text="${m.id}">
+                                    1
+                                </span>
+                            </td>
+
+                            <!-- FULL NAME -->
+                            <td>
+                                <div class="branch-name">
+                                    <span class="branch-icon">
+                                        <i class="bi bi-person-badge-fill"></i>
+                                    </span>
+
+                                    <span th:text="${m.fullName}">
+                                        Họ và tên Manager
+                                    </span>
+                                </div>
+                            </td>
+
+                            <!-- EMAIL -->
+                            <td>
+                                <div class="branch-contact-cell"
+                                     th:if="${m.email != null and !#strings.isEmpty(m.email)}">
+                                    <i class="bi bi-envelope"></i>
+                                    <span th:text="${m.email}"></span>
+                                </div>
+
+                                <span class="branch-empty-value"
+                                      th:if="${m.email == null or #strings.isEmpty(m.email)}">
+                                    —
+                                </span>
+                            </td>
+
+                            <!-- PHONE -->
+                            <td>
+                                <div class="branch-contact-cell"
+                                     th:if="${m.phone != null and !#strings.isEmpty(m.phone)}">
+                                    <i class="bi bi-telephone"></i>
+                                    <span th:text="${m.phone}"></span>
+                                </div>
+
+                                <span class="branch-empty-value"
+                                      th:if="${m.phone == null or #strings.isEmpty(m.phone)}">
+                                    —
+                                </span>
+                            </td>
+
+                            <!-- BRANCH -->
+                            <td>
+                                <div class="branch-contact-cell"
+                                     th:if="${m.branch != null}">
+                                    <i class="bi bi-building"></i>
+                                    <span th:text="${m.branch.name}">
+                                        Tên chi nhánh
+                                    </span>
+                                </div>
+
+                                <span class="branch-empty-value"
+                                      th:if="${m.branch == null}">
+                                    Chưa phân chi nhánh
+                                </span>
+                            </td>
+
+                            <!-- STATUS -->
+                            <td>
+                                <span class="branch-status-badge"
+                                      th:classappend="${m.status != null and m.status.name() == 'ACTIVE' ? ' branch-status-active' : ' branch-status-inactive'}"
+                                      th:text="${m.status != null ? m.status : 'UNKNOWN'}">
+                                    ACTIVE
+                                </span>
+                            </td>
+
+                            <!-- ACTIONS -->
+                            <td>
+                                <div class="branch-action-group">
+
+                                    <a class="btn-branch-edit"
+                                       th:href="@{/admin/managers/{id}/edit(id=${m.id})}"
+                                       title="Chỉnh sửa Manager"
+                                       aria-label="Chỉnh sửa Manager">
+
+                                        <i class="bi bi-pencil-square"></i>
+                                        <span>Chỉnh sửa</span>
+                                    </a>
+
+                                </div>
+                            </td>
+
+                        </tr>
+
+                        <!-- EMPTY STATE -->
+                        <tr th:if="${#lists.isEmpty(managers)}">
+                            <td colspan="7">
+
+                                <div class="branch-list-empty">
+                                    <i class="bi bi-people"></i>
+
+                                    <h3>Chưa có Manager</h3>
+
+                                    <p>
+                                        Hệ thống chưa có tài khoản Manager nào.
+                                        Hãy tạo Manager mới để bắt đầu quản lý
+                                        hoạt động của các chi nhánh.
+                                    </p>
+
+                                    <a class="btn-admin-primary"
+                                       th:href="@{/admin/managers/new}">
+                                        <i class="bi bi-plus-circle"></i>
+                                        Tạo Manager
+                                    </a>
+                                </div>
+
+                            </td>
+                        </tr>
+
+                        </tbody>
+                    </table>
+
+                </div>
+
+                <!-- TABLE FOOTER -->
+                <div class="branch-list-footer">
+                    <span>
+                        <i class="bi bi-info-circle"></i>
+                        Thông tin Manager và chi nhánh phụ trách
+                        được quản lý bởi hệ thống.
+                    </span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= FOOTER ================= -->
+        <footer class="admin-footer">
+            NEXUSTECH ADMINISTRATION
+            <span class="mx-2">•</span>
+            MANAGER MANAGEMENT
+        </footer>
+
+    </main>
+</div>
+
+</body>
+</html>

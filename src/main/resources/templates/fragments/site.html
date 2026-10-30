@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<header class="site-page-header" style="justify-content: space-between;">
+    <a th:href="@{/}" class="brand-logo">
+        <span class="brand-icon">⚡</span>
+        <span class="brand-title-wrap">
+            <span class="brand-name">NEXUSTECH</span>
+            <span class="brand-tagline">FLAGSHIP STORE</span>
+        </span>
+    </a>
+    <a th:href="@{/}" style="color: #38bdf8; text-decoration: none; font-weight: 600;">← Quay về trang chủ</a>
+</header>
+
+<footer th:fragment="footer" class="main-footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <div class="brand-logo" style="margin-bottom: 14px;">
+                    <div class="brand-icon">⚡</div>
+                    <div class="brand-title-wrap">
+                        <span class="brand-name">NEXUSTECH</span>
+                        <span class="brand-tagline">FLAGSHIP STORE</span>
+                    </div>
+                </div>
+                <p style="font-size: 13px; line-height: 1.6; color: #94a3b8;">
+                    Hệ thống bán lẻ thiết bị công nghệ chính hãng cao cấp hàng đầu Việt Nam. Điểm đến tin cậy của các tín đồ công nghệ với chính sách bảo hành 24 tháng VIP và dịch vụ trải nghiệm 1 đổi 1.
+                </p>
+            </div>
+            <div class="footer-col">
+                <h5>Danh Mục Sản Phẩm</h5>
+                <ul class="footer-links">
+                    <li><a th:href="@{/products}">iPhone &amp; Apple Ecosystem</a></li>
+                    <li><a th:href="@{/products}">Samsung Galaxy AI Series</a></li>
+                    <li><a th:href="@{/products}">Xiaomi Leica Flagship</a></li>
+                    <li><a th:href="@{/products}">Phụ kiện &amp; Audio cao cấp</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h5>Chính Sách Khách Hàng</h5>
+                <ul class="footer-links">
+                    <li><a href="#warranty">Chính sách bảo hành VIP 24T</a></li>
+                    <li><a href="#return">Chính sách 1 đổi 1 trong 30 ngày</a></li>
+                    <li><a href="#installment">Chính sách trả góp 0% lãi suất</a></li>
+                    <li><a href="#shipping">Vận chuyển hỏa tốc nội thành 1H</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h5>Tổng Đài Chăm Sóc</h5>
+                <p style="color: #cbd5e1; margin-bottom: 8px;">Tư vấn mua hàng: <strong style="color: #38bdf8;">1800 6868</strong></p>
+                <p style="color: #cbd5e1; margin-bottom: 8px;">Hỗ trợ kỹ thuật: <strong style="color: #38bdf8;">1900 8989</strong></p>
+                <p style="color: #cbd5e1;">Email hỗ trợ: <strong style="color: #38bdf8;">trinhphuhao2108@gmail.com</strong></p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            &copy; 2026 NEXUSTECH FLAGSHIP STORE. Tất cả các quyền được bảo lưu.
+        </div>
+    </div>
+
+    <!-- ==================================================
+         REALTIME CHAT WIDGET (USER & STAFF)
+         ================================================== -->
+    <div id="nexusChatWidgetRoot" class="nexus-chat-widget">
+        <!-- Floating Trigger Button -->
+        <button id="nexusChatToggleBtn" class="nexus-chat-btn" onclick="toggleNexusChat()" title="Trò chuyện với nhân viên tư vấn">
+            <div class="chat-btn-icon">💬</div>
+            <span class="chat-btn-text">Tư vấn &amp; Chat</span>
+            <div class="chat-online-dot" title="Nhân viên đang trực tuyến"></div>
+        </button>
+
+        <!-- Chat Popup Box -->
+        <div id="nexusChatPopup" class="nexus-chat-box" style="display: none;">
+            <!-- Chat Box Header -->
+            <div class="nexus-chat-header">
+                <div class="chat-header-info">
+                    <div class="chat-header-avatar">⚡</div>
+                    <div>
+                        <div class="chat-header-title">NEXUSTECH SUPPORT</div>
+                        <div class="chat-header-status">
+                            <span class="status-indicator"></span>
+                            <span id="nexusChatBranchName">Nhân viên tư vấn chi nhánh</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="chat-close-btn" onclick="toggleNexusChat()" aria-label="Đóng cửa sổ chat">&times;</button>
+            </div>
+
+            <!-- Branch Selector Tabs (Chat đa chi nhánh) -->
+            <div class="nexus-chat-branch-bar" id="nexusChatBranchBar">
+                <span class="branch-bar-title">Chi nhánh:</span>
+                <div class="branch-bar-scroll" id="nexusChatBranchTabs"></div>
+            </div>
+
+            <!-- Chat Box Messages -->
+            <div id="nexusChatMessages" class="nexus-chat-body">
+                <div id="nexusChatLoading" style="text-align: center; color: #94a3b8; padding: 24px; font-size: 13px;">
+                    Đang kết nối hệ thống hỗ trợ...
+                </div>
+            </div>
+
+            <!-- Chat Box Input -->
+            <form id="nexusChatInputForm" class="nexus-chat-footer" onsubmit="event.preventDefault(); sendUserChatMessage();">
+                <input type="text" id="nexusUserChatInput" class="nexus-chat-input" placeholder="Nhập tin nhắn (Enter để gửi)..." autocomplete="off" required>
+                <button type="submit" class="nexus-chat-send-btn" title="Gửi tin nhắn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        .nexus-chat-widget {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 99999;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .nexus-chat-btn {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 30px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            box-shadow: 0 8px 24px rgba(2, 132, 199, 0.45);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+        .nexus-chat-btn:hover {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 12px 28px rgba(2, 132, 199, 0.6);
+        }
+        .chat-btn-icon {
+            font-size: 18px;
+        }
+        .chat-online-dot {
+            width: 10px;
+            height: 10px;
+            background: #10b981;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            position: absolute;
+            top: 6px;
+            right: 8px;
+        }
+        .nexus-chat-box {
+            position: absolute;
+            bottom: 60px;
+            right: 0;
+            width: 380px;
+            height: 520px;
+            max-width: calc(100vw - 32px);
+            max-height: 80vh;
+            background: #111e33;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            animation: chatSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes chatSlideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .nexus-chat-header {
+            background: #141f33;
+            border-bottom: 1px solid #334155;
+            padding: 14px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-header-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .chat-header-avatar {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #0284c7, #38bdf8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .chat-header-title {
+            color: #f8fafc;
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+        .chat-header-status {
+            font-size: 11px;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 2px;
+        }
+        .status-indicator {
+            width: 7px;
+            height: 7px;
+            background: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .chat-close-btn {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 24px;
+            cursor: pointer;
+            line-height: 1;
+            padding: 4px;
+        }
+        .chat-close-btn:hover {
+            color: #ffffff;
+        }
+        .nexus-chat-branch-bar {
+            background: #0b1329;
+            border-bottom: 1px solid #1e293b;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .branch-bar-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        .branch-bar-scroll {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            flex: 1;
+        }
+        .branch-bar-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .nexus-branch-pill {
+            background: #1e293b;
+            color: #94a3b8;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 4px 10px;
+            font-size: 11.5px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .nexus-branch-pill:hover {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .nexus-branch-pill.active {
+            background: #0284c7;
+            color: #ffffff;
+            border-color: #38bdf8;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+        }
+        .nexus-branch-pill.has-notice::after {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: #ef4444;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .nexus-chat-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #0f172a;
+            scrollbar-width: thin;
+            scrollbar-color: #334155 #0b1329;
+            scroll-behavior: smooth;
+        }
+        .nexus-chat-body::-webkit-scrollbar {
+            width: 6px;
+        }
+        .nexus-chat-body::-webkit-scrollbar-track {
+            background: #0b1329;
+            border-radius: 3px;
+        }
+        .nexus-chat-body::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+            transition: background 0.2s;
+        }
+        .nexus-chat-body::-webkit-scrollbar-thumb:hover {
+            background: #38bdf8;
+        }
+        .chat-bubble-wrap {
+            display: flex;
+            width: 100%;
+            margin-bottom: 4px;
+        }
+        .chat-bubble-wrap.wrap-me {
+            justify-content: flex-end;
+        }
+        .chat-bubble-wrap.wrap-them {
+            justify-content: flex-start;
+        }
+        .chat-bubble-wrap.wrap-order {
+            justify-content: center;
+        }
+        .them-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            max-width: 85%;
+        }
+        .staff-mini-avatar {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #0284c7, #38bdf8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            color: #ffffff;
+            flex-shrink: 0;
+            margin-bottom: 2px;
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
+        }
+        .user-chat-bubble {
+            padding: 10px 14px;
+            font-size: 13px;
+            line-height: 1.5;
+            word-break: break-word;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+            transition: transform 0.15s ease;
+        }
+        .bubble-me {
+            max-width: 80%;
+            background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+            color: #ffffff;
+            border-radius: 16px 16px 4px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .bubble-them {
+            background: #1e293b;
+            color: #f1f5f9;
+            border: 1px solid #334155;
+            border-radius: 16px 16px 16px 4px;
+        }
+        .bubble-order {
+            width: 100%;
+            max-width: 96%;
+            background: linear-gradient(180deg, rgba(6, 78, 59, 0.95) 0%, rgba(6, 95, 70, 0.85) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            border-radius: 12px;
+            color: #d1fae5;
+            font-size: 12.5px;
+        }
+        .order-notice-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .order-notice-badge {
+            background: #10b981;
+            color: #064e3b;
+            font-weight: 800;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+        }
+        .order-notice-title {
+            font-weight: 700;
+            font-size: 11px;
+            color: #6ee7b7;
+        }
+        .order-notice-content {
+            line-height: 1.6;
+        }
+        .bubble-sender {
+            font-size: 10.5px;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+        .me-sender {
+            color: rgba(255, 255, 255, 0.85);
+            text-align: right;
+        }
+        .them-sender {
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .bubble-time {
+            font-size: 9.5px;
+            margin-top: 4px;
+        }
+        .me-time {
+            color: rgba(255, 255, 255, 0.7);
+            text-align: right;
+        }
+        .them-time {
+            color: #94a3b8;
+            text-align: right;
+        }
+        .nexus-chat-footer {
+            background: #141f33;
+            border-top: 1px solid #334155;
+            padding: 12px 14px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .nexus-chat-input {
+            flex: 1;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #ffffff;
+            font-size: 13px;
+            outline: none;
+        }
+        .nexus-chat-input:focus {
+            border-color: #38bdf8;
+        }
+        .nexus-chat-send-btn {
+            background: #0284c7;
+            border: none;
+            color: #ffffff;
+            border-radius: 8px;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .nexus-chat-send-btn:hover {
+            background: #0369a1;
+        }
+        .login-prompt-box {
+            padding: 32px 16px;
+            text-align: center;
+            color: #cbd5e1;
+        }
+        .login-prompt-btn {
+            display: inline-block;
+            background: #0284c7;
+            color: #ffffff;
+            padding: 8px 18px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 13px;
+            margin-top: 12px;
+        }
+    </style>
+
+    <!-- Client STOMP & SockJS scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+        <script>
+        let clientChatConvId = null;
+        let clientChatCurrentBranchId = null;
+        let clientChatCurrentUserId = null;
+        let clientChatCurrentUserRole = null;
+        let clientChatBranches = [];
+        let clientStomp = null;
+        let clientChatOpen = false;
+        let clientConvSub = null;
+        let clientUserSub = null;
+        let isConnectingWebSocket = false;
+
+        window.openChatWithBranch = function(branchId) {
+            const popup = document.getElementById('nexusChatPopup');
+            clientChatOpen = true;
+            if (popup) popup.style.display = 'flex';
+            initCustomerChat(branchId);
+        };
+
+        function toggleNexusChat() {
+            const popup = document.getElementById('nexusChatPopup');
+            clientChatOpen = !clientChatOpen;
+            popup.style.display = clientChatOpen ? 'flex' : 'none';
+            if (clientChatOpen && !clientChatConvId) {
+                initCustomerChat();
+            } else if (clientChatOpen) {
+                scrollCustomerBottom();
+            }
+        }
+
+        function initCustomerChat(branchId) {
+            const url = branchId ? ('/api/chat/active?branchId=' + branchId) : '/api/chat/active';
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    const area = document.getElementById('nexusChatMessages');
+                    const branchBar = document.getElementById('nexusChatBranchBar');
+                    if (!data.authenticated) {
+                        area.innerHTML = `
+                            <div class="login-prompt-box">
+                                <div style="font-size: 32px; margin-bottom: 8px;">🔒</div>
+                                <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">Chưa đăng nhập</div>
+                                <p style="font-size: 12px; color: #94a3b8; margin: 0;">Vui lòng đăng nhập tài khoản để chat trực tiếp với nhân viên chi nhánh.</p>
+                                <a href="/login" class="login-prompt-btn">Đăng nhập ngay</a>
+                            </div>
+                        `;
+                        document.getElementById('nexusChatInputForm').style.display = 'none';
+                        if (branchBar) branchBar.style.display = 'none';
+                        return;
+                    }
+
+                    document.getElementById('nexusChatInputForm').style.display = 'flex';
+                    if (branchBar) branchBar.style.display = 'flex';
+
+                    clientChatConvId = data.conversationId;
+                    clientChatCurrentBranchId = data.branchId;
+                    clientChatCurrentUserId = data.currentUserId;
+                    clientChatCurrentUserRole = data.currentUserRole;
+                    clientChatBranches = data.branches || [];
+
+                    renderBranchTabs(clientChatBranches, clientChatCurrentBranchId);
+
+                    if (data.branchName) {
+                        document.getElementById('nexusChatBranchName').innerText = data.branchName;
+                    }
+                    area.innerHTML = '';
+                    if (data.messages && data.messages.length > 0) {
+                        data.messages.forEach(m => appendCustomerBubble(m));
+                    } else {
+                        area.innerHTML = `
+                            <div style="text-align: center; color: #94a3b8; font-size: 12px; padding: 24px;">
+                                👋 Chào bạn! Hãy gửi tin nhắn bên dưới để nhân viên ${data.branchName || 'chi nhánh'} hỗ trợ bạn ngay nhé!
+                            </div>
+                        `;
+                    }
+                    scrollCustomerBottom();
+                    connectCustomerWebSocket(clientChatConvId);
+                })
+                .catch(err => {
+                    console.error('Lỗi khởi tạo chat:', err);
+                    document.getElementById('nexusChatMessages').innerHTML = `
+                        <div style="text-align: center; color: #ef4444; font-size: 12px; padding: 20px;">
+                            Không thể kết nối đến máy chủ hỗ trợ.
+                        </div>
+                    `;
+                });
+        }
+
+        function renderBranchTabs(branches, activeBranchId) {
+            const container = document.getElementById('nexusChatBranchTabs');
+            if (!container || !branches) return;
+            container.innerHTML = '';
+
+            branches.forEach(b => {
+                const pill = document.createElement('button');
+                pill.type = 'button';
+                pill.className = 'nexus-branch-pill' + (String(b.id) === String(activeBranchId) ? ' active' : '');
+                pill.id = 'branch-pill-' + b.id;
+                pill.innerText = b.name;
+                pill.onclick = function() {
+                    if (String(clientChatCurrentBranchId) === String(b.id)) return;
+                    initCustomerChat(b.id);
+                };
+                container.appendChild(pill);
+            });
+        }
+
+        function appendCustomerBubble(msg) {
+            const area = document.getElementById('nexusChatMessages');
+            if (!area) return;
+
+            // Tránh hiển thị trùng lặp tin nhắn nếu cả REST và WebSocket cùng trả về
+            if (msg.id) {
+                const existing = document.getElementById('nexus-msg-' + msg.id);
+                if (existing) return;
+            }
+
+            const isOrderNotice = Boolean(
+                msg.isOrderNotice || 
+                msg.orderNotice || 
+                (msg.content && (msg.content.includes('[XÁC NHẬN TIẾP NHẬN ĐƠN HÀNG]') || msg.content.includes('[THÔNG BÁO ĐẶT HÀNG THÀNH CÔNG]')))
+            );
+
+            // Xác định xem tin nhắn là của USER hiện tại (bên phải) hay của NHÂN VIÊN (bên trái)
+            let isMe = false;
+            if (!isOrderNotice) {
+                if (clientChatCurrentUserId && msg.senderId) {
+                    isMe = (String(msg.senderId) === String(clientChatCurrentUserId));
+                } else if (msg.isMe !== undefined && msg.isMe !== null) {
+                    isMe = Boolean(msg.isMe);
+                } else if (msg.me !== undefined && msg.me !== null) {
+                    isMe = Boolean(msg.me);
+                } else if (msg.senderRole === 'USER') {
+                    isMe = true;
+                }
+            }
+
+            const bubbleWrap = document.createElement('div');
+            bubbleWrap.className = 'chat-bubble-wrap ' + (isOrderNotice ? 'wrap-order' : (isMe ? 'wrap-me' : 'wrap-them'));
+            if (msg.id) {
+                bubbleWrap.id = 'nexus-msg-' + msg.id;
+            }
+
+            const formatted = (msg.content || '').replace(/\n/g, '<br>');
+
+            if (isOrderNotice) {
+                bubbleWrap.innerHTML = `
+                    <div class="user-chat-bubble bubble-order">
+                        <div class="order-notice-header">
+                            <span class="order-notice-badge">📦 ĐƠN HÀNG</span>
+                            <span class="order-notice-title">NexusTech • Thông Báo Tiếp Nhận</span>
+                        </div>
+                        <div class="order-notice-content">${formatted}</div>
+                        <div class="bubble-time them-time">${msg.createdAt || ''}</div>
+                    </div>
+                `;
+            } else if (isMe) {
+                bubbleWrap.innerHTML = `
+                    <div class="user-chat-bubble bubble-me">
+                        <div class="bubble-sender me-sender">Bạn</div>
+                        <div>${formatted}</div>
+                        <div class="bubble-time me-time">${msg.createdAt || ''}</div>
+                    </div>
+                `;
+            } else {
+                const senderTitle = (msg.senderName || 'Nhân viên') + ' (Tư vấn viên)';
+                bubbleWrap.innerHTML = `
+                    <div class="them-container">
+                        <div class="staff-mini-avatar" title="Nhân viên hỗ trợ">⚡</div>
+                        <div class="user-chat-bubble bubble-them">
+                            <div class="bubble-sender them-sender">
+                                <span>${senderTitle}</span>
+                            </div>
+                            <div>${formatted}</div>
+                            <div class="bubble-time them-time">${msg.createdAt || ''}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            area.appendChild(bubbleWrap);
+        }
+
+        function scrollCustomerBottom() {
+            const area = document.getElementById('nexusChatMessages');
+            if (area) area.scrollTop = area.scrollHeight;
+        }
+
+        function sendUserChatMessage() {
+            const input = document.getElementById('nexusUserChatInput');
+            const content = input.value.trim();
+            if (!content || !clientChatConvId) return;
+
+            input.value = '';
+
+            fetch('/api/chat/' + clientChatConvId + '/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ conversationId: clientChatConvId, content: content })
+            })
+            .then(res => res.json())
+            .then(msg => {
+                msg.isMe = true;
+                msg.me = true;
+                appendCustomerBubble(msg);
+                scrollCustomerBottom();
+            })
+            .catch(err => console.error('Lỗi gửi tin:', err));
+        }
+
+        function connectCustomerWebSocket(convId) {
+            if (clientStomp && clientStomp.connected) {
+                subscribeChatTopics(convId);
+                return;
+            }
+            if (isConnectingWebSocket) return;
+            isConnectingWebSocket = true;
+
+            try {
+                const socket = new SockJS('/ws-chat');
+                clientStomp = Stomp.over(socket);
+                clientStomp.connect({}, function () {
+                    isConnectingWebSocket = false;
+                    console.log('STOMP client connected successfully');
+                    subscribeChatTopics(clientChatConvId || convId);
+                }, function (err) {
+                    isConnectingWebSocket = false;
+                    console.warn('STOMP client connection error:', err);
+                });
+            } catch (e) {
+                isConnectingWebSocket = false;
+                console.warn('SockJS unavailable:', e);
+            }
+        }
+
+        function subscribeChatTopics(convId) {
+            if (!clientStomp || !clientStomp.connected) return;
+
+            if (convId) {
+                if (clientConvSub) {
+                    try { clientConvSub.unsubscribe(); } catch(e){}
+                }
+                clientConvSub = clientStomp.subscribe('/topic/chat/' + convId, function (output) {
+                    try {
+                        const msg = JSON.parse(output.body);
+                        appendCustomerBubble(msg);
+                        scrollCustomerBottom();
+                    } catch (err) {
+                        console.error('Lỗi parse websocket message:', err);
+                    }
+                });
+            }
+
+            if (!clientUserSub && clientChatCurrentUserId) {
+                clientUserSub = clientStomp.subscribe('/topic/user/' + clientChatCurrentUserId + '/chat', function (output) {
+                    try {
+                        const msg = JSON.parse(output.body);
+                        if (msg.conversationId === clientChatConvId) {
+                            appendCustomerBubble(msg);
+                            scrollCustomerBottom();
+                        } else {
+                            const pill = document.getElementById('branch-pill-' + (msg.branchId || ''));
+                            if (pill) pill.classList.add('has-notice');
+                        }
+                    } catch(e) {}
+                });
+            }
+        }
+    </script>
+</footer>
+</body>
+</html>
+

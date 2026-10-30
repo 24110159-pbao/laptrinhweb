@@ -1,0 +1,431 @@
+
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title th:text="${isEdit ? 'Sửa mã giảm giá' : 'Tạo mã giảm giá'}">
+        Quản lý mã giảm giá | NEXUSTECH
+    </title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+          rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+
+<body class="admin-page">
+
+<!-- NAVBAR -->
+<nav class="admin-navbar navbar navbar-dark">
+    <div class="container-fluid px-3 px-lg-4">
+
+        <a class="admin-brand" th:href="@{/admin}">
+            <span class="admin-brand-icon">
+                <i class="bi bi-cpu-fill"></i>
+            </span>
+
+            <span>
+                <strong>NEXUSTECH</strong>
+                <small>ADMINISTRATION</small>
+            </span>
+        </a>
+
+        <div class="d-flex align-items-center gap-2">
+            <a class="btn btn-outline-light btn-sm"
+               th:href="@{/admin/discounts}">
+                <i class="bi bi-arrow-left me-1"></i>
+                Danh sách mã giảm giá
+            </a>
+
+            <a class="btn btn-outline-light btn-sm"
+               th:href="@{/}">
+                <i class="bi bi-house-door me-1"></i>
+                Trang chủ
+            </a>
+        </div>
+
+    </div>
+</nav>
+
+<!-- LAYOUT -->
+<div class="admin-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+
+        <div class="sidebar-heading">MENU QUẢN TRỊ</div>
+
+        <a class="sidebar-link" th:href="@{/admin}">
+            <i class="bi bi-grid-1x2-fill"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/users}">
+            <i class="bi bi-people-fill"></i>
+            <span>Quản lý người dùng</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/managers}">
+            <i class="bi bi-person-badge-fill"></i>
+            <span>Quản lý Manager</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/branches}">
+            <i class="bi bi-building"></i>
+            <span>Quản lý chi nhánh</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/products}">
+            <i class="bi bi-box-seam-fill"></i>
+            <span>Quản lý sản phẩm</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/products/allocate}">
+            <i class="bi bi-boxes"></i>
+            <span>Phân bổ tồn kho</span>
+        </a>
+
+        <a class="sidebar-link active" th:href="@{/admin/discounts}">
+            <i class="bi bi-ticket-perforated-fill"></i>
+            <span>Mã giảm giá</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/branch-revenues}">
+            <i class="bi bi-graph-up-arrow"></i>
+            <span>Doanh thu chi nhánh</span>
+        </a>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-footer">
+            <i class="bi bi-shield-check"></i>
+            <small>HỆ THỐNG QUẢN TRỊ</small>
+            <strong>NEXUSTECH Admin</strong>
+        </div>
+
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="admin-main">
+
+        <!-- PAGE HEADING -->
+        <section class="admin-page-heading">
+            <div>
+                <span class="admin-eyebrow">DISCOUNT MANAGEMENT</span>
+
+                <h1 th:text="${isEdit
+                    ? 'Cập nhật mã giảm giá'
+                    : 'Tạo mã giảm giá mới'}">
+                    Tạo mã giảm giá mới
+                </h1>
+
+                <p th:if="${isEdit}">
+                    Chỉnh sửa thông tin và trạng thái mã giảm giá.
+                </p>
+
+                <p th:unless="${isEdit}">
+                    Thiết lập mã giảm giá mới cho hệ thống NEXUSTECH.
+                </p>
+            </div>
+
+            <div class="admin-date-chip">
+                <i class="bi bi-ticket-perforated"></i>
+                <span>Quản lý khuyến mãi</span>
+            </div>
+        </section>
+
+        <!-- ERROR MESSAGE -->
+        <div class="alert alert-danger admin-form-alert"
+             role="alert"
+             th:if="${errorMessage}">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <span th:text="${errorMessage}">Đã xảy ra lỗi.</span>
+        </div>
+
+        <!-- DISCOUNT FORM -->
+        <section class="discount-form-section">
+
+            <div class="admin-panel discount-form-panel">
+
+                <div class="discount-form-heading">
+                    <div class="discount-form-heading-icon">
+                        <i class="bi bi-ticket-detailed-fill"></i>
+                    </div>
+
+                    <div>
+                        <h2>Thông tin mã giảm giá</h2>
+                        <p>
+                            Điền đầy đủ thông tin vào các trường bắt buộc
+                            được đánh dấu (*).
+                        </p>
+                    </div>
+                </div>
+
+                <div class="discount-form-divider"></div>
+
+                <form id="discountForm"
+                      th:object="${form}"
+                      th:action="${isEdit}
+                          ? @{/admin/discounts/{id}/edit(id=${form.id})}
+                          : @{/admin/discounts/new}"
+                      method="post">
+
+                    <input type="hidden" th:field="*{id}">
+
+                    <!-- MÃ GIẢM GIÁ -->
+                    <div class="field admin-form-field">
+                        <label for="code" class="form-label">
+                            <i class="bi bi-upc-scan me-2"></i>
+                            Mã giảm giá
+                            <span class="required-mark">*</span>
+                        </label>
+
+                        <input type="text"
+                               id="code"
+                               th:field="*{code}"
+                               class="form-control"
+                               maxlength="50"
+                               placeholder="Ví dụ: NEXUSSALE10"
+                               autocomplete="off"
+                               required>
+
+                        <small class="field-hint">
+                            Nhập mã khách hàng sử dụng khi áp dụng khuyến mãi.
+                        </small>
+
+                        <span class="error"
+                              th:if="${#fields.hasErrors('code')}"
+                              th:errors="*{code}"></span>
+                    </div>
+
+                    <!-- MỨC GIẢM -->
+                    <div class="field admin-form-field">
+                        <label for="discountValue" class="form-label">
+                            <i class="bi bi-percent me-2"></i>
+                            Mức giảm (%)
+                            <span class="required-mark">*</span>
+                        </label>
+
+                        <div class="input-group">
+                            <input type="number"
+                                   id="discountValue"
+                                   th:field="*{discountValue}"
+                                   class="form-control"
+                                   min="0"
+                                   max="100"
+                                   step="0.01"
+                                   placeholder="Ví dụ: 10"
+                                   required>
+
+                            <span class="input-group-text">%</span>
+                        </div>
+
+                        <small class="field-hint">
+                            Giá trị giảm giá từ 0 đến 100%.
+                        </small>
+
+                        <span class="error"
+                              th:if="${#fields.hasErrors('discountValue')}"
+                              th:errors="*{discountValue}"></span>
+                    </div>
+
+                    <!-- SỐ LƯỢNG -->
+                    <div class="field admin-form-field">
+                        <label for="quantity" class="form-label">
+                            <i class="bi bi-box-seam me-2"></i>
+                            Số lượng mã
+                            <span class="required-mark">*</span>
+                        </label>
+
+                        <input type="number"
+                               id="quantity"
+                               th:field="*{quantity}"
+                               class="form-control"
+                               min="0"
+                               step="1"
+                               placeholder="Nhập số lượng mã giảm giá"
+                               required>
+
+                        <small class="field-hint">
+                            Tổng số lượt mã giảm giá có thể được sử dụng.
+                        </small>
+
+                        <span class="error"
+                              th:if="${#fields.hasErrors('quantity')}"
+                              th:errors="*{quantity}"></span>
+                    </div>
+
+                    <!-- THỜI GIAN -->
+                    <div class="discount-date-grid">
+
+                        <div class="field admin-form-field">
+                            <label for="startAt" class="form-label">
+                                <i class="bi bi-calendar-check me-2"></i>
+                                Thời gian bắt đầu
+                                <span class="required-mark">*</span>
+                            </label>
+
+                            <input type="datetime-local"
+                                   id="startAt"
+                                   th:field="*{startAt}"
+                                   class="form-control"
+                                   required>
+
+                            <small class="field-hint">
+                                Thời điểm mã giảm giá bắt đầu có hiệu lực.
+                            </small>
+
+                            <span class="error"
+                                  th:if="${#fields.hasErrors('startAt')}"
+                                  th:errors="*{startAt}"></span>
+                        </div>
+
+                        <div class="field admin-form-field">
+                            <label for="endAt" class="form-label">
+                                <i class="bi bi-calendar-x me-2"></i>
+                                Thời gian kết thúc
+                                <span class="required-mark">*</span>
+                            </label>
+
+                            <input type="datetime-local"
+                                   id="endAt"
+                                   th:field="*{endAt}"
+                                   class="form-control"
+                                   required>
+
+                            <small class="field-hint">
+                                Thời điểm mã giảm giá hết hiệu lực.
+                            </small>
+
+                            <span class="error"
+                                  th:if="${#fields.hasErrors('endAt')}"
+                                  th:errors="*{endAt}"></span>
+                        </div>
+
+                    </div>
+
+                    <!-- TRẠNG THÁI -->
+                    <div class="field admin-form-field">
+                        <label for="status" class="form-label">
+                            <i class="bi bi-toggle-on me-2"></i>
+                            Trạng thái
+                        </label>
+
+                        <select id="status"
+                                th:field="*{status}"
+                                class="form-select">
+
+                            <option th:each="s : ${statuses}"
+                                    th:value="${s}"
+                                    th:text="${s}">
+                                ACTIVE
+                            </option>
+
+                        </select>
+
+                        <small class="field-hint">
+                            Chọn trạng thái phù hợp với mã giảm giá.
+                        </small>
+                    </div>
+
+                    <!-- BUTTONS -->
+                    <div class="discount-form-divider"></div>
+
+                    <div class="discount-form-actions">
+
+                        <a class="btn-admin-secondary"
+                           th:href="@{/admin/discounts}">
+                            <i class="bi bi-arrow-left"></i>
+                            Quay lại
+                        </a>
+
+                        <button class="btn-admin-primary" type="submit">
+                            <i class="bi"
+                               th:classappend="${isEdit}
+                                   ? ' bi-check-circle'
+                                   : ' bi-plus-circle'"></i>
+
+                            <span th:text="${isEdit
+                                ? 'Lưu thay đổi'
+                                : 'Tạo mã giảm giá'}">
+                                Tạo mã giảm giá
+                            </span>
+                        </button>
+
+                    </div>
+
+                </form>
+            </div>
+
+            <!-- INFORMATION -->
+            <div class="discount-info-panel">
+                <i class="bi bi-info-circle-fill"></i>
+
+                <div>
+                    <strong>Lưu ý khi tạo mã giảm giá</strong>
+                    <p>
+                        Kiểm tra mức giảm, số lượng và thời gian hiệu lực
+                        trước khi lưu. Thời gian bắt đầu phải nhỏ hơn hoặc
+                        bằng thời gian kết thúc.
+                    </p>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="admin-footer">
+            NEXUSTECH ADMINISTRATION
+            <span class="mx-2">•</span>
+            DISCOUNT MANAGEMENT
+        </footer>
+
+    </main>
+</div>
+
+<!-- VALIDATION -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('discountForm');
+        const startInput = document.getElementById('startAt');
+        const endInput = document.getElementById('endAt');
+
+        if (!form || !startInput || !endInput) {
+            return;
+        }
+
+        function validateDateRange() {
+            const start = startInput.value;
+            const end = endInput.value;
+
+            endInput.setCustomValidity('');
+
+            if (start && end && start > end) {
+                endInput.setCustomValidity(
+                    'Thời gian kết thúc phải lớn hơn hoặc bằng thời gian bắt đầu.'
+                );
+                return false;
+            }
+
+            return true;
+        }
+
+        startInput.addEventListener('change', validateDateRange);
+        endInput.addEventListener('change', validateDateRange);
+
+        form.addEventListener('submit', function (event) {
+            if (!validateDateRange()) {
+                event.preventDefault();
+                endInput.reportValidity();
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

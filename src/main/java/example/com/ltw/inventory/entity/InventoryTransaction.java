@@ -118,4 +118,21 @@ public class InventoryTransaction {
 
         createdAt = LocalDateTime.now();
     }
+
+    public static InventoryTransaction create(
+            ProductVariant variant, Branch branch, InventoryTransactionType type,
+            int quantityBefore, int quantityAfter, String referenceCode, String note, User createdBy
+    ) {
+        InventoryTransaction transaction = new InventoryTransaction();
+        transaction.setVariant(variant);
+        transaction.setBranch(branch);
+        transaction.setType(type);
+        transaction.setQuantityBefore(quantityBefore);
+        transaction.setQuantityAfter(quantityAfter);
+        transaction.setQuantityChange(quantityAfter - quantityBefore);
+        transaction.setReferenceCode(referenceCode);
+        transaction.setNote(note);
+        transaction.setCreatedBy(createdBy);
+        return transaction;
+    }
 }

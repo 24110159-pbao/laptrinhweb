@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác minh email - NEXUSTECH</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="account-page">
+<header th:replace="~{fragments/site :: header}"></header>
+<main class="account-container narrow">
+    <a th:href="@{/account/profile}" class="account-back-link">← Quay lại hồ sơ</a>
+    <section class="account-card">
+        <h1>Xác minh email mới</h1>
+        <p>Mã OTP 6 chữ số đã được gửi đến <strong th:text="${pendingEmail}"></strong>. Mã có hiệu lực trong 5 phút.</p>
+        <div th:if="${errorMessage}" class="account-alert error" th:text="${errorMessage}"></div>
+        <form th:action="@{/account/profile/email/verify}" th:object="${otpRequest}" method="post" class="account-form">
+            <div class="account-field">
+                <label for="otp">Mã OTP</label>
+                <input id="otp" th:field="*{otp}" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required>
+                <small th:if="${#fields.hasErrors('otp')}" th:errors="*{otp}" class="field-error"></small>
+            </div>
+            <button class="account-button" type="submit">Xác nhận email mới</button>
+        </form>
+    </section>
+</main>
+<footer th:replace="~{fragments/site :: footer}"></footer>
+</body>
+</html>

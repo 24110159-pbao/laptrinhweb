@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết đơn hàng - NEXUSTECH</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/account.css}">
+    <link rel="stylesheet" th:href="@{/css/order.css}">
+</head>
+<body class="account-page">
+<header th:replace="~{fragments/site :: header}"></header>
+<main class="account-container order-container">
+    <nav class="account-nav" aria-label="Quản lý tài khoản">
+        <a th:href="@{/account/profile}">Hồ sơ cá nhân</a><a th:href="@{/account/addresses}">Sổ địa chỉ</a>
+        <a class="active" th:href="@{/account/orders}">Đơn hàng</a>
+    </nav>
+    <div th:if="${successMessage}" class="account-alert success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="account-alert error" th:text="${errorMessage}"></div>
+
+    <!-- ================= HEADER ĐƠN HÀNG ================= -->
+    <section class="account-card">
+        <div class="account-section-heading order-detail-heading">
+            <div><span class="order-muted">Mã đơn hàng</span><h1 th:text="${order.orderCode}">ORD-000</h1>
+                <p th:text="${'Đặt lúc ' + #temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">Ngày đặt</p></div>
+            <span class="order-pill" th:text="${order.status}">PENDING</span>
+        </div>
+        <form th:if="${order.status.name() == 'PENDING' or order.status.name() == 'CONFIRMED'}"
+              th:action="@{/account/orders/{code}/cancel(code=${order.orderCode})}" method="post"
+              onsubmit="return confirm('Bạn chắc chắn muốn hủy đơn hàng này?')">
+            <button class="account-button danger" type="submit">Hủy đơn hàng</button>
+        </form>
+        <div th:if="${order.status.name() == 'DELIVERED'}" class="order-return-cta">
+            <a href="#return-section" class="account-button order-return-button">
+                <span aria-hidden="true">↩️</span> Yêu Cầu Hoàn / Trả Hàng
+            </a>
+        </div>
+    </section>
+
+    <!-- ================= YÊU CẦU HOÀN / TRẢ HÀNG (GỘP) ================= -->
+    <section id="return-section" class="account-card" th:if="${order.status.name() == 'DELIVERED'}">
+        <div class="account-section-heading">
+            <div>
+                <h2 class="order-return-title"><span aria-hidden="true">↩️</span> Yêu Cầu Hoàn / Trả Hàng</h2>
+                <p>Đơn hàng đã giao thành công. Bạn có thể chọn một hoặc nhiều sản phẩm cần hoàn trả trong vòng 7 ngày. Nhân viên chi nhánh sẽ xét duyệt và hoàn tiền.</p>
+            </div>
+        </div>
+
+        <form th:action="@{/account/orders/{code}/return(code=${order.orderCode})}" method="post" class="order-return-form">
+            <div class="order-return-box">
+                <table class="order-return-table" aria-label="Danh sách sản phẩm cần hoàn trả">
+                    <thead>
+                    <tr>
+                        <th scope="col" class="col-check">Chọn</th>
+                        <th scope="col">Sản phẩm</th>
+                        <th scope="col" class="col-qty">SL mua</th>
+                        <th scope="col" class="col-qty">SL trả</th>
+                        <th scope="col" class="col-reason">Lý do hoàn trả</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="item : ${items}">
+                        <td class="col-check">
+                            <input type="checkbox" class="order-return-check"
+                                   th:id="${'return-check-' + item.id}"
+                                   th:name="orderItemId" th:value="${item.id}"
+                                   th:attr="data-max=${item.quantity}"
+                                   onchange="toggleReturnRow(this)">
+                        </td>
+                        <td>
+                            <label th:for="${'return-check-' + item.id}" class="order-return-label">
+                                <img th:if="${item.imageUrlSnapshot != null}" th:src="${item.imageUrlSnapshot}"
+                                     th:alt="${item.productNameSnapshot}" class="order-return-thumb">
+                                <span>
+                                    <strong th:text="${item.productNameSnapshot}">Sản phẩm</strong>
+                                    <small th:text="${item.variantSnapshot}">Phiên bản</small>
+                                </span>
+                            </label>
+                        </td>
+                        <td class="col-qty" th:text="${item.quantity}">1</td>
+                        <td class="col-qty">
+                            <input type="number" class="order-return-qty"
+                                   th:id="${'return-qty-' + item.id}"
+                                   th:name="${'quantity_' + item.id}"
+                                   min="1" th:max="${item.quantity}" value="1"
+                                   disabled required>
+                        </td>
+                        <td class="col-reason">
+                            <input type="text" class="order-return-reason"
+                                   th:id="${'return-reason-' + item.id}"
+                                   th:name="${'reason_' + item.id}"
+                                   maxlength="1000" required disabled
+                                   placeholder="Nhập lý do (vd: lỗi kỹ thuật, sai mẫu...)">
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <!-- Gợi ý lý do nhanh áp dụng cho các dòng đang chọn -->
+                <div class="order-return-hints">
+                    <span class="order-return-hints-label">Gợi ý lý do nhanh:</span>
+                    <button type="button" class="account-button small order-return-hint"
+                            data-reason="Sản phẩm bị lỗi kỹ thuật, không khởi động được.">Hàng lỗi kỹ thuật</button>
+                    <button type="button" class="account-button small order-return-hint"
+                            data-reason="Giao sai phiên bản màu sắc hoặc dung lượng.">Giao sai mẫu/màu</button>
+                    <button type="button" class="account-button small order-return-hint"
+                            data-reason="Khách hàng muốn đổi sang phiên bản cao cấp hơn.">Đổi phiên bản khác</button>
+                </div>
+
+                <div class="order-return-actions">
+                    <button type="submit" class="account-button order-return-submit">
+                        📦 Gửi Yêu Cầu Hoàn Hàng Cho Shop
+                    </button>
+                </div>
+            </div>
+        </form>
+    </section>
+
+    <!-- ================= SẢN PHẨM ĐÃ ĐẶT + ĐÁNH GIÁ ================= -->
+    <section class="account-card">
+        <h2>Sản phẩm đã đặt</h2>
+        <div th:each="item : ${items}" class="order-item-row">
+            <img th:if="${item.imageUrlSnapshot != null}" th:src="${item.imageUrlSnapshot}" th:alt="${item.productNameSnapshot}">
+            <div class="order-item-info"><strong th:text="${item.productNameSnapshot}">Sản phẩm</strong><span th:text="${item.variantSnapshot}">Phiên bản</span>
+                <span th:text="${item.quantity + ' × ' + #numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT') + ' ₫'}">Số lượng × giá</span></div>
+            <strong th:text="${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 0, 'POINT')} + ' ₫'">Thành tiền</strong>
+
+            <!-- Đánh giá -->
+            <div th:with="review=${reviews[item.id]}" class="review-inline">
+                <div th:if="${review != null}" class="review-existing">
+                    <strong>Đánh giá của bạn</strong>
+                    <span class="review-inline-stars" th:text="${'★'.repeat(review.rating) + '☆'.repeat(5 - review.rating)}">★★★★★</span>
+                    <p th:if="${review.comment != null}" th:text="${review.comment}"></p>
+                    <div class="review-inline-media" th:if="${!#lists.isEmpty(review.media)}">
+                        <th:block th:each="file : ${review.media}">
+                            <a th:href="${file.url}" target="_blank" rel="noopener" th:text="${file.resourceType == 'video' ? 'Video đính kèm' : 'Ảnh đính kèm'}"></a>
+                        </th:block>
+                    </div>
+                </div>
+                <form th:if="${review != null or canCreateReview}"
+                      th:action="@{/account/orders/{code}/items/{itemId}/review(code=${order.orderCode}, itemId=${item.id})}"
+                      method="post" enctype="multipart/form-data" class="review-form">
+                    <input th:if="${review != null}" type="hidden" name="reviewId" th:value="${review.id}">
+                    <h3 th:text="${review == null ? 'Viết đánh giá' : 'Chỉnh sửa đánh giá'}">Viết đánh giá</h3>
+                    <label th:for="${'rating-' + item.id}">Đánh giá</label>
+                    <div class="star-rating" th:data-target="${'rating-' + item.id}">
+                        <input type="radio" th:id="${'rating-' + item.id + '-5'}" name="rating" value="5" required th:checked="${review != null and review.rating == 5}">
+                        <label th:for="${'rating-' + item.id + '-5'}" title="5 sao">★</label>
+                        <input type="radio" th:id="${'rating-' + item.id + '-4'}" name="rating" value="4" th:checked="${review != null and review.rating == 4}">
+                        <label th:for="${'rating-' + item.id + '-4'}" title="4 sao">★</label>
+                        <input type="radio" th:id="${'rating-' + item.id + '-3'}" name="rating" value="3" th:checked="${review != null and review.rating == 3}">
+                        <label th:for="${'rating-' + item.id + '-3'}" title="3 sao">★</label>
+                        <input type="radio" th:id="${'rating-' + item.id + '-2'}" name="rating" value="2" th:checked="${review != null and review.rating == 2}">
+                        <label th:for="${'rating-' + item.id + '-2'}" title="2 sao">★</label>
+                        <input type="radio" th:id="${'rating-' + item.id + '-1'}" name="rating" value="1" th:checked="${review != null and review.rating == 1}">
+                        <label th:for="${'rating-' + item.id + '-1'}" title="1 sao">★</label>
+                    </div>
+                    <input type="hidden" th:id="${'rating-' + item.id}" name="rating" th:value="${review != null ? review.rating : ''}">
+                    <label th:for="${'review-comment-' + item.id}">Bình luận (không bắt buộc)</label>
+                    <textarea th:id="${'review-comment-' + item.id}" name="comment" maxlength="500"
+                              placeholder="Tối đa 500 ký tự" th:text="${review != null ? review.comment : ''}"></textarea>
+                    <div th:if="${review != null and !#lists.isEmpty(review.media)}" class="review-retained-media">
+                        <span>Giữ lại tệp đã tải lên:</span>
+                        <label th:each="file : ${review.media}">
+                            <input type="checkbox" name="retainedMediaIds" th:value="${file.id}" checked>
+                            <span th:text="${file.resourceType == 'video' ? 'Video' : 'Ảnh'}"></span>
+                        </label>
+                    </div>
+                    <input th:if="${review != null}" type="hidden" name="mediaSelectionSubmitted" value="true">
+                    <label th:for="${'review-media-' + item.id}">Ảnh/video (tối đa 5 tệp, mỗi tệp theo giới hạn hệ thống)</label>
+                    <input th:id="${'review-media-' + item.id}" type="file" name="media" multiple
+                           accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime">
+                    <button class="account-button secondary" type="submit"
+                            th:text="${review == null ? 'Gửi đánh giá' : 'Lưu chỉnh sửa'}">Gửi đánh giá</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= NGƯỜI NHẬN & ĐỊA CHỈ ================= -->
+    <section class="account-card">
+        <h2>Người nhận và địa chỉ</h2>
+        <div class="order-data-grid">
+            <div><span>Người nhận</span><strong th:text="${order.receiverName}">Tên</strong></div>
+            <div><span>Điện thoại</span><strong th:text="${order.receiverPhone}">Điện thoại</strong></div>
+            <div class="full"><span>Địa chỉ giao hàng</span><strong th:text="${order.shippingStreetAddress + ', ' + order.shippingWard + ', ' + order.shippingDistrict + ', ' + order.shippingProvince}">Địa chỉ snapshot</strong></div>
+        </div>
+    </section>
+
+    <!-- ================= THANH TOÁN & VẬN CHUYỂN ================= -->
+    <section class="account-card">
+        <h2>Thanh toán và vận chuyển</h2>
+        <div class="order-data-grid">
+            <div><span>Phương thức</span><strong th:text="${order.paymentMethod}">COD</strong></div>
+            <div><span>Trạng thái thanh toán</span><strong th:text="${order.paymentStatus}">UNPAID</strong></div>
+            <div th:if="${payment != null}"><span>Mã giao dịch</span><strong th:text="${payment.gatewayTransactionNo != null ? payment.gatewayTransactionNo : payment.transactionNo}">Mã giao dịch</strong></div>
+            <div th:if="${shipment != null}"><span>Đơn vị vận chuyển</span><strong>GHN</strong></div>
+            <div th:if="${shipment != null}"><span>Mã vận đơn</span><strong th:text="${shipment.ghnOrderCode ?: 'Chưa có'}">Mã vận đơn</strong></div>
+            <div th:if="${shipment != null}"><span>Trạng thái vận chuyển</span><strong th:text="${shipment.status}">PENDING</strong></div>
+        </div>
+    </section>
+
+    <!-- ================= TỔNG KẾT ĐƠN HÀNG ================= -->
+    <section class="account-card">
+        <h2>Tổng kết đơn hàng</h2>
+        <div class="order-totals">
+            <div><span>Tổng tiền hàng</span><strong th:text="${#numbers.formatDecimal(order.subtotal, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></strong></div>
+            <div><span>Giảm giá</span><strong th:text="${'− ' + #numbers.formatDecimal(order.discountAmount, 0, 'COMMA', 0, 'POINT') + ' ₫'}"></strong></div>
+            <div><span>Phí vận chuyển</span><strong>Miễn phí</strong></div>
+            <div class="grand"><span>Tổng thanh toán</span><strong th:text="${#numbers.formatDecimal(order.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></strong></div>
+        </div>
+    </section>
+
+
+    <!-- ================= YÊU CẦU TRẢ HÀNG ĐÃ GỬI ================= -->
+    <section class="account-card" th:if="${!#lists.isEmpty(returns)}">
+        <h2>Yêu cầu trả hàng</h2>
+        <div th:each="request : ${returns}" class="return-summary">
+            <strong th:text="${request.requestCode}">RET-000</strong><span th:text="${request.status}">PENDING_REVIEW</span>
+            <p th:text="${request.reason}">Lý do</p>
+            <p th:if="${request.refundAmount != null and request.refundAmount.signum() > 0}"
+               th:text="${'Khoản hoàn dự kiến: ' + #numbers.formatDecimal(request.refundAmount, 0, 'COMMA', 0, 'POINT') + ' ₫ — ' + request.refundStatus}"></p>
+            <div th:each="line : ${request.items}" class="return-line">
+                <span th:text="${line.orderItem.productNameSnapshot + ' — yêu cầu ' + line.requestedQuantity + ', chấp nhận ' + line.acceptedQuantity}"></span>
+                <strong th:text="${#numbers.formatDecimal(line.refundAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></strong>
+            </div>
+            <ol class="order-history return-history">
+                <li th:each="event : ${returnHistory[request.id]}"><strong th:text="${event.newStatus}"></strong><time th:text="${#temporals.format(event.createdAt, 'dd/MM/yyyy HH:mm')}"></time><span th:text="${event.note}"></span></li>
+            </ol>
+        </div>
+    </section>
+
+</main>
+<footer th:replace="~{fragments/site :: footer}"></footer>
+
+<script>
+    /**
+     * Bật/tắt input số lượng + lý do tương ứng khi checkbox dòng được chọn.
+     */
+    function toggleReturnRow(checkbox) {
+        const row = checkbox.closest('tr');
+        if (!row) return;
+        const qty = row.querySelector('.order-return-qty');
+        const reason = row.querySelector('.order-return-reason');
+        const max = parseInt(checkbox.getAttribute('data-max') || '1', 10);
+
+        if (qty) {
+            qty.disabled = !checkbox.checked;
+            qty.max = max;
+            if (checkbox.checked) {
+                if (!qty.value || parseInt(qty.value, 10) < 1) qty.value = 1;
+                if (parseInt(qty.value, 10) > max) qty.value = max;
+            }
+        }
+        if (reason) {
+            reason.disabled = !checkbox.checked;
+            if (!checkbox.checked) reason.value = '';
+        }
+    }
+
+    /**
+     * Áp dụng lý do nhanh cho tất cả các dòng đang được chọn.
+     */
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.order-return-hint').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const reason = btn.getAttribute('data-reason') || '';
+                document.querySelectorAll('.order-return-check:checked').forEach(function (chk) {
+                    const row = chk.closest('tr');
+                    const input = row ? row.querySelector('.order-return-reason') : null;
+                    if (input) input.value = reason;
+                });
+            });
+        });
+    });
+</script>
+</body>
+</html>

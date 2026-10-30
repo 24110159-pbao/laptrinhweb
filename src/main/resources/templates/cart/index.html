@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giỏ hàng - NEXUSTECH</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/account.css}">
+    <link rel="stylesheet" th:href="@{/css/cart.css}">
+</head>
+<body class="account-page">
+<header th:replace="~{fragments/site :: header}"></header>
+
+<main class="account-container cart-container">
+    <div th:if="${successMessage}" class="account-alert success" th:text="${successMessage}"></div>
+    <div th:if="${infoMessage}" class="account-alert info" th:text="${infoMessage}"></div>
+    <div th:if="${errorMessage}" class="account-alert error" th:text="${errorMessage}"></div>
+
+    <section class="account-card">
+        <div class="account-section-heading">
+            <div>
+                <h1>Giỏ hàng của bạn</h1>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(carts)}" class="cart-empty">
+            <div class="cart-empty-icon" aria-hidden="true">🛒</div>
+            <h2>Giỏ hàng đang trống</h2>
+            <p>Chọn sản phẩm bạn yêu thích để bắt đầu mua sắm.</p>
+            <a class="account-button" th:href="@{/}">Khám phá sản phẩm</a>
+        </div>
+
+        <article th:each="cart : ${carts}" class="cart-branch">
+            <div class="cart-branch-heading" style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h2 th:text="${cart.branchName}">Chi nhánh</h2>
+                </div>
+                <button type="button" class="btn-branch-chat-trigger" 
+                        th:if="${cart.branchId != null}"
+                        th:data-branch-id="${cart.branchId}"
+                        onclick="if (window.openChatWithBranch) { window.openChatWithBranch(this.getAttribute('data-branch-id')); } else { toggleNexusChat(); }"
+                        style="background: rgba(2, 132, 199, 0.12); border: 1px solid #38bdf8; color: #38bdf8; border-radius: 20px; padding: 5px 14px; font-size: 12.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                    <span>💬</span> Chat với chi nhánh này
+                </button>
+            </div>
+
+
+            <div th:unless="${#lists.isEmpty(cart.lines)}" class="cart-lines">
+                <div th:each="line : ${cart.lines}" class="cart-line">
+                    <div class="cart-product">
+                        <div class="cart-product-icon" aria-hidden="true">N</div>
+                        <div class="cart-product-info">
+                            <h3 th:text="${line.productName}">Sản phẩm</h3>
+                            <p th:text="${line.variantDescription}">Phiên bản</p>
+                            <span class="cart-stock"
+                                  th:text="'Còn ' + ${line.availableQuantity} + ' sản phẩm khả dụng'">
+                                Còn hàng
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="cart-unit-price">
+                        <span class="cart-mobile-label">Đơn giá</span>
+                        <strong th:text="${#numbers.formatDecimal(line.unitPrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                            0 ₫
+                        </strong>
+                    </div>
+
+                    <div class="cart-quantity">
+                        <span class="cart-mobile-label">Số lượng</span>
+                        <form th:action="@{/cart/items/quantity}" method="post" class="cart-quantity-form">
+                            <input type="hidden" name="itemId" th:value="${line.itemId}">
+                            <input type="number" name="quantity" min="1" th:max="${line.availableQuantity}"
+                                   th:value="${line.quantity}" required aria-label="Số lượng">
+                            <button class="account-button small secondary" type="submit">Cập nhật</button>
+                        </form>
+                    </div>
+
+                    <div class="cart-line-total">
+                        <form th:action="@{/cart/items/remove}" method="post">
+                            <input type="hidden" name="itemId" th:value="${line.itemId}">
+                            <button class="cart-remove" type="submit">Xóa sản phẩm</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div th:unless="${#lists.isEmpty(cart.lines)}" class="cart-summary">
+                <div>
+                    <span>Thành tiền</span>
+                    <strong th:text="${#numbers.formatDecimal(cart.subtotal, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                        0 ₫
+                    </strong>
+                </div>
+                <form th:action="@{/cart/{cartId}/checkout(cartId=${cart.cartId})}" method="post">
+                    <button class="account-button" type="submit">Đặt hàng</button>
+                </form>
+            </div>
+        </article>
+    </section>
+
+</main>
+<footer th:replace="~{fragments/site :: footer}"></footer>
+</body>
+</html>

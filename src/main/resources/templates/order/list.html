@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đơn hàng của tôi - NEXUSTECH</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/account.css}">
+    <link rel="stylesheet" th:href="@{/css/order.css}">
+</head>
+<body class="account-page">
+<header th:replace="~{fragments/site :: header}"></header>
+<main class="account-container order-container">
+    <nav class="account-nav" aria-label="Quản lý tài khoản">
+        <a th:href="@{/account/profile}">Hồ sơ cá nhân</a>
+        <a th:href="@{/account/addresses}">Sổ địa chỉ</a>
+        <a class="active" th:href="@{/account/orders}">Đơn hàng</a>
+    </nav>
+    <section class="account-card">
+        <div class="account-section-heading"><div><h1>Đơn hàng của tôi</h1></div></div>
+        <div th:if="${#lists.isEmpty(orders)}" class="order-empty">
+            <h2>Bạn chưa có đơn hàng nào</h2>
+            <a class="account-button" th:href="@{/}">Khám phá sản phẩm</a>
+        </div>
+        <div th:each="entry : ${orders}" class="order-list-card">
+            <div class="order-list-heading">
+                <div><span class="order-muted">Mã đơn hàng</span><strong th:text="${entry.order.orderCode}">ORD-000</strong></div>
+                <div class="order-pills">
+                    <span class="order-pill" th:text="${entry.order.status}">PENDING</span>
+                    <span class="order-pill payment-pill" th:text="${entry.order.paymentStatus}">UNPAID</span>
+                </div>
+            </div>
+            <div class="order-list-body">
+                <div class="order-thumb-row">
+                    <img th:each="item : ${entry.items}" th:if="${item.imageUrlSnapshot != null}"
+                         th:src="${item.imageUrlSnapshot}" th:alt="${item.productNameSnapshot}">
+                    <span th:if="${#lists.isEmpty(entry.items)}">Không có sản phẩm</span>
+                </div>
+                <div class="order-summary">
+                    <span th:text="${#temporals.format(entry.order.createdAt, 'dd/MM/yyyy HH:mm')}">Thời gian đặt</span>
+                    <span th:text="${#lists.size(entry.items)} + ' sản phẩm'">0 sản phẩm</span>
+                    <strong th:text="${#numbers.formatDecimal(entry.order.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</strong>
+                </div>
+                <div class="order-list-actions">
+                    <a class="account-button secondary" th:href="@{/account/orders/{code}(code=${entry.order.orderCode})}">Xem chi tiết</a>
+                    <!-- Chưa tạo đơn hoàn trả: Nút cam cho phép gửi yêu cầu -->
+                    <a th:if="${entry.order.status.name() == 'DELIVERED' and !entry.hasReturnRequest()}"
+                       class="account-button"
+                       style="background: #ea580c; color: #ffffff; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; text-decoration: none;"
+                       th:href="@{/account/orders/{code}#return-section(code=${entry.order.orderCode})}">
+                        <span>🔄</span> Yêu Cầu Hoàn Hàng
+                    </a>
+
+                    <!-- Đã tạo đơn hoàn trả / Đã hoàn tiền: Nút xám hiển thị theo trạng thái duyệt của Staff -->
+                    <span th:if="${entry.hasReturnRequest() or entry.order.status.name() == 'RETURN_REFUNDED'}"
+                          class="account-button"
+                          style="background: #94a3b8; color: #ffffff; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; cursor: not-allowed; opacity: 0.9; user-select: none;">
+                        <!-- 1. Staff chưa duyệt: Hiện như ảnh -->
+                        <span th:if="${entry.order.status.name() != 'RETURN_REFUNDED' and entry.returnRequest != null and (entry.returnRequest.status.name() == 'PENDING_REVIEW' or entry.returnRequest.status.name() == 'AWAITING_RETURN')}">
+                            <span>🔄</span> Đang Xử Lý Hoàn Hàng
+                        </span>
+                        <!-- 2. Staff đã duyệt: Từ chối hoàn hàng -->
+                        <span th:if="${entry.returnRequest != null and entry.returnRequest.status.name() == 'REJECTED'}">
+                            Từ chối hoàn hàng
+                        </span>
+                        <!-- 3. Staff đã duyệt: Đồng ý hoàn hàng -->
+                        <span th:if="${(entry.returnRequest != null and entry.returnRequest.status.name() != 'PENDING_REVIEW' and entry.returnRequest.status.name() != 'AWAITING_RETURN' and entry.returnRequest.status.name() != 'REJECTED') or (entry.order.status.name() == 'RETURN_REFUNDED' and (entry.returnRequest == null or entry.returnRequest.status.name() != 'REJECTED'))}">
+                            Đồng ý hoàn hàng
+                        </span>
+                    </span>
+                    <form th:if="${entry.order.status.name() == 'PENDING' or entry.order.status.name() == 'CONFIRMED'}"
+                          th:action="@{/account/orders/{code}/cancel(code=${entry.order.orderCode})}" method="post"
+                          onsubmit="return confirm('Bạn chắc chắn muốn hủy đơn hàng này?')">
+                        <button class="account-button danger" type="submit">Hủy đơn hàng</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+<footer th:replace="~{fragments/site :: footer}"></footer>
+</body>
+</html>

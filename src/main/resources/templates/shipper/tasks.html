@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh Sách Đơn Giao Hàng - <th:block th:text="${dashboard.branchName}">NexusTech</th:block> | NEXUSTECH Shipper</title>
+    <!-- Core Brand Stylesheet from Home -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <!-- Dedicated Staff / Shipper CRM Stylesheet -->
+    <link rel="stylesheet" th:href="@{/css/staff.css}">
+    <style>
+        body.manager-page .table-section-card {
+            background: #182438 !important;
+            border: 1px solid #405570 !important;
+            border-radius: 14px !important;
+            overflow: hidden !important;
+        }
+        body.manager-page .table-responsive-wrap {
+            background: #182438 !important;
+        }
+        body.manager-page .staff-white-table {
+            background: #182438 !important;
+            color: #ffffff !important;
+            width: 100% !important;
+        }
+        body.manager-page .staff-white-table thead th {
+            background: #141f33 !important;
+            color: #94a3b8 !important;
+            border-bottom: 1px solid #405570 !important;
+        }
+        body.manager-page .staff-white-table tbody,
+        body.manager-page .staff-white-table tbody tr,
+        body.manager-page .staff-white-table tbody td {
+            background: #1d2b42 !important;
+            color: #ffffff !important;
+            border-bottom: 1px solid #405570 !important;
+        }
+        body.manager-page .staff-white-table tbody tr:hover,
+        body.manager-page .staff-white-table tbody tr:hover td {
+            background: #253754 !important;
+        }
+        body.manager-page .crm-pill-select {
+            background: #1d2b42 !important;
+            border: 1px solid #405570 !important;
+            color: #ffffff !important;
+        }
+        body.manager-page .crm-pill-select strong {
+            color: #38bdf8 !important;
+            font-weight: 800 !important;
+        }
+    </style>
+</head>
+<body class="manager-page">
+
+    <!-- ==========================================
+         1. TOP NAVBAR (DÀNH RIÊNG CHO CỔNG GIAO VẬN SHIPPER)
+         ========================================== -->
+    <header class="top-navbar staff-top-navbar">
+        <div class="container navbar-inner">
+            
+            <!-- Brand Logo for Shipper Portal -->
+            <a th:href="@{/shipper/dashboard}" class="brand-logo" title="Cổng Giao Vận Chi Nhánh">
+                <div class="brand-icon" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">🚚</div>
+                <div class="brand-title-wrap">
+                    <span class="brand-name">NEXUSTECH</span>
+                    <span class="brand-tagline" style="color: #38bdf8; font-weight: 800;">SHIPPER CRM • ĐỘI GIAO VẬN</span>
+                </div>
+            </a>
+
+
+
+            <!-- User Auth / Profile Box -->
+            <div class="user-profile-section">
+                <div class="user-account-box">
+                    <div class="user-avatar-ring">
+                        <img th:src="${shipper.avatarUrl != null and !shipper.avatarUrl.isEmpty() ? shipper.avatarUrl : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'}" 
+                             alt="Shipper Avatar" class="user-avatar"
+                             onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80';">
+                        <div class="vip-badge-dot" style="background: #0284c7;" title="Shipper đang sẵn sàng nhận đơn"></div>
+                    </div>
+                    <div class="user-details">
+                        <span class="user-name-tag" th:text="${shipper.fullName}">Trần Giao Vận</span>
+                        <span class="user-role-tag" style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; margin-top: 1px;">
+                            <span style="color: #94a3b8; font-size: 10px;">Quyền:</span>
+                            <span class="user-role-badge badge-role-staff" style="background: #0284c7; color: #ffffff;" th:text="${shipper.role}">SHIPPER</span>
+                        </span>
+                    </div>
+
+                    <!-- Dropdown Menu -->
+                    <div class="user-dropdown-menu">
+                        <div class="dropdown-role-box" style="background: #0369a1;">
+                            <span class="dropdown-role-title">TÀI KHOẢN GIAO VẬN:</span>
+                            <strong class="dropdown-role-name" th:text="${shipper.fullName}">Trần Giao Vận</strong>
+                            <div class="dropdown-role-sub" th:text="${shipper.email}">shipper@nexustech.vn</div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a th:href="@{/shipper/dashboard}" class="dropdown-link">
+                            <span>📊 Tổng quan Dashboard</span>
+                        </a>
+                        <a th:href="@{/shipper/tasks}" class="dropdown-link" style="color: #0284c7; font-weight: 700;">
+                            <span>📦 Đơn hàng được phân công</span>
+                        </a>
+                        <a th:href="@{/}" class="dropdown-link">
+                            <span>Xem Trang Bán Hàng</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a th:href="@{/logout}" class="dropdown-link logout-link">
+                            <span>Đăng xuất</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- ==========================================
+         2. MAIN SHIPPER PORTAL (2 CỘT ĐỒNG BỘ 100% VỚI STAFF)
+         ========================================== -->
+    <div class="staff-portal-body">
+        <div class="container staff-layout-container">
+
+            <!-- ==============================================
+                 CỘT DỌC BÊN TRÁI: SHIPPER SIDEBAR
+                 ============================================== -->
+            <aside class="staff-sidebar">
+                
+                <!-- 1. Thẻ Thông Tin Bản Thân Shipper & Chi Nhánh Trực Thuộc (Bảng branches) -->
+                <div class="sidebar-staff-card" style="border-top: 4px solid #0284c7;">
+                    <div class="sidebar-staff-avatar-wrap">
+                        <img th:src="${shipper.avatarUrl != null and !shipper.avatarUrl.isEmpty() ? shipper.avatarUrl : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'}"
+                             alt="Shipper Avatar" class="sidebar-staff-avatar"
+                             onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80';">
+                        <span class="sidebar-online-status" style="background: #0284c7;" title="Đang sẵn sàng giao hàng"></span>
+                    </div>
+                    <div class="sidebar-staff-meta">
+                        <h3 class="sidebar-staff-name" th:text="${shipper.fullName}">Trần Giao Vận</h3>
+                        <div class="sidebar-staff-role-badge" style="background: rgba(2, 132, 199, 0.2); color: #38bdf8; border-color: rgba(2, 132, 199, 0.4);">
+                            NHÂN VIÊN GIAO VẬN
+                        </div>
+                        
+                        <!-- Thông Tin Chi Nhánh Lấy Trực Tiếp Từ Bảng branches -->
+                        <div class="sidebar-staff-info-line" style="font-weight: 700; color: #38bdf8;" title="Tên chi nhánh (bảng branches)">
+                            <span>🏢</span>
+                            <span th:text="${dashboard.branchName}">Chi nhánh TP.HCM</span>
+                        </div>
+                        <div class="sidebar-staff-info-line" style="font-size: 11.5px; opacity: 0.9;" title="Địa chỉ chi nhánh (bảng branches)">
+                            <span>📍</span>
+                            <span th:text="${dashboard.branchAddress}">Quận 1, TP.HCM</span>
+                        </div>
+                        <div class="sidebar-staff-info-line" title="Hotline chi nhánh (bảng branches)">
+                            <span>📞</span>
+                            <span th:text="${dashboard.branchPhone}">0901000001</span>
+                        </div>
+                        <div class="sidebar-staff-info-line" th:if="${dashboard.branchEmail != null}" title="Email chi nhánh (bảng branches)">
+                            <span>✉️</span>
+                            <span th:text="${dashboard.branchEmail}">hcm@example.com</span>
+                        </div>
+                        <div class="sidebar-staff-id-tag">
+                            Mã Shipper: <strong th:text="'SHIP-' + ${shipper.id}">SHIP-7</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Menu Điều Hướng Dọc Của Shipper -->
+                <nav class="sidebar-nav-menu">
+                    <div class="sidebar-nav-heading">DANH MỤC GIAO VẬN</div>
+                    
+                    <a th:href="@{/shipper/dashboard}" class="sidebar-nav-link" th:classappend="${activeNav == 'dashboard' ? 'active' : ''}">
+                        <span class="nav-left">
+                            <span class="nav-icon">📊</span>
+                            <span class="nav-label">Bàn Làm Việc</span>
+                        </span>
+                    </a>
+
+                    <a th:href="@{/shipper/tasks}" class="sidebar-nav-link" th:classappend="${activeNav == 'tasks' ? 'active' : ''}">
+                        <span class="nav-left">
+                            <span class="nav-icon">📦</span>
+                            <span class="nav-label">Đơn Hàng Cần Xử Lí</span>
+                        </span>
+                        <span class="nav-badge badge-pending" th:text="${dashboard.pendingPickups + dashboard.activeDeliveries}">0</span>
+                    </a>
+                </nav>
+
+
+            </aside>
+
+            <!-- ==============================================
+                 CỘT NỘI DUNG BÊN PHẢI: NỀN TRẮNG (#ffffff)
+                 THEO BỐ CỤC CRM CHUYÊN NGHIỆP
+                 ============================================== -->
+            <main class="staff-white-panel">
+
+                <!-- Flash Alerts -->
+                <div th:if="${successMessage}" class="alert alert-success" 
+                     style="background: #f0fdf4; border: 1px solid #86efac; color: #166534; padding: 14px 18px; border-radius: 10px; margin-bottom: 20px; font-size: 13.5px; font-weight: 600;" 
+                     th:text="${successMessage}">
+                </div>
+                <div th:if="${errorMessage}" class="alert alert-danger" 
+                     style="background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; padding: 14px 18px; border-radius: 10px; margin-bottom: 20px; font-size: 13.5px; font-weight: 600;" 
+                     th:text="${errorMessage}">
+                </div>
+
+                <!-- 1. Thanh Scope & DateTime Filter Bar -->
+                <div class="crm-scope-bar">
+                    <div class="crm-scope-main-row">
+                        <div class="crm-scope-left">
+                            <div class="crm-pill-select" title="Chi nhánh trực thuộc (Bảng branches)">
+                                <span style="color: #cbd5e1;">🏢 Chi nhánh:</span>
+                                <strong style="color: #38bdf8 !important; font-weight: 800;" th:text="${dashboard.branchName}">Chi nhánh TP.HCM</strong>
+                            </div>
+
+                            <!-- Form Lọc Theo Ngày Giờ -->
+                            <form th:action="@{/shipper/tasks}" method="GET" class="crm-filter-form" id="shipperTasksFilterForm">
+                                <input type="hidden" name="status" th:if="${selectedStatus != null}" th:value="${selectedStatus.name()}">
+                                <input type="hidden" name="keyword" th:if="${keyword != null and !keyword.isEmpty()}" th:value="${keyword}">
+                                
+                                <label style="font-weight: 700; color: #cbd5e1; display: flex; align-items: center; gap: 4px;">
+                                    <span>📅</span> Thời gian:
+                                </label>
+                                <select name="timePreset" id="shipperTimePresetSelect" class="crm-time-select" onchange="this.form.submit()">
+                                    <option value="all" th:selected="${selectedTimePreset == null or selectedTimePreset == 'all'}">Toàn thời gian</option>
+                                    <option value="today" th:selected="${selectedTimePreset == 'today'}">Hôm nay</option>
+                                    <option value="yesterday" th:selected="${selectedTimePreset == 'yesterday'}">Hôm qua</option>
+                                    <option value="thisWeek" th:selected="${selectedTimePreset == 'thisWeek'}">Tuần này</option>
+                                    <option value="thisMonth" th:selected="${selectedTimePreset == 'thisMonth'}">Tháng này</option>
+                                </select>
+
+                                <button type="submit" class="crm-filter-submit-btn" style="background: #0284c7;" title="Áp dụng bộ lọc thời gian">
+                                    <span>🔍 Lọc</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Search Toolbar & Status Tab Pills -->
+                <div class="orders-filter-container">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                        
+                        <!-- Tabs Trạng Thái -->
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                            <a th:href="@{/shipper/tasks(timePreset=${selectedTimePreset}, fromDateTime=${fromDateTime}, toDateTime=${toDateTime})}"
+                               class="crm-status-filter-pill"
+                               th:classappend="${selectedStatus == null ? 'active-all' : ''}">
+                                📦 Tất cả (<span th:text="${dashboard.totalAssigned}">0</span>)
+                            </a>
+
+                            <a th:href="@{/shipper/tasks(status='PENDING', timePreset=${selectedTimePreset}, fromDateTime=${fromDateTime}, toDateTime=${toDateTime})}"
+                               class="crm-status-filter-pill"
+                               th:classappend="${selectedStatus != null and selectedStatus.name() == 'PENDING' ? 'active-pending' : ''}">
+                                ⏳ Chờ nhận kho (<span th:text="${dashboard.pendingPickups}">0</span>)
+                            </a>
+
+                            <a th:href="@{/shipper/tasks(status='RECEIVED', timePreset=${selectedTimePreset}, fromDateTime=${fromDateTime}, toDateTime=${toDateTime})}"
+                               class="crm-status-filter-pill"
+                               th:classappend="${selectedStatus != null and selectedStatus.name() == 'RECEIVED' ? 'active-shipping' : ''}">
+                                🛵 Đang đi giao (<span th:text="${dashboard.activeDeliveries}">0</span>)
+                            </a>
+
+                            <a th:href="@{/shipper/tasks(status='DELIVERED', timePreset=${selectedTimePreset}, fromDateTime=${fromDateTime}, toDateTime=${toDateTime})}"
+                               class="crm-status-filter-pill"
+                               th:classappend="${selectedStatus != null and selectedStatus.name() == 'DELIVERED' ? 'active-delivered' : ''}">
+                                ✅ Giao thành công (<span th:text="${dashboard.deliveredCount}">0</span>)
+                            </a>
+
+                            <a th:href="@{/shipper/tasks(status='DELIVERY_FAILED', timePreset=${selectedTimePreset}, fromDateTime=${fromDateTime}, toDateTime=${toDateTime})}"
+                               class="crm-status-filter-pill"
+                               th:classappend="${selectedStatus != null and selectedStatus.name() == 'DELIVERY_FAILED' ? 'active-cancelled' : ''}">
+                                ❌ Giao thất bại (<span th:text="${dashboard.failedCount}">0</span>)
+                            </a>
+                        </div>
+
+                        <!-- Search Form Input -->
+                        <form th:action="@{/shipper/tasks}" method="GET" style="display: flex; gap: 8px; align-items: center;">
+                            <input type="hidden" name="status" th:if="${selectedStatus != null}" th:value="${selectedStatus.name()}">
+                            <input type="hidden" name="timePreset" th:if="${selectedTimePreset != null}" th:value="${selectedTimePreset}">
+                            <input type="hidden" name="fromDateTime" th:if="${fromDateTime != null}" th:value="${fromDateTime}">
+                            <input type="hidden" name="toDateTime" th:if="${toDateTime != null}" th:value="${toDateTime}">
+                            
+                            <input type="text" name="keyword" th:value="${keyword}"
+                                   placeholder="Tìm mã đơn, GHN, tên khách, SĐT..."
+                                   class="crm-search-input">
+                            
+                            <button type="submit" class="btn-primary-emerald" style="padding: 8px 14px; font-weight: 700;">
+                                🔍 Tìm
+                            </button>
+                            <a th:if="${keyword != null and !keyword.isEmpty()}"
+                               th:href="@{/shipper/tasks(status=${selectedStatus != null ? selectedStatus.name() : ''}, timePreset=${selectedTimePreset})}"
+                               class="btn-secondary-light" style="padding: 8px 12px; font-size: 12.5px;">
+                                Xóa
+                            </a>
+                        </form>
+
+                    </div>
+                </div>
+
+                <!-- 3. Tasks Table -->
+                <div class="table-section-card">
+                    <div class="table-section-header">
+                        <h2 class="table-section-title">
+                            <span>🛵</span> Danh Sách Đơn Hàng Cần Giao
+                        </h2>
+                        <span class="panel-meta-desc" th:if="${page != null}" style="font-size: 13px; color: #cbd5e1;">
+                            Hiển thị <strong style="color: #38bdf8; font-weight: 800;" th:text="${page.numberOfElements}">0</strong> / <strong style="color: #38bdf8; font-weight: 800;" th:text="${page.totalElements}">0</strong> đơn hàng
+                        </span>
+                    </div>
+
+                    <div class="table-responsive-wrap">
+                        <table class="staff-white-table">
+                            <thead>
+                                <tr>
+                                    <th>Mã Vận Đơn</th>
+                                    <th>Người Nhận & Liên Hệ</th>
+                                    <th>Địa Chỉ Giao Hàng</th>
+                                    <th>Tiền Thu Hộ (COD)</th>
+                                    <th>Trạng Thái</th>
+                                    <th style="text-align: right;">Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Empty state -->
+                                <tr th:if="${#lists.isEmpty(tasks)}">
+                                    <td colspan="6" style="text-align: center; padding: 60px 20px; color: #94a3b8;">
+                                        <div style="font-size: 42px; margin-bottom: 12px;">📭</div>
+                                        <h4 style="font-size: 16px; font-weight: 700; color: #ffffff; margin: 0 0 6px 0;">Không tìm thấy đơn hàng nào</h4>
+                                        <p style="font-size: 13px; color: #94a3b8; margin: 0;">Hiện không có đơn hàng nào khớp với điều kiện lọc của bạn.</p>
+                                    </td>
+                                </tr>
+
+                                <!-- Task row -->
+                                <tr th:each="shp : ${tasks}" style="background: #1d2b42 !important;">
+                                    
+                                    <!-- Mã Đơn & GHN -->
+                                    <td style="background: #1d2b42 !important;">
+                                        <a th:href="@{'/shipper/tasks/' + ${shp.id}}" 
+                                           class="order-code-badge" 
+                                           style="color: #38bdf8 !important; background: rgba(2, 132, 199, 0.25) !important; border: 1px solid rgba(56, 189, 248, 0.4) !important; font-weight: 700;"
+                                           th:text="${shp.order.orderCode}">ORD-2026-0001</a>
+                                        <div th:if="${shp.ghnOrderCode != null}" style="margin-top: 6px;">
+                                            <a th:href="'https://donhang.ghn.vn/?order_code=' + ${shp.ghnOrderCode}" target="_blank"
+                                               title="Tra cứu lộ trình đơn hàng trực tiếp trên hệ thống GHN"
+                                               style="font-size: 11px; font-family: monospace; font-weight: 700; color: #38bdf8 !important; background: rgba(2, 132, 199, 0.25) !important; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(56, 189, 248, 0.4) !important; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                                <span>🚚 GHN:</span>
+                                                <span th:text="${shp.ghnOrderCode}">GHN-760-123456</span>
+                                                <span style="font-size: 10px;">↗</span>
+                                            </a>
+                                        </div>
+                                    </td>
+
+                                    <!-- Khách Hàng -->
+                                    <td style="background: #1d2b42 !important;">
+                                        <div class="customer-info-line" style="color: #ffffff !important; font-weight: 700; font-size: 14px;" th:text="${shp.order.receiverName}">Nguyễn Văn An</div>
+                                        <div style="margin-top: 4px;">
+                                            <a th:href="'tel:' + ${shp.order.receiverPhone}" 
+                                               style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: #38bdf8 !important; background: #141f33 !important; padding: 2px 8px; border-radius: 4px; text-decoration: none; border: 1px solid #405570 !important;">
+                                                📞 <span th:text="${shp.order.receiverPhone}" style="color: #38bdf8 !important;">0912345678</span>
+                                            </a>
+                                        </div>
+                                    </td>
+
+                                    <!-- Địa Chỉ Giao Hàng -->
+                                    <td style="max-width: 280px; background: #1d2b42 !important;">
+                                        <div style="font-size: 13px; color: #e2e8f0 !important; line-height: 1.4;" 
+                                             th:text="${shp.order.shippingStreetAddress + ', ' + shp.order.shippingWard + ', ' + shp.order.shippingDistrict}">
+                                            Số 15 Lê Lợi, Bến Nghé, Quận 1
+                                        </div>
+                                        <div th:if="${shp.order.note != null and !shp.order.note.isEmpty()}" 
+                                             style="font-size: 12px; color: #fbbf24 !important; margin-top: 4px; font-style: italic; font-weight: 600;">
+                                            📝 Ghi chú: <span th:text="${shp.order.note}" style="color: #fbbf24 !important;">Giao giờ hành chính</span>
+                                        </div>
+                                    </td>
+
+                                    <!-- Tiền Thu Hộ COD -->
+                                    <td style="background: #1d2b42 !important;">
+                                        <div th:if="${shp.order.paymentMethod == T(example.com.ltw.order.entity.PaymentMethod).COD and shp.order.paymentStatus != T(example.com.ltw.order.entity.PaymentStatus).PAID}">
+                                            <span class="order-amount-tag" style="color: #4ade80 !important; font-size: 15px; font-weight: 800;" 
+                                                  th:text="${#numbers.formatDecimal(shp.order.finalAmount, 0, 'POINT', 0, 'COMMA') + '₫'}">
+                                                34.990.000₫
+                                            </span>
+                                            <div style="font-size: 11.5px; color: #fbbf24 !important; font-weight: 700; margin-top: 2px;">(Thu tiền mặt)</div>
+                                        </div>
+                                        <div th:unless="${shp.order.paymentMethod == T(example.com.ltw.order.entity.PaymentMethod).COD and shp.order.paymentStatus != T(example.com.ltw.order.entity.PaymentStatus).PAID}">
+                                            <span class="badge-payment payment-PAID" style="background: rgba(34, 197, 94, 0.2) !important; color: #4ade80 !important; border: 1px solid rgba(34, 197, 94, 0.4) !important; font-weight: 700;">
+                                                Đã TT Online (0₫)
+                                            </span>
+                                        </div>
+                                    </td>
+
+                                    <!-- Trạng Thái -->
+                                    <td style="background: #1d2b42 !important;">
+                                        <span th:if="${shp.status == T(example.com.ltw.shipping.entity.ShipmentStatus).PENDING and shp.order.status != T(example.com.ltw.order.entity.OrderStatus).CANCELLED}"
+                                              class="status-pill status-pill-pending"
+                                              style="background: rgba(245, 158, 11, 0.25) !important; color: #fbbf24 !important; border: 1px solid rgba(245, 158, 11, 0.5) !important; font-weight: 700;">
+                                            ⏳ Chờ nhận kho
+                                        </span>
+                                        <span th:if="${shp.status == T(example.com.ltw.shipping.entity.ShipmentStatus).RECEIVED and shp.order.status != T(example.com.ltw.order.entity.OrderStatus).CANCELLED}"
+                                              class="status-pill status-pill-shipping"
+                                              style="background: rgba(56, 189, 248, 0.25) !important; color: #38bdf8 !important; border: 1px solid rgba(56, 189, 248, 0.5) !important; font-weight: 700;">
+                                            🛵 Đang đi giao
+                                        </span>
+                                        <span th:if="${shp.status == T(example.com.ltw.shipping.entity.ShipmentStatus).DELIVERED}"
+                                              class="status-pill status-pill-delivered"
+                                              style="background: rgba(34, 197, 94, 0.25) !important; color: #4ade80 !important; border: 1px solid rgba(34, 197, 94, 0.5) !important; font-weight: 700;">
+                                            ✅ Giao thành công
+                                        </span>
+                                        <span th:if="${shp.status == T(example.com.ltw.shipping.entity.ShipmentStatus).DELIVERY_FAILED or shp.status == T(example.com.ltw.shipping.entity.ShipmentStatus).CANCELLED or shp.order.status == T(example.com.ltw.order.entity.OrderStatus).CANCELLED}"
+                                              class="status-pill status-pill-cancelled"
+                                              style="background: rgba(239, 68, 68, 0.25) !important; color: #f87171 !important; border: 1px solid rgba(239, 68, 68, 0.5) !important; font-weight: 700;">
+                                            <th:block th:if="${shp.order.status == T(example.com.ltw.order.entity.OrderStatus).CANCELLED or (shp.attemptCount != null and shp.attemptCount >= 3)}">
+                                                ❌ Thất bại (Đã hủy)
+                                            </th:block>
+                                            <th:block th:unless="${shp.order.status == T(example.com.ltw.order.entity.OrderStatus).CANCELLED or (shp.attemptCount != null and shp.attemptCount >= 3)}">
+                                                ⚠️ Thất bại (Lần <span th:text="${shp.attemptCount != null ? shp.attemptCount : 1}">1</span>/3)
+                                            </th:block>
+                                        </span>
+                                    </td>
+
+                                    <!-- Thao Tác Cập Nhật Trạng Thái -->
+                                    <td style="text-align: right; white-space: nowrap; background: #1d2b42 !important;">
+                                        <div style="display: inline-flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: wrap;">
+                                            
+                                            <!-- Action 1: Nhận Đơn (Gọi GHN API) -->
+                                            <form th:if="${shp.status == T(example.com.ltw.shipping.entity.ShipmentStatus).PENDING}"
+                                                  th:action="@{'/shipper/tasks/' + ${shp.id} + '/receive'}" method="POST" style="margin: 0;"
+                                                  onsubmit="return confirm('Nhận kiện hàng #' + '[[${shp.order.orderCode}]]' + ' và kết nối GHN API sinh mã vận đơn?');">
+                                                <input type="hidden" name="redirect" value="/shipper/tasks">
+                                                <button type="submit" class="btn-action-assign" title="Nhận Đơn và kết nối GHN API sinh mã vận đơn">
+                                                    📦 Nhận Đơn (GHN)
+                                                </button>
+                                            </form>
+
+                                            <!-- Action 2: Giao Thành Công -->
+                                            <form th:if="${shp.status == T(example.com.ltw.shipping.entity.ShipmentStatus).RECEIVED}"
+                                                  th:action="@{'/shipper/tasks/' + ${shp.id} + '/complete'}" method="POST" style="margin: 0;"
+                                                  onsubmit="return confirm('Xác nhận khách đã nhận đủ hàng và thu đủ COD cho đơn #' + '[[${shp.order.orderCode}]]' + '?');">
+                                                <input type="hidden" name="redirect" value="/shipper/tasks">
+                                                <button type="submit" class="btn-action-confirm" title="Giao Hàng Thành Công">
+                                                    ✅ Giao Thành Công
+                                                </button>
+                                            </form>
+
+                                            <!-- Action 3: Báo Thất Bại (Mở Modal) -->
+                                            <button th:if="${shp.status == T(example.com.ltw.shipping.entity.ShipmentStatus).RECEIVED}"
+                                                    type="button" 
+                                                    th:data-shipment-id="${shp.id}"
+                                                    th:data-order-code="${shp.order.orderCode}"
+                                                    onclick="openQuickFailModal(this.dataset.shipmentId, this.dataset.orderCode)"
+                                                    class="btn-action-invoice"
+                                                    style="color: #f87171 !important; border-color: rgba(239, 68, 68, 0.4) !important;"
+                                                    title="Báo Giao Thất Bại">
+                                                ❌ Thất Bại
+                                            </button>
+
+                                            <!-- Action 4: Giao Lại nếu Thất Bại (Chỉ khi chưa hủy và chưa quá 3 lần) -->
+                                            <form th:if="${(shp.status == T(example.com.ltw.shipping.entity.ShipmentStatus).DELIVERY_FAILED) and (shp.order.status != T(example.com.ltw.order.entity.OrderStatus).CANCELLED) and (shp.attemptCount == null or shp.attemptCount < 3)}"
+                                                  th:action="@{'/shipper/tasks/' + ${shp.id} + '/retry'}" method="POST" style="margin: 0;"
+                                                  onsubmit="return confirm('Kích hoạt giao lại cho đơn #' + '[[${shp.order.orderCode}]]' + '?');">
+                                                <input type="hidden" name="redirect" value="/shipper/tasks">
+                                                <button type="submit" class="btn-action-assign" style="background: #d97706 !important;" title="Giao Lại Đơn Hàng">
+                                                    🔄 Giao Lại (<span th:text="${shp.attemptCount != null ? shp.attemptCount : 1}">1</span>/3)
+                                                </button>
+                                            </form>
+
+                                            <!-- Chi Tiết Button -->
+                                            <a th:href="@{'/shipper/tasks/' + ${shp.id}}" 
+                                               class="btn-action-view" title="Xem Chi Tiết Đơn Hàng">
+                                                Chi Tiết &rarr;
+                                            </a>
+                                        </div>
+                                    </td>
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Phân Trang (Pagination) -->
+                    <div th:if="${page != null and page.totalPages > 1}" 
+                         style="padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--surface-light); flex-wrap: wrap; gap: 12px;">
+                        
+                        <div style="font-size: 13px; color: #cbd5e1;">
+                            Trang <strong style="color: #38bdf8;" th:text="${page.number + 1}">1</strong> trên <strong style="color: #ffffff;" th:text="${page.totalPages}">5</strong>
+                        </div>
+
+                        <div style="display: flex; gap: 6px;">
+                            <a th:href="@{/shipper/tasks(page=${page.number - 1}, status=${selectedStatus != null ? selectedStatus.name() : ''}, timePreset=${selectedTimePreset}, keyword=${keyword})}"
+                               style="padding: 6px 14px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; text-decoration: none; background: #1d2b42; color: #cbd5e1;"
+                               th:styleappend="${page.first} ? 'opacity: 0.4; pointer-events: none;' : ''">
+                                &laquo; Trước
+                            </a>
+
+                            <span th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}">
+                                <a th:href="@{/shipper/tasks(page=${i}, status=${selectedStatus != null ? selectedStatus.name() : ''}, timePreset=${selectedTimePreset}, keyword=${keyword})}"
+                                   style="padding: 6px 14px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; text-decoration: none; font-weight: 700;"
+                                   th:styleappend="${page.number == i} ? 'background: #0284c7; color: #ffffff; border-color: #38bdf8;' : 'background: #1d2b42; color: #cbd5e1;'"
+                                   th:text="${i + 1}">1</a>
+                            </span>
+
+                            <a th:href="@{/shipper/tasks(page=${page.number + 1}, status=${selectedStatus != null ? selectedStatus.name() : ''}, timePreset=${selectedTimePreset}, keyword=${keyword})}"
+                               style="padding: 6px 14px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; text-decoration: none; background: #1d2b42; color: #cbd5e1;"
+                               th:styleappend="${page.last} ? 'opacity: 0.4; pointer-events: none;' : ''">
+                                Sau &raquo;
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+
+            </main>
+
+        </div>
+    </div>
+
+    <!-- ==========================================
+         3. FOOTER ĐỒNG BỘ 100% VỚI HỆ THỐNG TRANG CHỦ
+         ========================================== -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h5>Hệ Thống Phân Phối NEXUSTECH</h5>
+                    <p style="color: #94a3b8; font-size: 13px; line-height: 1.6;">
+                        Cổng quản lý giao nhận và vận chuyển hàng hóa chuyên biệt dành riêng cho Đội ngũ Shipper tại các chi nhánh ủy quyền chính hãng trên toàn quốc.
+                    </p>
+                </div>
+                <div class="footer-col">
+                    <h5>Quy Định & Nghiệp Vụ</h5>
+                    <ul class="footer-links">
+                        <li><a href="#cod">Quy trình nộp tiền mặt COD</a></li>
+                        <li><a href="#ghn">Tích hợp vận đơn GHN tự động</a></li>
+                        <li><a href="#safety">Quy chuẩn an toàn giao hàng</a></li>
+                        <li><a href="#contact">Đường dây nóng điều phối kho</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h5>Tổng Đài Chăm Sóc</h5>
+                    <p style="color: #cbd5e1; margin-bottom: 8px;">Tư vấn mua hàng: <strong style="color: #38bdf8;">1800 6868</strong></p>
+                    <p style="color: #cbd5e1; margin-bottom: 8px;">Hỗ trợ kỹ thuật: <strong style="color: #38bdf8;">1900 8989</strong></p>
+                    <p style="color: #cbd5e1;">Email hỗ trợ: <strong style="color: #38bdf8;">trinhphuhao2108@gmail.com</strong></p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                &copy; 2026 NEXUSTECH FLAGSHIP STORE. Tất cả các quyền được bảo lưu.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Quick Fail Delivery Modal for Tasks List -->
+    <div id="quickFailModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center;">
+        <div style="background: #1d2b42; border: 1px solid #405570; width: 90%; max-width: 480px; border-radius: 16px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 14px; border-bottom: 1px solid #405570; margin-bottom: 16px;">
+                <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: #f87171; display: flex; align-items: center; gap: 6px;">
+                    <span>❌</span> Báo Giao Thất Bại Cho Đơn <span id="quickFailOrderCode" style="font-family: monospace; color: #38bdf8;"></span>
+                </h3>
+                <button type="button" onclick="closeQuickFailModal()" style="background: none; border: none; font-size: 20px; color: #cbd5e1; cursor: pointer;">&times;</button>
+            </div>
+
+            <form id="quickFailForm" method="POST" action="">
+                <input type="hidden" name="redirect" value="/shipper/tasks">
+                <div style="margin-bottom: 16px;">
+                    <label style="font-size: 13px; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 8px;">
+                        Chọn nhanh lý do không thể giao hàng:
+                    </label>
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;">
+                        <button type="button" onclick="setQuickReason('Khách đòi hoàn hàng / Hủy đơn')" 
+                                style="background: rgba(220, 38, 38, 0.25); border: 1px solid #ef4444; border-radius: 6px; font-size: 11.5px; padding: 5px 10px; cursor: pointer; color: #fca5a5; font-weight: 700;">
+                            🚫 Khách đòi hủy / Hoàn hàng
+                        </button>
+                        <button type="button" onclick="setQuickReason('Khách không nghe máy sau 3 cuộc gọi')" 
+                                style="background: #2b3d57; border: 1px solid #405570; border-radius: 6px; font-size: 11.5px; padding: 5px 10px; cursor: pointer; color: #ffffff;">
+                            Không nghe máy
+                        </button>
+                        <button type="button" onclick="setQuickReason('Khách hẹn giao lại vào ngày mai')" 
+                                style="background: #2b3d57; border: 1px solid #405570; border-radius: 6px; font-size: 11.5px; padding: 5px 10px; cursor: pointer; color: #ffffff;">
+                            Khách hẹn lại
+                        </button>
+                        <button type="button" onclick="setQuickReason('Sai địa chỉ / Không tìm thấy số nhà')" 
+                                style="background: #2b3d57; border: 1px solid #405570; border-radius: 6px; font-size: 11.5px; padding: 5px 10px; cursor: pointer; color: #ffffff;">
+                            Sai địa chỉ
+                        </button>
+                        <button type="button" onclick="setQuickReason('Khách từ chối nhận hàng do đổi ý')" 
+                                style="background: #2b3d57; border: 1px solid #405570; border-radius: 6px; font-size: 11.5px; padding: 5px 10px; cursor: pointer; color: #ffffff;">
+                            Khách đổi ý
+                        </button>
+                    </div>
+
+                    <label style="font-size: 13px; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 6px;">
+                        Chi tiết lý do giao thất bại:
+                    </label>
+                    <textarea id="quickReasonInput" name="reason" rows="3" required 
+                              placeholder="Nhập chi tiết tình huống hoặc cuộc gọi với khách..."
+                              style="width: 100%; background: #141f33; border: 1px solid #405570; color: #ffffff; border-radius: 8px; padding: 10px; font-size: 13px; outline: none; box-sizing: border-box;"></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid #405570; padding-top: 14px;">
+                    <button type="button" onclick="closeQuickFailModal()" 
+                            style="background: #2b3d57; color: #cbd5e1; border: 1px solid #405570; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">
+                        Hủy bỏ
+                    </button>
+                    <button type="submit" 
+                            style="background: #dc2626; color: #ffffff; border: none; padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;">
+                        Xác Nhận Thất Bại
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Interactive Script for Tasks Time Filter Presets & Quick Fail Modal -->
+    <script>
+        function handleShipperTasksPresetChange(val) {
+            var fromGroup = document.getElementById('shipperFromGroup');
+            var toGroup = document.getElementById('shipperToGroup');
+            if (val === 'custom') {
+                if (fromGroup) fromGroup.style.display = 'inline-flex';
+                if (toGroup) toGroup.style.display = 'inline-flex';
+            } else {
+                if (fromGroup) fromGroup.style.display = 'none';
+                if (toGroup) toGroup.style.display = 'none';
+                var form = document.getElementById('shipperTasksFilterForm');
+                if (form) form.submit();
+            }
+        }
+
+        function openQuickFailModal(shipmentId, orderCode) {
+            var modal = document.getElementById('quickFailModal');
+            var form = document.getElementById('quickFailForm');
+            var codeSpan = document.getElementById('quickFailOrderCode');
+            if (form) form.action = '/shipper/tasks/' + shipmentId + '/fail';
+            if (codeSpan) codeSpan.textContent = '#' + orderCode;
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeQuickFailModal() {
+            var modal = document.getElementById('quickFailModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function setQuickReason(text) {
+            var input = document.getElementById('quickReasonInput');
+            if (input) input.value = text;
+        }
+
+        window.onclick = function(e) {
+            var modal = document.getElementById('quickFailModal');
+            if (e.target === modal) modal.style.display = 'none';
+        };
+    </script>
+</body>
+</html>

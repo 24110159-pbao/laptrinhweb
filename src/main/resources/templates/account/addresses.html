@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sổ địa chỉ - NEXUSTECH</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="account-page">
+<header th:replace="~{fragments/site :: header}"></header>
+<main class="account-container">
+    <nav class="account-nav" aria-label="Quản lý tài khoản">
+        <a th:href="@{/account/profile}">Hồ sơ cá nhân</a>
+        <a class="active" th:href="@{/account/addresses}">Sổ địa chỉ</a>
+        <a th:href="@{/account/orders}">Đơn hàng</a>
+    </nav>
+    <div th:if="${successMessage}" class="account-alert success" th:text="${successMessage}"></div>
+    <div th:if="${infoMessage}" class="account-alert info" th:text="${infoMessage}"></div>
+    <div th:if="${errorMessage}" class="account-alert error" th:text="${errorMessage}"></div>
+
+    <section class="account-card">
+        <div class="account-section-heading">
+            <div><h1>Sổ địa chỉ nhận hàng</h1></div>
+        </div>
+        <div th:if="${#lists.isEmpty(addresses)}" class="empty-addresses">Bạn chưa lưu địa chỉ nhận hàng nào.</div>
+        <article th:each="address : ${addresses}" class="address-card">
+            <div class="address-card-main">
+                <div class="address-recipient">
+                    <strong th:text="${address.receiverName}"></strong>
+                    <span th:if="${address.isDefault}" class="default-tag">Mặc định</span>
+                </div>
+                <p th:text="${address.phone}"></p>
+                <p th:text="${address.streetAddress + ', ' + address.ward + ', ' + address.district + ', ' + address.province}"></p>
+            </div>
+            <div class="address-actions">
+                <a class="account-button small secondary" th:href="@{/account/addresses/{id}(id=${address.id})}">Chi tiết / Sửa</a>
+                <form th:if="${!address.isDefault}" th:action="@{/account/addresses/{id}/default(id=${address.id})}" method="post">
+                    <button class="account-button small secondary" type="submit">Đặt mặc định</button>
+                </form>
+                <form th:action="@{/account/addresses/{id}/delete(id=${address.id})}" method="post"
+                      onsubmit="return confirm('Bạn chắc chắn muốn xóa địa chỉ này?')">
+                    <button class="account-button small danger" type="submit" th:disabled="${address.isDefault}">Xóa</button>
+                </form>
+            </div>
+        </article>
+    </section>
+
+    <section class="account-card">
+        <div class="account-section-heading">
+            <div>
+                <h2 th:text="${addressRequest.id == null ? 'Thêm địa chỉ mới' : 'Cập nhật địa chỉ'}">Thêm địa chỉ mới</h2>
+            </div>
+            <a th:if="${addressRequest.id != null}" class="account-button small secondary" th:href="@{/account/addresses}">Thêm địa chỉ khác</a>
+        </div>
+        <form th:action="@{/account/addresses}" th:object="${addressRequest}" method="post" class="account-form" id="addressForm">
+            <input type="hidden" th:field="*{id}">
+            <div class="account-form-grid">
+                <div class="account-field">
+                    <label for="receiverName">Người nhận</label>
+                    <input id="receiverName" th:field="*{receiverName}" maxlength="150" required>
+                </div>
+                <div class="account-field">
+                    <label for="addressPhone">Số điện thoại</label>
+                    <input id="addressPhone" type="tel" th:field="*{phone}" pattern="(?:\+?84|0)[1-9][0-9]{8}" maxlength="13" required>
+                </div>
+                <div class="account-field">
+                    <label for="provinceSelect">Tỉnh/thành phố</label>
+                    <select id="provinceSelect" th:field="*{provinceId}" required
+                            th:attr="data-selected=${addressRequest.provinceId}">
+                        <option value="">Đang tải tỉnh/thành phố...</option>
+                    </select>
+                    <input type="hidden" th:field="*{province}">
+                </div>
+                <div class="account-field">
+                    <label for="districtSelect">Quận/huyện</label>
+                    <select id="districtSelect" th:field="*{districtId}" required
+                            th:attr="data-selected=${addressRequest.districtId}" disabled>
+                        <option value="">Chọn quận/huyện</option>
+                    </select>
+                    <input type="hidden" th:field="*{district}">
+                </div>
+                <div class="account-field">
+                    <label for="wardSelect">Phường/xã</label>
+                    <select id="wardSelect" th:field="*{wardCode}" required
+                            th:attr="data-selected=${addressRequest.wardCode}" disabled>
+                        <option value="">Chọn phường/xã</option>
+                    </select>
+                    <input type="hidden" th:field="*{ward}">
+                </div>
+                <div class="account-field full-width">
+                    <label for="streetAddress">Địa chỉ chi tiết</label>
+                    <input id="streetAddress" th:field="*{streetAddress}" maxlength="255"
+                           placeholder="Số nhà, tên đường, căn hộ..." required>
+                </div>
+            </div>
+            <div id="locationError" class="field-error" role="alert"></div>
+            <label class="account-checkbox">
+                <input type="checkbox" th:field="*{makeDefault}">
+                <span>Đặt làm địa chỉ mặc định</span>
+            </label>
+            <div class="account-form-actions">
+                <button class="account-button" type="submit" th:text="${addressRequest.id == null ? 'Lưu địa chỉ' : 'Cập nhật địa chỉ'}">Lưu địa chỉ</button>
+            </div>
+        </form>
+    </section>
+
+    <section th:if="${selectedAddress != null}" class="account-card address-detail">
+        <h2>Chi tiết địa chỉ</h2>
+        <p><strong>Người nhận:</strong> <span th:text="${selectedAddress.receiverName}"></span></p>
+        <p><strong>Số điện thoại:</strong> <span th:text="${selectedAddress.phone}"></span></p>
+        <p><strong>Tỉnh/thành phố:</strong> <span th:text="${selectedAddress.province}"></span></p>
+        <p><strong>Quận/huyện:</strong> <span th:text="${selectedAddress.district}"></span></p>
+        <p><strong>Phường/xã:</strong> <span th:text="${selectedAddress.ward}"></span></p>
+        <p><strong>Địa chỉ chi tiết:</strong> <span th:text="${selectedAddress.streetAddress}"></span></p>
+        <p><strong>Trạng thái:</strong> <span th:text="${selectedAddress.isDefault ? 'Mặc định' : 'Đang hoạt động'}"></span></p>
+    </section>
+</main>
+<script th:src="@{/js/account.js}"></script>
+<footer th:replace="~{fragments/site :: footer}"></footer>
+</body>
+</html>

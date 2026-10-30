@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác thực mã OTP - NEXUSTECH</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="auth-page-wrapper">
+<header th:replace="~{fragments/site :: header}"></header>
+
+    <div class="auth-ambient-glow"></div>
+
+    <div class="auth-card">
+        
+        <!-- Header -->
+        <div class="auth-header">
+            <a th:href="@{/}" class="auth-brand-badge">
+                <div class="brand-icon">⚡</div>
+                <div class="brand-title-wrap" style="text-align: left;">
+                    <span class="brand-name">NEXUSTECH</span>
+                    <span class="brand-tagline">FLAGSHIP STORE</span>
+                </div>
+            </a>
+            <h1 class="auth-title">Nhập Mã Xác Thực OTP</h1>
+            <p class="auth-subtitle">Mã OTP 6 chữ số đã được gửi tới hòm thư:</p>
+            
+            <div class="email-pill-display">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                <span th:text="${email}">user@example.com</span>
+            </div>
+        </div>
+
+        <!-- Alerts -->
+        <div th:if="${errorMessage != null}" class="auth-alert auth-alert-error">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <span th:text="${errorMessage}">Mã OTP không hợp lệ!</span>
+        </div>
+
+        <div th:if="${infoMessage != null}" class="auth-alert auth-alert-info">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            <span th:text="${infoMessage}">Đã gửi mã xác thực!</span>
+        </div>
+
+        <!-- OTP Verification Form (Standard Form POST - No AJAX) -->
+        <form th:action="@{/verify-otp}" method="POST" id="otpForm">
+            
+            <input type="hidden" name="email" th:value="${email}">
+            <input type="hidden" name="otp" id="hiddenOtp" value="">
+
+            <!-- 6 Visual OTP digit boxes -->
+            <div class="otp-boxes-group">
+                <input type="text" maxlength="1" class="otp-digit-input" inputmode="numeric" pattern="[0-9]*" autofocus>
+                <input type="text" maxlength="1" class="otp-digit-input" inputmode="numeric" pattern="[0-9]*">
+                <input type="text" maxlength="1" class="otp-digit-input" inputmode="numeric" pattern="[0-9]*">
+                <input type="text" maxlength="1" class="otp-digit-input" inputmode="numeric" pattern="[0-9]*">
+                <input type="text" maxlength="1" class="otp-digit-input" inputmode="numeric" pattern="[0-9]*">
+                <input type="text" maxlength="1" class="otp-digit-input" inputmode="numeric" pattern="[0-9]*">
+            </div>
+
+            <!-- Countdown Timer -->
+            <div class="timer-box">
+                <span>Mã có hiệu lực trong:</span>
+                <span id="otpCountdown" class="timer-count">05:00</span>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn-auth-submit">
+                <span>Xác Nhận &amp; Kích Hoạt</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </button>
+
+        </form>
+
+        <!-- Resend OTP Form (Standard Form POST - No AJAX) -->
+        <div style="text-align: center; margin-top: 20px;">
+            <form th:action="@{/resend-otp}" method="POST" style="display: inline;">
+                <span style="font-size: 13px; color: #94a3b8;">Chưa nhận được mã? </span>
+                <button type="submit" id="resendOtpBtn" class="resend-btn" disabled>Gửi lại mã OTP</button>
+            </form>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px; font-size: 12px;">
+            <a th:href="@{/register}" style="color: #64748b; text-decoration: none;">&larr; Đổi email hoặc đăng ký lại</a>
+        </div>
+
+    </div>
+
+    <script th:src="@{/js/main.js}"></script>
+<footer th:replace="~{fragments/site :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${'Chi Tiết Yêu Cầu Hoàn Trả ' + returnRequest.requestCode + ' - NEXUSTECH Staff'}">Chi Tiết Yêu Cầu Hoàn Trả</title>
+    <!-- Core Brand Stylesheet from Home -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <!-- Dedicated Staff Portal Stylesheet -->
+    <link rel="stylesheet" th:href="@{/css/staff.css}">
+    <style>
+        html, body {
+            overflow-y: auto !important;
+            scroll-behavior: smooth;
+        }
+        .user-avatar {
+            width: 38px !important;
+            height: 38px !important;
+            border-radius: 50% !important;
+            object-fit: cover !important;
+            border: 2px solid #38bdf8 !important;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.4) !important;
+            display: block !important;
+        }
+        .user-avatar-ring {
+            position: relative;
+            width: 38px;
+            height: 38px;
+        }
+        .detail-card {
+            background: #182438;
+            border: 1px solid #405570;
+            border-radius: 12px;
+            padding: 22px;
+            margin-bottom: 20px;
+        }
+        .detail-card h3 {
+            color: #f8fafc;
+            font-size: 15px;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 9px 0;
+            border-bottom: 1px dashed #334155;
+            font-size: 13.5px;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            color: #94a3b8;
+        }
+        .info-value {
+            color: #f1f5f9;
+            font-weight: 600;
+            text-align: right;
+        }
+        .return-content-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+        @media (max-width: 1080px) {
+            .return-content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .decision-panel {
+            background: #141f33;
+            border: 2px solid #0284c7;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 8px 30px rgba(2, 132, 199, 0.15);
+            position: sticky;
+            top: 90px;
+        }
+        .decision-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            background: #0f172a;
+            padding: 4px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .decision-tab-btn {
+            flex: 1;
+            padding: 9px 12px;
+            border: none;
+            background: transparent;
+            color: #94a3b8;
+            font-weight: 700;
+            font-size: 13px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .decision-tab-btn.active.tab-approve {
+            background: #059669;
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(5, 150, 105, 0.4);
+        }
+        .decision-tab-btn.active.tab-reject {
+            background: #dc2626;
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+        }
+    </style>
+</head>
+<body class="manager-page">
+
+    <!-- ==========================================
+         1. TOP NAVBAR (CỔNG NHÂN VIÊN CRM)
+         ========================================== -->
+    <header class="top-navbar staff-top-navbar">
+        <div class="container navbar-inner">
+            
+            <a th:href="@{/staff/dashboard}" class="brand-logo" title="Cổng Nhân Viên Chi Nhánh">
+                <div class="brand-icon">⚡</div>
+                <div class="brand-title-wrap">
+                    <span class="brand-name">NEXUSTECH</span>
+                    <span class="brand-tagline" style="color: #10b981; font-weight: 800;">STAFF CRM • CHI NHÁNH</span>
+                </div>
+            </a>
+
+            <!-- User Auth / Profile Box -->
+            <div class="user-profile-section">
+                <div class="user-account-box">
+                    <div class="user-avatar-ring">
+                        <img th:src="${currentUser.avatarUrl != null and !currentUser.avatarUrl.isEmpty() ? currentUser.avatarUrl : 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=150&q=80'}" 
+                             alt="Staff Avatar" class="user-avatar"
+                             onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=150&q=80';">
+                        <div class="vip-badge-dot" style="background: #10b981;" title="Nhân viên đang trực tuyến"></div>
+                    </div>
+                    <div class="user-details">
+                        <span class="user-name-tag" th:text="${currentUser.fullName}">Nhân viên 1</span>
+                        <span class="user-role-tag" style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; margin-top: 1px;">
+                            <span style="color: #94a3b8; font-size: 10px;">Quyền:</span>
+                            <span class="user-role-badge badge-role-staff" th:text="${currentUser.role}">STAFF</span>
+                        </span>
+                    </div>
+
+                    <div class="user-dropdown-menu">
+                        <div class="dropdown-role-box bg-role-staff">
+                            <span class="dropdown-role-title">TÀI KHOẢN NHÂN VIÊN:</span>
+                            <strong class="dropdown-role-name" th:text="${currentUser.fullName}">Nhân viên 1</strong>
+                            <div class="dropdown-role-sub" th:text="${currentUser.email}">staff1@gmail.com</div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a th:href="@{/staff/dashboard}" class="dropdown-link" style="color: #10b981; font-weight: 700;">
+                            <span>Trang Chủ</span>
+                        </a>
+                        <a th:href="@{/staff/orders}" class="dropdown-link">
+                            <span>Đơn Quản Lý</span>
+                        </a>
+                        <a th:href="@{/staff/returns}" class="dropdown-link">
+                            <span>Hoàn/Trả Hàng</span>
+                        </a>
+                        <a th:href="@{/staff/chat}" class="dropdown-link">
+                            <span>Chat Khách Hàng</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a th:href="@{/logout}" class="dropdown-link logout-link">
+                            <span>Đăng xuất</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- ==========================================
+         2. MAIN STAFF PORTAL (2 CỘT)
+         ========================================== -->
+    <div class="staff-portal-body">
+        <div class="container staff-layout-container">
+
+            <!-- CỘT DỌC BÊN TRÁI: STAFF SIDEBAR -->
+            <aside class="staff-sidebar">
+                
+                <!-- Thẻ Thông Tin Nhân Viên & Chi Nhánh Trực Thuộc -->
+                <div class="sidebar-staff-card">
+                    <div class="sidebar-staff-avatar-wrap">
+                        <img th:src="${staff.avatarUrl != null and !staff.avatarUrl.isEmpty() ? staff.avatarUrl : 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80'}"
+                             alt="Staff Avatar" class="sidebar-staff-avatar"
+                             onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80';">
+                        <span class="sidebar-online-status" title="Đang trực tuyến"></span>
+                    </div>
+                    <div class="sidebar-staff-meta">
+                        <h3 class="sidebar-staff-name" th:text="${staff.fullName}">Nhân viên 1</h3>
+                        <div class="sidebar-staff-role-badge">NHÂN VIÊN CHI NHÁNH</div>
+                        
+                        <div class="sidebar-staff-info-line" style="font-weight: 700; color: #38bdf8;" title="Tên chi nhánh">
+                            <span>🏢</span>
+                            <span th:text="${dashboard != null ? dashboard.branchName : locationName}">Chi nhánh TP.HCM</span>
+                        </div>
+                        <div class="sidebar-staff-info-line" style="font-size: 11.5px; opacity: 0.85;" title="Địa chỉ chi nhánh" th:if="${dashboard != null}">
+                            <span>📍</span>
+                            <span th:text="${dashboard.branchAddress}">Địa chỉ chi nhánh</span>
+                        </div>
+                        <div class="sidebar-staff-id-tag">
+                            Mã Nhân Viên: <strong th:text="'NV-' + ${staff.id}">NV-1</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DANH MỤC QUẢN LÝ (CỘT DỌC) -->
+                <nav class="sidebar-nav-menu">
+                    <div class="sidebar-nav-heading">DANH MỤC QUẢN LÝ</div>
+
+                    <a th:href="@{/staff/dashboard}" class="sidebar-nav-link">
+                        <span class="nav-left">
+                            <span class="nav-icon" style="font-size: 16px;">📊</span>
+                            <span class="nav-label">Trang Chủ</span>
+                        </span>
+                    </a>
+
+                    <a th:href="@{/staff/pending-orders}" class="sidebar-nav-link">
+                        <span class="nav-left">
+                            <span class="nav-icon" style="font-size: 16px;">📥</span>
+                            <span class="nav-label">Đơn Chờ Nhận</span>
+                        </span>
+                        <span class="nav-badge" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;" 
+                              th:if="${dashboard != null and dashboard.pendingOrders > 0}" 
+                              th:text="${dashboard.pendingOrders}">0</span>
+                    </a>
+
+                    <a th:href="@{/staff/orders}" class="sidebar-nav-link">
+                        <span class="nav-left">
+                            <span class="nav-icon" style="font-size: 16px;">📦</span>
+                            <span class="nav-label">Đơn Quản Lý</span>
+                        </span>
+                        <span class="nav-badge" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8;" 
+                              th:if="${dashboard != null}"
+                              th:text="${dashboard.myAssignedOrdersCount}">0</span>
+                    </a>
+
+                    <a th:href="@{/staff/returns}" class="sidebar-nav-link active">
+                        <span class="nav-left">
+                            <span class="nav-icon" style="font-size: 16px;">🔄</span>
+                            <span class="nav-label">Hoàn/Trả Hàng</span>
+                        </span>
+                    </a>
+
+                    <a th:href="@{/staff/chat}" class="sidebar-nav-link">
+                        <span class="nav-left">
+                            <span class="nav-icon" style="font-size: 16px;">💬</span>
+                            <span class="nav-label">Chat Khách Hàng</span>
+                        </span>
+                    </a>
+                </nav>
+
+            </aside>
+
+            <!-- CỘT NỘI DUNG BÊN PHẢI -->
+            <main class="staff-white-panel">
+
+                <div style="margin-bottom: 16px;">
+                    <a th:href="@{/staff/returns}" style="color: #38bdf8; text-decoration: none; font-size: 13.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        <span>Quay lại danh sách yêu cầu hoàn/trả</span>
+                    </a>
+                </div>
+
+                <!-- Alerts -->
+                <div th:if="${successMessage}" class="alert-box alert-success" style="background: #064e3b; color: #6ee7b7; padding: 12px 18px; border-radius: 8px; margin-bottom: 20px; font-weight: 600;" th:text="${successMessage}"></div>
+                <div th:if="${errorMessage}" class="alert-box alert-danger" style="background: #7f1d1d; color: #fca5a5; padding: 12px 18px; border-radius: 8px; margin-bottom: 20px; font-weight: 600;" th:text="${errorMessage}"></div>
+
+                <!-- Header Info Card with Quick Action Buttons -->
+                <div class="detail-card" style="border-left: 4px solid #38bdf8;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                        <div>
+                            <span style="font-size: 11.5px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">MÃ YÊU CẦU HOÀN TRẢ</span>
+                            <h2 style="color: #38bdf8; margin: 4px 0 0 0; font-family: monospace; font-size: 22px; font-weight: 800;" th:text="${returnRequest.requestCode}">RET-XXXX</h2>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                            <span th:if="${returnRequest.status.name() == 'PENDING_REVIEW'}" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35); padding: 7px 16px; border-radius: 8px; font-weight: 700; font-size: 13.5px;">
+                                ⏳ Chờ Nhân Viên Duyệt
+                            </span>
+                            <span th:if="${returnRequest.status.name() == 'APPROVED'}" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); padding: 7px 16px; border-radius: 8px; font-weight: 700; font-size: 13.5px;">
+                                Đã Được Duyệt
+                            </span>
+                            <span th:if="${returnRequest.status.name() == 'REJECTED'}" style="background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.35); padding: 7px 16px; border-radius: 8px; font-weight: 700; font-size: 13.5px;">
+                                Đã Bị Từ Chối
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2-COLUMN CONTENT: DETAILS ON LEFT, ACTION DECISION PANEL ON RIGHT -->
+                <div class="return-content-grid">
+                    
+                    <!-- LEFT COLUMN: REQUEST DETAILS & RETURN PRODUCTS -->
+                    <div>
+                        <!-- Request Details -->
+                        <div class="detail-card">
+                            <h3>📋 Thông Tin Yêu Cầu &amp; Đơn Hàng</h3>
+                            <div class="info-row">
+                                <span class="info-label">Đơn hàng liên quan:</span>
+                                <span class="info-value">
+                                    <a th:href="@{/staff/orders/{id}(id=${returnRequest.order.id})}" style="color: #38bdf8; text-decoration: underline; font-weight: 700;" th:text="${'#' + returnRequest.order.orderCode}">#ORD001</a>
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Khách hàng yêu cầu:</span>
+                                <span class="info-value" th:text="${returnRequest.user.fullName + ' (' + (returnRequest.user.phone ?: returnRequest.user.email) + ')'}">Khách hàng</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Thời điểm gửi:</span>
+                                <span class="info-value" th:text="${#temporals.format(returnRequest.createdAt, 'dd/MM/yyyy HH:mm:ss')}">24/10/2026</span>
+                            </div>
+                            <div style="padding-top: 10px;">
+                                <span class="info-label" style="display: block; margin-bottom: 6px;">Lý do của khách hàng:</span>
+                                <div style="background: #0f172a; border-left: 3px solid #38bdf8; padding: 10px 14px; border-radius: 6px; color: #f1f5f9; font-size: 13.5px; line-height: 1.5;" th:text="${returnRequest.reason}">
+                                    Lý do hoàn trả...
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Items to return -->
+                        <div class="detail-card">
+                            <h3>📦 Sản Phẩm Khách Yêu Cầu Trả</h3>
+                            <div th:each="line : ${returnRequest.items}" style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; margin-bottom: 10px;">
+                                <div>
+                                    <strong style="color: #f8fafc; font-size: 14.5px;" th:text="${line.orderItem.productNameSnapshot}">iPhone 16</strong>
+                                    <div style="font-size: 12.5px; color: #94a3b8; margin-top: 2px;" th:text="${line.orderItem.variantSnapshot}">Đen / 128GB</div>
+                                    <div style="font-size: 13px; color: #38bdf8; margin-top: 4px;" th:text="${'Đơn giá: ' + #numbers.formatDecimal(line.orderItem.unitPrice, 0, 'COMMA', 0, 'POINT') + ' ₫'}">21.000.000 ₫</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span style="font-size: 13px; color: #94a3b8; font-weight: 700;" th:text="${'Số lượng trả: ' + line.requestedQuantity}">SL: 1</span>
+                                    <div style="font-size: 15px; color: #ffffff; font-weight: 800; margin-top: 4px;" th:text="${'Tiền hoàn: ' + #numbers.formatDecimal(line.orderItem.unitPrice * line.requestedQuantity, 0, 'COMMA', 0, 'POINT') + ' ₫'}">21.000.000 ₫</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN: ACTION DECISION PANEL (PROMINENT & DIRECTLY VISIBLE) -->
+                    <div>
+                        
+                        <!-- Panel for PENDING_REVIEW -->
+                        <div th:if="${returnRequest.status.name() == 'PENDING_REVIEW'}" class="decision-panel">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px;">
+                                <span style="font-size: 20px;">⚡</span>
+                                <h3 style="color: #38bdf8; margin: 0; font-size: 16px; font-weight: 800;">THAO TÁC XÉT DUYỆT</h3>
+                            </div>
+                            <p style="font-size: 12.5px; color: #cbd5e1; line-height: 1.5; margin: 0 0 14px 0;">
+                                Vui lòng kiểm tra lý do và điều kiện sản phẩm để tiến hành duyệt hoặc từ chối yêu cầu đổi trả này:
+                            </p>
+
+                            <!-- Decision Switch Tabs -->
+                            <div class="decision-tabs">
+                                <button type="button" class="decision-tab-btn active tab-approve" id="btnTabApprove" onclick="switchDecisionTab('approve')">
+                                    ✅ Duyệt Yêu Cầu
+                                </button>
+                                <button type="button" class="decision-tab-btn tab-reject" id="btnTabReject" onclick="switchDecisionTab('reject')">
+                                    ❌ Từ Chối
+                                </button>
+                            </div>
+
+                            <!-- Form Approve -->
+                            <form id="formApproveReturn" th:action="@{/staff/returns/{id}/approve(id=${returnRequest.id})}" method="post">
+                                <div style="background: #0f172a; border: 1px solid #10b981; border-radius: 10px; padding: 16px; margin-bottom: 14px;">
+                                    <div style="margin-bottom: 12px;">
+                                        <label style="display: flex; align-items: center; gap: 8px; color: #f1f5f9; font-size: 13px; cursor: pointer;">
+                                            <input type="checkbox" name="restockInventory" value="true" checked style="width: 17px; height: 17px; accent-color: #10b981;">
+                                            <strong style="color: #34d399;">Cộng lại số lượng vào tồn kho chi nhánh</strong>
+                                        </label>
+                                        <span style="font-size: 11.5px; color: #94a3b8; margin-left: 25px; display: block; margin-top: 2px;">
+                                            Sản phẩm sẽ tự động được nhập lại vào kho của chi nhánh.
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <label style="display: block; font-size: 12px; color: #94a3b8; margin-bottom: 6px;">Ghi chú duyệt cho khách / hướng dẫn nhận hàng:</label>
+                                        <textarea name="staffNote" rows="3" style="width: 100%; box-sizing: border-box; background: #1e293b; border: 1px solid #475569; border-radius: 6px; color: #fff; padding: 8px 10px; font-size: 13px;" placeholder="Ví dụ: Shop đã tiếp nhận, quý khách vui lòng gửi sản phẩm về chi nhánh..."></textarea>
+                                    </div>
+                                </div>
+                                <button type="submit" onclick="return confirm('Bạn chắc chắn muốn DUYỆT yêu cầu hoàn trả này? Đơn hàng sẽ được chuyển sang hoàn tiền.')" style="width: 100%; background: #059669; color: #ffffff; border: none; padding: 12px 18px; border-radius: 8px; font-weight: 800; font-size: 14px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);">
+                                    🚀 XÁC NHẬN DUYỆT &amp; HOÀN TIỀN
+                                </button>
+                            </form>
+
+                            <!-- Form Reject -->
+                            <form id="formRejectReturn" th:action="@{/staff/returns/{id}/reject(id=${returnRequest.id})}" method="post" style="display: none;">
+                                <div style="background: #0f172a; border: 1px solid #ef4444; border-radius: 10px; padding: 16px; margin-bottom: 14px;">
+                                    <div>
+                                        <label style="display: block; font-size: 12px; color: #fca5a5; font-weight: 700; margin-bottom: 6px;">Lý do từ chối (bắt buộc gửi khách hàng):</label>
+                                        <textarea name="rejectReason" rows="4" required style="width: 100%; box-sizing: border-box; background: #1e293b; border: 1px solid #ef4444; border-radius: 6px; color: #fff; padding: 8px 10px; font-size: 13px;" placeholder="Ví dụ: Sản phẩm đã kích hoạt quá 7 ngày hoặc có dấu hiệu va đập rơi vỡ..."></textarea>
+                                    </div>
+                                </div>
+                                <button type="submit" onclick="return confirm('Bạn chắc chắn muốn TỪ CHỐI yêu cầu hoàn trả này?')" style="width: 100%; background: #dc2626; color: #ffffff; border: none; padding: 12px 18px; border-radius: 8px; font-weight: 800; font-size: 14px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);">
+                                    ❌ XÁC NHẬN TỪ CHỐI YÊU CẦU
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Result Panel when APPROVED (ĐƯỢC HOÀN TIỀN & NHẬP KHO) -->
+                        <div th:if="${returnRequest.status.name() == 'APPROVED'}" class="detail-card">
+                            <h3>📋 Kết Quả Xử Lý: Đã Duyệt Hoàn Trả</h3>
+                            <div class="info-row">
+                                <span class="info-label">Quyết định xử lý:</span>
+                                <span class="info-value" style="color: #38bdf8; font-weight: 700;">
+                                    Đồng ý đổi trả &amp; hoàn tiền
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Số tiền hoàn cho khách:</span>
+                                <span class="info-value">
+                                    <strong style="color: #ffffff; font-size: 16px; font-weight: 800;" th:text="${#numbers.formatDecimal(returnRequest.refundAmount, 0, 'COMMA', 0, 'POINT') + ' ₫'}">21.000.000 ₫</strong>
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Tồn kho chi nhánh:</span>
+                                <span class="info-value">
+                                    Đã cộng lại số lượng vào kho
+                                </span>
+                            </div>
+                            <div class="info-row" th:if="${returnRequest.reviewedBy != null}">
+                                <span class="info-label">Nhân viên phê duyệt:</span>
+                                <span class="info-value" th:text="${returnRequest.reviewedBy.fullName}">Nhân viên 1</span>
+                            </div>
+                            <div class="info-row" th:if="${returnRequest.refundedAt != null}">
+                                <span class="info-label">Thời điểm duyệt:</span>
+                                <span class="info-value" th:text="${#temporals.format(returnRequest.refundedAt, 'dd/MM/yyyy HH:mm:ss')}">24/10/2026 22:00:00</span>
+                            </div>
+                            <div style="padding-top: 10px;" th:if="${returnRequest.staffNote != null and !returnRequest.staffNote.isEmpty()}">
+                                <span class="info-label" style="display: block; margin-bottom: 6px;">Lời nhắn / Hướng dẫn khách hàng:</span>
+                                <div style="background: #0f172a; border: 1px solid #334155; padding: 10px 14px; border-radius: 6px; color: #f1f5f9; font-size: 13.5px; line-height: 1.5;" th:text="${returnRequest.staffNote}">
+                                    Shop đã tiếp nhận yêu cầu đổi trả...
+                                </div>
+                            </div>
+                            <div style="margin-top: 14px; padding: 12px 14px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; font-size: 12.5px; color: #cbd5e1; line-height: 1.5;">
+                                ℹ️ Đơn hàng gốc <strong>#<th:block th:text="${returnRequest.order.orderCode}"></th:block></strong> đã chuyển sang trạng thái <strong>RETURN_REFUNDED</strong> (Hoàn tiền). Tồn kho chi nhánh đã được nhập lại.
+                            </div>
+                        </div>
+
+                        <!-- Result Panel when REJECTED (TỪ CHỐI / KHÔNG ĐƯỢC HOÀN) -->
+                        <div th:if="${returnRequest.status.name() == 'REJECTED'}" class="detail-card">
+                            <h3>📋 Kết Quả Xử Lý: Đã Từ Chối Đổi Trả</h3>
+                            <div class="info-row">
+                                <span class="info-label">Quyết định xử lý:</span>
+                                <span class="info-value" style="color: #cbd5e1; font-weight: 700;">
+                                    Từ chối yêu cầu đổi trả
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Số tiền hoàn lại:</span>
+                                <span class="info-value">
+                                    <strong style="color: #ffffff; font-size: 15px; font-weight: 800;">0 ₫ (Không hoàn tiền)</strong>
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Tồn kho chi nhánh:</span>
+                                <span class="info-value">
+                                    Giữ nguyên (Không nhập kho)
+                                </span>
+                            </div>
+                            <div class="info-row" th:if="${returnRequest.reviewedBy != null}">
+                                <span class="info-label">Nhân viên từ chối:</span>
+                                <span class="info-value" th:text="${returnRequest.reviewedBy.fullName}">Nhân viên 1</span>
+                            </div>
+                            <div class="info-row" th:if="${returnRequest.updatedAt != null}">
+                                <span class="info-label">Thời điểm từ chối:</span>
+                                <span class="info-value" th:text="${#temporals.format(returnRequest.updatedAt, 'dd/MM/yyyy HH:mm:ss')}">24/10/2026 22:00:00</span>
+                            </div>
+                            <div style="padding-top: 10px;">
+                                <span class="info-label" style="display: block; margin-bottom: 6px;">Lý do từ chối gửi khách hàng:</span>
+                                <div style="background: #0f172a; border: 1px solid #334155; padding: 10px 14px; border-radius: 6px; color: #f1f5f9; font-size: 13.5px; line-height: 1.5;" th:text="${returnRequest.staffNote ?: 'Không đáp ứng đủ điều kiện bảo hành/đổi trả.'}">
+                                    Lý do từ chối cụ thể...
+                                </div>
+                            </div>
+                            <div style="margin-top: 14px; padding: 12px 14px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; font-size: 12.5px; color: #cbd5e1; line-height: 1.5;">
+                                ℹ️ Yêu cầu hoàn hàng này đã bị từ chối. Đơn hàng gốc <strong>#<th:block th:text="${returnRequest.order.orderCode}"></th:block></strong> vẫn giữ nguyên trạng thái <strong>DELIVERED</strong> (Giao thành công). Khách hàng vẫn giữ sản phẩm.
+                            </div>
+                        </div>
+
+                        <!-- Fallback Result Panel for other statuses -->
+                        <div th:if="${returnRequest.status.name() != 'APPROVED' and returnRequest.status.name() != 'REJECTED' and returnRequest.status.name() != 'PENDING_REVIEW'}" class="detail-card" style="border: 1px solid #334155;">
+                            <h3>📋 Trạng Thái Xử Lý: <span th:text="${returnRequest.status}">COMPLETED</span></h3>
+                            <div class="info-row">
+                                <span class="info-label">Trạng thái:</span>
+                                <span class="info-value" th:text="${returnRequest.status}">COMPLETED</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </main>
+
+        </div>
+    </div>
+
+    <!-- Script to toggle between Approve & Reject Tabs -->
+    <script>
+        function switchDecisionTab(tab) {
+            const formApprove = document.getElementById('formApproveReturn');
+            const formReject = document.getElementById('formRejectReturn');
+            const btnApprove = document.getElementById('btnTabApprove');
+            const btnReject = document.getElementById('btnTabReject');
+
+            if (tab === 'approve') {
+                formApprove.style.display = 'block';
+                formReject.style.display = 'none';
+                btnApprove.className = 'decision-tab-btn active tab-approve';
+                btnReject.className = 'decision-tab-btn tab-reject';
+            } else {
+                formApprove.style.display = 'none';
+                formReject.style.display = 'block';
+                btnApprove.className = 'decision-tab-btn tab-approve';
+                btnReject.className = 'decision-tab-btn active tab-reject';
+            }
+        }
+    </script>
+
+</body>
+</html>

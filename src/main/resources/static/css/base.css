@@ -1,0 +1,76 @@
+/* ==========================================================================
+   NEXUSTECH FLAGSHIP STORE - BASE & DESIGN SYSTEM
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --bg-dark: #070a13;
+    --bg-header: #090d1a;
+    --bg-card-dark: #0e1526;
+    --bg-body-light: #f8fafc;
+    --surface-white: #ffffff;
+    
+    --primary-blue: #0284c7;
+    --primary-blue-hover: #0369a1;
+    --accent-cyan: #38bdf8;
+    --accent-purple: #818cf8;
+    --accent-gold: #f59e0b;
+    --titanium-silver: #e2e8f0;
+    
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+    --text-white: #ffffff;
+    --text-light-muted: #94a3b8;
+
+    --border-light: #e2e8f0;
+    --border-dark: rgba(255, 255, 255, 0.08);
+    --border-glow: rgba(56, 189, 248, 0.3);
+
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
+    --radius-full: 9999px;
+
+    --shadow-subtle: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+    --shadow-card: 0 10px 30px -4px rgba(15, 23, 42, 0.08);
+    --shadow-hover: 0 20px 35px -5px rgba(15, 23, 42, 0.12);
+    --shadow-glow: 0 0 25px rgba(56, 189, 248, 0.25);
+
+    --font-heading: 'Plus Jakarta Sans', sans-serif;
+    --font-body: 'Inter', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--bg-body-light);
+    color: var(--text-primary);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    outline: none;
+}
+
+.container {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 24px;
+}

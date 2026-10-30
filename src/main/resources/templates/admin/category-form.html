@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title th:text="${isEdit ? 'Cập nhật danh mục' : 'Thêm danh mục'}
+                    + ' | NEXUSTECH'">
+        Danh mục | NEXUSTECH
+    </title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+          rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+
+    <style>
+        .category-form-panel {
+            max-width: 900px;
+        }
+
+        .category-form-inner {
+            padding: 28px;
+        }
+
+        .category-form-field {
+            margin-bottom: 23px;
+        }
+
+        .category-form-field label {
+            display: block;
+            margin-bottom: 9px;
+            color: #dce8f7;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .category-form-field .form-control,
+        .category-form-field .form-select {
+            min-height: 45px;
+            color: #e8f1fc;
+            background-color: #17263b;
+            border: 1px solid #40536d;
+            border-radius: 9px;
+        }
+
+        .category-form-field .form-control::placeholder {
+            color: #8095af;
+        }
+
+        .category-form-field .form-control:focus,
+        .category-form-field .form-select:focus {
+            color: #fff;
+            background-color: #192b42;
+            border-color: #42bdf5;
+            box-shadow: 0 0 0 3px rgba(66, 189, 245, .12);
+        }
+
+        .category-form-field .form-select option {
+            color: #e8f1fc;
+            background: #17263b;
+        }
+
+        .category-form-field textarea.form-control {
+            min-height: 130px;
+            resize: vertical;
+        }
+
+        .category-form-field .form-text {
+            color: #92a6bf;
+        }
+
+        .category-form-field .text-danger {
+            display: block;
+            margin-top: 6px;
+        }
+
+        .category-slug-preview {
+            margin-top: 10px;
+            padding: 10px 12px;
+            color: #a9c3df;
+            background: #17263b;
+            border: 1px solid #344d69;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+
+        .category-slug-preview code {
+            color: #62caff;
+            overflow-wrap: anywhere;
+        }
+
+        .category-form-actions {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding-top: 22px;
+            border-top: 1px solid #344760;
+        }
+
+        .category-back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: #a9c3df;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .category-back-link:hover {
+            color: #42bdf5;
+        }
+
+        @media (max-width: 576px) {
+            .category-form-inner {
+                padding: 18px;
+            }
+
+            .category-form-actions > * {
+                width: 100%;
+                justify-content: center;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body class="admin-page">
+
+<nav class="admin-navbar navbar navbar-dark">
+    <div class="container-fluid px-3 px-lg-4">
+        <a class="admin-brand" th:href="@{/admin}">
+            <span class="admin-brand-icon">
+                <i class="bi bi-cpu-fill"></i>
+            </span>
+            <span>
+                <strong>NEXUSTECH</strong>
+                <small>ADMINISTRATION</small>
+            </span>
+        </a>
+
+        <div class="d-flex align-items-center gap-2">
+            <span class="text-secondary d-none d-md-inline small">
+                <i class="bi bi-person-circle me-1"></i>
+                <span th:text="${admin.fullName}">Administrator</span>
+            </span>
+
+            <a class="btn btn-outline-light btn-sm" th:href="@{/}">
+                <i class="bi bi-house-door me-1"></i>
+                Trang chủ
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="admin-layout">
+
+    <aside class="admin-sidebar">
+        <div class="sidebar-heading">MENU QUẢN TRỊ</div>
+
+        <a class="sidebar-link" th:href="@{/admin}">
+            <i class="bi bi-grid-1x2-fill"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/users}">
+            <i class="bi bi-people-fill"></i>
+            <span>Quản lý người dùng</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/managers}">
+            <i class="bi bi-person-badge-fill"></i>
+            <span>Quản lý Manager</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/branches}">
+            <i class="bi bi-building"></i>
+            <span>Quản lý chi nhánh</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/products}">
+            <i class="bi bi-box-seam-fill"></i>
+            <span>Quản lý sản phẩm</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/products/allocate}">
+            <i class="bi bi-boxes"></i>
+            <span>Phân bổ tồn kho</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/brands}">
+            <i class="bi bi-tags-fill"></i>
+            <span>Quản lý thương hiệu</span>
+        </a>
+
+        <a class="sidebar-link active" th:href="@{/admin/categories}">
+            <i class="bi bi-grid-fill"></i>
+            <span>Quản lý danh mục</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/discounts}">
+            <i class="bi bi-ticket-perforated-fill"></i>
+            <span>Mã giảm giá</span>
+        </a>
+
+        <a class="sidebar-link" th:href="@{/admin/branch-revenues}">
+            <i class="bi bi-graph-up-arrow"></i>
+            <span>Doanh thu chi nhánh</span>
+        </a>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-footer">
+            <i class="bi bi-shield-check"></i>
+            <small>HỆ THỐNG QUẢN TRỊ</small>
+            <strong>NEXUSTECH Admin</strong>
+        </div>
+    </aside>
+
+    <main class="admin-main">
+
+        <section class="admin-page-heading">
+            <div>
+                <span class="admin-eyebrow">CATEGORY MANAGEMENT</span>
+
+                <h1 th:text="${isEdit ? 'Cập nhật danh mục'
+                                     : 'Thêm danh mục mới'}">
+                    Thêm danh mục mới
+                </h1>
+
+                <p>
+                    Xin chào,
+                    <strong th:text="${admin.fullName}">Administrator</strong>.
+                    Quản lý thông tin và trạng thái danh mục.
+                </p>
+            </div>
+        </section>
+
+        <div th:if="${errorMessage}"
+             class="branch-list-alert branch-list-alert-error"
+             role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span th:text="${errorMessage}"></span>
+        </div>
+
+        <section class="admin-section branch-list-section">
+
+            <div class="section-heading">
+                <div>
+                    <h2>Thông tin danh mục</h2>
+                    <p>Nhập tên, slug, mô tả và trạng thái hoạt động.</p>
+                </div>
+
+                <span class="chart-badge">
+                    <i class="bi bi-grid-fill"></i>
+                    Danh mục
+                </span>
+            </div>
+
+            <div class="admin-panel table-panel branch-list-panel category-form-panel">
+
+                <div class="table-header">
+                    <div>
+                        <h3 th:text="${isEdit ? 'Cập nhật thông tin'
+                                               : 'Thông tin danh mục mới'}">
+                            Thông tin danh mục mới
+                        </h3>
+
+                        <p>
+                            Các trường có dấu
+                            <span style="color:#42bdf5">*</span>
+                            là bắt buộc.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="product-form-panel category-form-inner">
+
+                    <form th:object="${form}"
+                          th:action="${isEdit}
+                              ? @{/admin/categories/{id}/edit(id=${form.id})}
+                              : @{/admin/categories/new}"
+                          method="post">
+
+                        <input type="hidden" th:field="*{id}">
+
+                        <div class="category-form-field">
+                            <label for="name">
+                                Tên danh mục
+                                <span style="color:#42bdf5">*</span>
+                            </label>
+
+                            <input id="name"
+                                   class="form-control"
+                                   th:field="*{name}"
+                                   maxlength="150"
+                                   placeholder="Ví dụ: Laptop, Điện thoại, Phụ kiện"
+                                   required>
+
+                            <div class="text-danger small"
+                                 th:errors="*{name}"></div>
+                        </div>
+
+                        <div class="category-form-field">
+                            <label for="slug">Slug</label>
+
+                            <input id="slug"
+                                   class="form-control"
+                                   th:field="*{slug}"
+                                   maxlength="180"
+                                   placeholder="Để trống để tự tạo từ tên danh mục">
+
+                            <div class="form-text">
+                                Slug được dùng trong đường dẫn thân thiện với công cụ tìm kiếm.
+                                Có thể để trống nếu hệ thống tự tạo slug.
+                            </div>
+
+                            <div class="text-danger small"
+                                 th:errors="*{slug}"></div>
+
+                            <div class="category-slug-preview">
+                                <i class="bi bi-link-45deg me-1"></i>
+                                Slug hiện tại:
+                                <code id="slugPreview"
+                                      th:text="${form.slug != null and !#strings.isEmpty(form.slug)
+                                          ? form.slug : 'Chưa xác định'}">
+                                    category
+                                </code>
+                            </div>
+                        </div>
+
+                        <div class="category-form-field">
+                            <label for="description">Mô tả</label>
+
+                            <textarea id="description"
+                                      class="form-control"
+                                      th:field="*{description}"
+                                      rows="5"
+                                      maxlength="2000"
+                                      placeholder="Nhập mô tả cho danh mục..."></textarea>
+
+                            <div class="form-text">
+                                Mô tả ngắn gọn các loại sản phẩm thuộc danh mục này.
+                            </div>
+                        </div>
+
+                        <div class="category-form-field">
+                            <label for="status">Trạng thái</label>
+
+                            <select id="status"
+                                    class="form-select"
+                                    th:field="*{status}">
+                                <option th:each="status : ${statuses}"
+                                        th:value="${status}"
+                                        th:text="${status}">
+                                </option>
+                            </select>
+
+                            <div class="form-text">
+                                Chọn trạng thái phù hợp với danh mục.
+                            </div>
+                        </div>
+
+                        <div class="category-form-actions">
+                            <button class="btn-admin-primary" type="submit">
+                                <i class="bi bi-check-lg"></i>
+
+                                <span th:text="${isEdit
+                                    ? 'Lưu thay đổi'
+                                    : 'Tạo danh mục'}">
+                                    Tạo danh mục
+                                </span>
+                            </button>
+
+                            <a class="btn-user-reset"
+                               th:href="@{/admin/categories}">
+                                <i class="bi bi-arrow-left"></i>
+                                Quay lại danh sách
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <footer class="admin-footer">
+            NEXUSTECH ADMINISTRATION
+            <span class="mx-2">•</span>
+            CATEGORY MANAGEMENT
+        </footer>
+
+    </main>
+</div>
+
+<script>
+    (() => {
+        const nameInput = document.getElementById('name');
+        const slugInput = document.getElementById('slug');
+        const slugPreview = document.getElementById('slugPreview');
+
+        if (!nameInput || !slugInput || !slugPreview) return;
+
+        // Hiển thị slug nhập vào hoặc slug dự kiến từ tên danh mục.
+        // Việc lưu và tạo slug chính thức vẫn do backend xử lý.
+        function normalizeSlug(value) {
+            return value
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/đ/g, 'd')
+                .replace(/Đ/g, 'D')
+                .toLowerCase()
+                .trim()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+        }
+
+        function updateSlugPreview() {
+            const manualSlug = slugInput.value.trim();
+            const value = manualSlug || normalizeSlug(nameInput.value);
+
+            slugPreview.textContent = value || 'Chưa xác định';
+        }
+
+        nameInput.addEventListener('input', updateSlugPreview);
+        slugInput.addEventListener('input', updateSlugPreview);
+
+        updateSlugPreview();
+    })();
+</script>
+
+</body>
+</html>

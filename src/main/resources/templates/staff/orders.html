@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đơn Quản Lý - <th:block th:text="${dashboard.branchName}">NexusTech Flagship</th:block> | NEXUSTECH Staff</title>
+    <!-- Core Brand Stylesheet from Home -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <!-- Dedicated Staff Portal Stylesheet -->
+    <link rel="stylesheet" th:href="@{/css/staff.css}">
+    <style>
+        body.manager-page .table-section-card {
+            background: #182438 !important;
+            border: 1px solid #405570 !important;
+            border-radius: 14px !important;
+            overflow: hidden !important;
+        }
+        body.manager-page .table-responsive-wrap {
+            background: #182438 !important;
+        }
+        body.manager-page .staff-white-table {
+            background: #182438 !important;
+            color: #ffffff !important;
+            width: 100% !important;
+        }
+        body.manager-page .staff-white-table thead th {
+            background: #141f33 !important;
+            color: #94a3b8 !important;
+            border-bottom: 1px solid #405570 !important;
+        }
+        body.manager-page .staff-white-table tbody,
+        body.manager-page .staff-white-table tbody tr,
+        body.manager-page .staff-white-table tbody td {
+            background: #1d2b42 !important;
+            color: #ffffff !important;
+            border-bottom: 1px solid #405570 !important;
+        }
+        body.manager-page .staff-white-table tbody tr:hover,
+        body.manager-page .staff-white-table tbody tr:hover td {
+            background: #253754 !important;
+        }
+    </style>
+</head>
+<body class="manager-page">
+
+    <!-- ==========================================
+         1. TOP NAVBAR (HEADING VẪN GIỮ 2 CHỨC NĂNG)
+         ========================================== -->
+    <header class="top-navbar staff-top-navbar">
+        <div class="container navbar-inner">
+            
+            <!-- Brand Logo for Staff Portal -->
+            <a th:href="@{/staff/dashboard}" class="brand-logo" title="Cổng Nhân Viên Chi Nhánh">
+                <div class="brand-icon">⚡</div>
+                <div class="brand-title-wrap">
+                    <span class="brand-name">NEXUSTECH</span>
+                    <span class="brand-tagline" style="color: #10b981; font-weight: 800;">STAFF CRM • CHI NHÁNH</span>
+                </div>
+            </a>
+
+
+
+            <!-- User Auth / Profile Box -->
+            <div class="user-profile-section">
+                <div class="user-account-box">
+                    <div class="user-avatar-ring">
+                        <img th:src="${currentUser.avatarUrl != null ? currentUser.avatarUrl : 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=150&q=80'}" 
+                             alt="Staff Avatar" class="user-avatar"
+                             onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=150&q=80';">
+                        <div class="vip-badge-dot" style="background: #10b981;" title="Nhân viên trực tuyến"></div>
+                    </div>
+                    <div class="user-details">
+                        <span class="user-name-tag" th:text="${currentUser.fullName}">Nhân viên</span>
+                        <span class="user-role-tag" style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; margin-top: 1px;">
+                            <span style="color: #94a3b8; font-size: 10px;">Quyền:</span>
+                            <span class="user-role-badge badge-role-staff" th:text="${currentUser.role}">STAFF</span>
+                        </span>
+                    </div>
+
+                    <!-- Dropdown Menu -->
+                    <div class="user-dropdown-menu">
+                        <div class="dropdown-role-box bg-role-staff">
+                            <span class="dropdown-role-title">TÀI KHOẢN NHÂN VIÊN:</span>
+                            <strong class="dropdown-role-name" th:text="${currentUser.fullName}">Nhân viên</strong>
+                            <div class="dropdown-role-sub" th:text="${currentUser.email}">staff@nexustech.vn</div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a th:href="@{/staff/dashboard}" class="dropdown-link">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                            </svg>
+                            <span>Trang Chủ</span>
+                        </a>
+                        <a th:href="@{/staff/orders}" class="dropdown-link" style="color: #10b981; font-weight: 700;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 11l3 3L22 4"></path>
+                                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                            </svg>
+                            <span>Đơn Quản Lý</span>
+                        </a>
+                        <a th:href="@{/staff/pending-orders}" class="dropdown-link">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                <line x1="8" y1="21" x2="16" y2="21"></line>
+                                <line x1="12" y1="17" x2="12" y2="21"></line>
+                            </svg>
+                            <span>Đơn Chờ Nhận Chi Nhánh</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a th:href="@{/logout}" class="dropdown-link logout-link">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            <span>Đăng xuất</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- ==========================================
+         2. MAIN STAFF PORTAL (SIDEBAR + CONTENT)
+         ========================================== -->
+    <div class="staff-portal-body">
+        <div class="container staff-layout-container">
+
+            <!-- CỘT DỌC BÊN TRÁI: STAFF SIDEBAR -->
+            <aside class="staff-sidebar">
+                
+                <!-- Thẻ Thông Tin Nhân Viên & Chi Nhánh Trực Thuộc -->
+                <div class="sidebar-staff-card">
+                    <div class="sidebar-staff-avatar-wrap">
+                        <img th:src="${staff.avatarUrl != null and !staff.avatarUrl.isEmpty() ? staff.avatarUrl : 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80'}"
+                             alt="Staff Avatar" class="sidebar-staff-avatar"
+                             onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80';">
+                        <span class="sidebar-online-status" title="Đang trực tuyến"></span>
+                    </div>
+                    <div class="sidebar-staff-meta">
+                        <h3 class="sidebar-staff-name" th:text="${staff.fullName}">Nhân viên</h3>
+                        <div class="sidebar-staff-role-badge">NHÂN VIÊN CHI NHÁNH</div>
+                        
+                        <div class="sidebar-staff-info-line" style="font-weight: 700; color: #38bdf8;" title="Tên chi nhánh">
+                            <span>🏢</span>
+                            <span th:text="${dashboard.branchName}">Chi nhánh TP.HCM</span>
+                        </div>
+                        <div class="sidebar-staff-info-line" style="font-size: 11.5px; opacity: 0.85;" title="Địa chỉ chi nhánh">
+                            <span>📍</span>
+                            <span th:text="${dashboard.branchAddress}">Quận 1, TP.HCM</span>
+                        </div>
+                        <div class="sidebar-staff-info-line" title="Email chi nhánh">
+                            <span>✉️</span>
+                            <span th:text="${dashboard.branchEmail != null ? dashboard.branchEmail : 'branch@nexustech.vn'}">branch@nexustech.vn</span>
+                        </div>
+                        <div class="sidebar-staff-info-line" title="Số điện thoại chi nhánh">
+                            <span>📞</span>
+                            <span th:text="${dashboard.branchPhone != null ? dashboard.branchPhone : 'Chưa cập nhật'}">0900 000 003</span>
+                        </div>
+                        <div class="sidebar-staff-id-tag">
+                            Mã Nhân Viên: <strong th:text="'NV-' + ${staff.id}">NV-1</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DANH MỤC QUẢN LÝ (CÁC CHỨC NĂNG SẮP XẾP THEO CỘT DỌC) -->
+                <nav class="sidebar-nav-menu">
+                    <div class="sidebar-nav-heading">DANH MỤC QUẢN LÝ</div>
+
+                    <a th:href="@{/staff/dashboard}" class="sidebar-nav-link">
+                        <span class="nav-left">
+                            <span class="nav-icon" style="font-size: 16px;">📊</span>
+                            <span class="nav-label">Trang Chủ</span>
+                        </span>
+                    </a>
+
+                    <a th:href="@{/staff/pending-orders}" class="sidebar-nav-link">
+                        <span class="nav-left">
+                            <span class="nav-icon" style="font-size: 16px;">📥</span>
+                            <span class="nav-label">Đơn Chờ Nhận</span>
+                        </span>
+                        <span class="nav-badge" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;" 
+                              th:if="${dashboard != null and dashboard.pendingOrders > 0}" 
+                              th:text="${dashboard.pendingOrders}">0</span>
+                    </a>
+
+                    <a th:href="@{/staff/orders}" class="sidebar-nav-link active">
+                        <span class="nav-left">
+                            <span class="nav-icon" style="font-size: 16px;">📦</span>
+                            <span class="nav-label">Đơn Quản Lý</span>
+                        </span>
+                        <span class="nav-badge" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8;" 
+                              th:if="${dashboard != null}"
+                              th:text="${dashboard.myAssignedOrdersCount}">0</span>
+                    </a>
+
+                    <a th:href="@{/staff/returns}" class="sidebar-nav-link">
+                        <span class="nav-left">
+                            <span class="nav-icon" style="font-size: 16px;">🔄</span>
+                            <span class="nav-label">Hoàn/Trả Hàng</span>
+                        </span>
+                    </a>
+
+                    <a th:href="@{/staff/chat}" class="sidebar-nav-link">
+                        <span class="nav-left">
+                            <span class="nav-icon" style="font-size: 16px;">💬</span>
+                            <span class="nav-label">Chat Khách Hàng</span>
+                        </span>
+                    </a>
+                </nav>
+
+            </aside>
+
+            <!-- CỘT NỘI DUNG BÊN PHẢI -->
+            <main class="staff-white-panel">
+
+                <!-- Flash Alerts -->
+                <div th:if="${successMessage}" class="alert alert-success" 
+                     style="background: #f0fdf4; border: 1px solid #86efac; color: #166534; padding: 14px 18px; border-radius: 10px; margin-bottom: 20px; font-size: 13.5px; font-weight: 600;" 
+                     th:text="${successMessage}">
+                </div>
+                <div th:if="${errorMessage}" class="alert alert-danger" 
+                     style="background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; padding: 14px 18px; border-radius: 10px; margin-bottom: 20px; font-size: 13.5px; font-weight: 600;" 
+                     th:text="${errorMessage}">
+                </div>
+
+                <!-- Top Header -->
+                <div class="white-panel-header">
+                    <div>
+                        <div class="panel-subtitle">DANH SÁCH ĐƠN HÀNG NHÂN VIÊN TIẾP NHẬN &amp; XỬ LÝ</div>
+                        <h1 class="panel-title">
+                            <span>Đơn Hàng Tôi Quản Lý</span>
+                            <span class="branch-code-pill" th:text="${dashboard.branchName}">Chi nhánh TP.HCM</span>
+                        </h1>
+                        <div class="panel-meta-desc" style="color: #cbd5e1;">
+                            Bạn đang phụ trách xử lý <strong style="color: #38bdf8; font-weight: 800;" th:text="${page.totalElements}">0</strong> đơn hàng tại chi nhánh
+                        </div>
+                    </div>
+                    <div class="panel-header-actions">
+                        <a th:href="@{/staff/pending-orders}" class="btn-primary-emerald" style="padding: 9px 18px; font-size: 13px; text-decoration: none; font-weight: 700;">
+                            📥 Nhận Thêm Đơn Chờ (<th:block th:text="${dashboard.pendingOrders}">0</th:block>)
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Filter Toolbar: Trạng Thái + Tìm Kiếm + DateTime -->
+                <div class="orders-filter-container">
+                    <form th:action="@{/staff/orders}" method="GET" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 0;" id="managedOrdersFilterForm">
+                        
+                        <!-- Lọc Trạng Thái Đơn Của Mình Quản Lý -->
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <select name="status" class="crm-time-select" style="font-weight: 700; min-width: 170px;" onchange="document.getElementById('managedOrdersFilterForm').submit()">
+                                <option value="" th:selected="${selectedStatus == null}">-- Tất cả trạng thái --</option>
+                                <option value="CONFIRMED" th:selected="${selectedStatus != null and selectedStatus.name() == 'CONFIRMED'}">📦 Đã tiếp nhận (Chờ đóng gói)</option>
+                                <option value="SHIPPING" th:selected="${selectedStatus != null and selectedStatus.name() == 'SHIPPING'}">🚚 Đang giao hàng</option>
+                                <option value="DELIVERED" th:selected="${selectedStatus != null and selectedStatus.name() == 'DELIVERED'}">✅ Đã giao thành công</option>
+                                <option value="CANCELLED" th:selected="${selectedStatus != null and selectedStatus.name() == 'CANCELLED'}">❌ Đã hủy</option>
+                            </select>
+                        </div>
+
+                        <!-- Search Box -->
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <input type="text" name="keyword" th:value="${keyword}" placeholder="Mã đơn, tên khách, SĐT..."
+                                   class="crm-search-input">
+                        </div>
+
+                        <!-- DateTime Filter Preset -->
+                        <select name="timePreset" class="crm-time-select" onchange="handleManagedOrdersPresetChange(this.value)">
+                            <option value="all" th:selected="${selectedTimePreset == null or selectedTimePreset == 'all'}">Toàn thời gian</option>
+                            <option value="today" th:selected="${selectedTimePreset == 'today'}">Hôm nay</option>
+                            <option value="yesterday" th:selected="${selectedTimePreset == 'yesterday'}">Hôm qua</option>
+                            <option value="last7days" th:selected="${selectedTimePreset == 'last7days'}">7 ngày qua</option>
+                            <option value="thisMonth" th:selected="${selectedTimePreset == 'thisMonth'}">Tháng này</option>
+                            <option value="custom" th:selected="${selectedTimePreset == 'custom'}">Tùy chọn ngày giờ...</option>
+                        </select>
+
+                        <!-- Custom Datetime From -->
+                        <div class="crm-datetime-group" id="ordersFromGroup" th:style="${selectedTimePreset == 'custom'} ? 'display: inline-flex;' : 'display: none;'">
+                            <span class="crm-datetime-label" style="color: #cbd5e1;">Từ:</span>
+                            <input type="datetime-local" name="fromDateTime" th:value="${fromDateTime}" class="crm-datetime-input">
+                        </div>
+
+                        <!-- Custom Datetime To -->
+                        <div class="crm-datetime-group" id="ordersToGroup" th:style="${selectedTimePreset == 'custom'} ? 'display: inline-flex;' : 'display: none;'">
+                            <span class="crm-datetime-label" style="color: #cbd5e1;">Đến:</span>
+                            <input type="datetime-local" name="toDateTime" th:value="${toDateTime}" class="crm-datetime-input">
+                        </div>
+
+                        <button type="submit" class="btn-primary-emerald" style="padding: 7px 16px; font-size: 13px; cursor: pointer; border: none; border-radius: 6px; font-weight: 600; background: #10b981; color: #fff;">
+                            Tìm kiếm & Lọc
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Bảng Danh Sách Đơn Của Tôi Quản Lý -->
+                <div class="table-section-card">
+                    <div class="table-responsive-wrap">
+                        <table class="staff-white-table">
+                            <thead>
+                                <tr>
+                                    <th>Mã Đơn</th>
+                                    <th>Khách Hàng & SĐT</th>
+                                    <th>Địa Chỉ Nhận Hàng</th>
+                                    <th>Tổng Tiền</th>
+                                    <th>Thanh Toán</th>
+                                    <th>Trạng Thái</th>
+                                    <th>Thời Gian Đặt</th>
+                                    <th style="text-align: right;">Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(orders)}">
+                                    <td colspan="8" style="text-align: center; padding: 48px; color: #94a3b8;">
+                                        Bạn chưa có đơn hàng nào theo điều kiện lọc này.
+                                        <div style="margin-top: 10px;">
+                                            <a th:href="@{/staff/pending-orders}" style="color: #38bdf8; font-weight: 700; text-decoration: underline;">
+                                                Bấm vào đây để sang Đơn Chờ Nhận Chi Nhánh tiếp nhận đơn &rarr;
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr th:each="ord : ${orders}">
+                                    <td>
+                                        <a th:href="@{'/staff/orders/' + ${ord.id}}" class="order-code-badge" th:text="${ord.orderCode}">ORD-2026-0001</a>
+                                        <div th:if="${ord.status == T(example.com.ltw.order.entity.OrderStatus).CONFIRMED}" style="font-size: 11px; color: #34d399; font-weight: 600; margin-top: 3px;">
+                                            Cần đóng gói
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="customer-info-line" th:text="${ord.receiverName}">Nguyễn Văn A</div>
+                                        <div class="customer-sub-line" th:text="${ord.receiverPhone}">0901234567</div>
+                                    </td>
+                                    <td>
+                                        <span class="customer-address-line" style="color: #cbd5e1; font-size: 12.5px;" th:text="${(ord.shippingStreetAddress != null ? ord.shippingStreetAddress : '') + (ord.shippingWard != null ? ', ' + ord.shippingWard : '') + (ord.shippingDistrict != null ? ', ' + ord.shippingDistrict : '')}">12 Lê Lợi, Quận 1</span>
+                                    </td>
+                                    <td>
+                                        <span class="order-amount-tag" th:text="${#numbers.formatDecimal(ord.finalAmount, 0, 'POINT', 0, 'COMMA') + '₫'}">34.990.000₫</span>
+                                    </td>
+                                    <td>
+                                        <span th:class="'badge-payment payment-' + ${ord.paymentStatus}" th:text="|${ord.paymentMethod} • ${ord.paymentStatus}|">COD • UNPAID</span>
+                                    </td>
+                                    <td>
+                                        <span th:class="'badge-order-status status-' + ${ord.status}" th:text="${ord.status}">CONFIRMED</span>
+                                    </td>
+                                    <td class="order-date-cell" style="color: #94a3b8; font-size: 12px;" th:text="${#temporals.format(ord.createdAt, 'dd/MM/yyyy HH:mm')}">19/10/2026 09:30</td>
+                                    <td style="text-align: right; white-space: nowrap;">
+                                        <div style="display: inline-flex; gap: 6px; align-items: center;">
+                                            
+                                            <!-- Nếu CONFIRMED: Nút Đóng Gói & Phân Công Shipper -->
+                                            <a th:if="${ord.status == T(example.com.ltw.order.entity.OrderStatus).CONFIRMED}"
+                                               th:href="@{'/staff/orders/' + ${ord.id}}" class="btn-action-assign" style="text-decoration: none;" title="Đóng gói & Phân công Shipper">
+                                                Đóng gói và giao
+                                            </a>
+
+                                            <!-- In Hóa Đơn -->
+                                            <a th:href="@{'/staff/orders/' + ${ord.id} + '/invoice'}" target="_blank"
+                                               class="btn-action-invoice" title="In Hóa Đơn / Phiếu Xuất">
+                                                In
+                                            </a>
+
+                                            <!-- Chi Tiết Đơn Hàng -->
+                                            <a th:href="@{'/staff/orders/' + ${ord.id}}" class="btn-action-view" title="Xem Chi Tiết Đơn Hàng">
+                                                Chi Tiết
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div th:if="${page.totalPages > 1}" style="display: flex; justify-content: center; gap: 8px; padding: 20px; border-top: 1px solid #405570;">
+                        <a th:if="${page.hasPrevious()}" 
+                           th:href="@{/staff/orders(page=${page.number - 1}, status=${selectedStatus}, keyword=${keyword}, timePreset=${selectedTimePreset}, fromDateTime=${fromDateTime}, toDateTime=${toDateTime})}" 
+                           class="btn-secondary-light">&larr; Trang trước</a>
+                        
+                        <span style="display: flex; align-items: center; padding: 0 12px; font-weight: 700; color: #cbd5e1; font-size: 13px;">
+                            Trang <th:block th:text="${page.number + 1}"></th:block> / <th:block th:text="${page.totalPages}"></th:block>
+                        </span>
+
+                        <a th:if="${page.hasNext()}" 
+                           th:href="@{/staff/orders(page=${page.number + 1}, status=${selectedStatus}, keyword=${keyword}, timePreset=${selectedTimePreset}, fromDateTime=${fromDateTime}, toDateTime=${toDateTime})}" 
+                           class="btn-secondary-light">Trang sau &rarr;</a>
+                    </div>
+                </div>
+
+            </main>
+
+        </div>
+    </div>
+
+    <!-- Main Footer -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-bottom">
+                &copy; 2026 NEXUSTECH FLAGSHIP STORE. Tất cả các quyền được bảo lưu.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function handleManagedOrdersPresetChange(val) {
+            var fromGroup = document.getElementById('ordersFromGroup');
+            var toGroup = document.getElementById('ordersToGroup');
+            if (val === 'custom') {
+                if (fromGroup) fromGroup.style.display = 'inline-flex';
+                if (toGroup) toGroup.style.display = 'inline-flex';
+            } else {
+                if (fromGroup) fromGroup.style.display = 'none';
+                if (toGroup) toGroup.style.display = 'none';
+                var form = document.getElementById('managedOrdersFilterForm');
+                if (form) form.submit();
+            }
+        }
+    </script>
+</body>
+</html>

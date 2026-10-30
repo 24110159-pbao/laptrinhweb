@@ -57,6 +57,10 @@ public class OrderItem {
     @Column(nullable = false, length = 255)
     private String variantSnapshot;
 
+    @Size(max = 1000)
+    @Column(length = 1000)
+    private String imageUrlSnapshot;
+
     @Positive
     @Column(nullable = false)
     private int quantity;
@@ -70,6 +74,9 @@ public class OrderItem {
     @DecimalMin("0.0")
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal subtotal;
+
+    @Column(nullable = false, precision = 15, scale = 2)
+    private BigDecimal discountAmount = BigDecimal.ZERO;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
