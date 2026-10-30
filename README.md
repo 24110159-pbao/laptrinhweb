@@ -172,6 +172,10 @@ Một số kiểm thử tích hợp có thể cần database và cấu hình ứ
 - **Chat:** tải hội thoại/lịch sử qua HTTP; giao diện gửi tin bằng HTTP và nhận tin mới qua WebSocket.
 - **So sánh sản phẩm:** chọn hai điện thoại cùng danh mục để đối chiếu thông số, giá và tình trạng tồn kho.
 - **Vận chuyển:** tích hợp GHN cho việc tạo vận đơn; callback vận chuyển được nhận tại `/shipping/ghn/webhook`.
+- **AI CHATBOX cho admin** tích hợp gọi api gemini để thực hiện lên truy vấn từ database.
+- **Biểu đồ thống kê** giúp admin và manager có thể thống kê trực quan trông qua bảng
+- **Giữ đơn đang đặt hàng trong 15p** giúp khách hàng ko phải tạo lại đơn hàng trong 15p
+  
 
 ## Cấu trúc thư mục chính
 
